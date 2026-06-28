@@ -1571,7 +1571,9 @@ function choiceLbl(entry){
   }
   const raw=(qMode==='ej'?entry.ja:entry.en)||'';
   let s=raw;
-  // 先頭の「= word 」形式（同義語）を除去
+  // 先頭の「= word1 word2 の略。」形式（複数語略語）を除去してから残りを処理
+  s=s.replace(/^=\s*(?:[A-Za-z0-9\-\/]+\s+)+の略[。]?\s*/,'');
+  // 先頭の「= word 」形式（同義語・一語）を除去
   s=s.replace(/^=\s*\S+\s+/,'');
   // 先頭の「（追記）」を除去
   s=s.replace(/^（追記）/,'');
@@ -1799,7 +1801,7 @@ function dailyChoiceLbl(entry,mode){
   }
   const raw=(mode==='ej'?entry.ja:entry.en)||'';
   let s=raw;
-  s=s.replace(/^=\s*\S+\s+/,'').replace(/^（追記）/,'').replace(/^[0-9０-９]+[.．。、]\s*/,'');
+  s=s.replace(/^=\s*(?:[A-Za-z0-9\-\/]+\s+)+の略[。]?\s*/,'').replace(/^=\s*\S+\s+/,'').replace(/^（追記）/,'').replace(/^[0-9０-９]+[.．。、]\s*/,'');
   s=s.replace(/^（[^）]{8,}）\s*/,'');
   const m=s.match(/^([^。\n]+。?)/);if(m) s=m[1];
   s=s.replace(/[“”„][^””„]*[“”„]/g,'').trim().replace(/\s*cf\..*$/i,'').replace(/\s*e\.g\..*$/i,'').replace(/\s*[；：].*$/,'').replace(/[。、\s]+$/,'').trim();
