@@ -1507,12 +1507,16 @@ function nextQ(){
     correct=pool[Math.floor(Math.random()*pool.length)];
   }
   // 選択肢として表示できるか判定
+  const _jaRe=/[ぁ-んァ-ヶー一-龯]/;
   function hasGoodLbl(e){
     if(isPersonName(e)) return false;
     if(e.cat==='abbr') return !!(e.def&&e.def.length>=4);
     const raw=(qMode==='ej'?e.ja:e.en)||'';
     const s=raw.replace(/^=\s*\S+\s+/,'').replace(/^（追記）/,'').replace(/^（[^）]{8,}）\s*/,'').trim();
-    return s.length>=4;
+    if(s.length<4) return false;
+    // EJモード: 日本語が含まれない選択肢は除外（英語シノニム参照のみのエントリ対策）
+    if(qMode==='ej' && !_jaRe.test(s)) return false;
+    return true;
   }
   const used=new Set([correct]);const wrongs=[];let t=0;
   const cLblC=choiceLbl(correct);const cLen=cLblC.length;const cFirst=cLblC[0]||'';
@@ -1579,6 +1583,11 @@ function choiceLbl(entry){
   s=s.replace(/[。、\s]+$/,'').trim();
   // 40文字を超えたら省略
   if(s.length>40) s=s.substring(0,40)+'…';
+  // EJモードで日本語が含まれない場合はraw中の日本語部分を抽出して使用
+  if(qMode==='ej' && s && !/[ぁ-んァ-ヶー一-龯]/.test(s)){
+    const jaM=raw.match(/[ぁ-んァ-ヶー一-龯][^。\n]*/);
+    if(jaM) s=jaM[0].replace(/\s*cf\..*$/i,'').replace(/[。、\s]+$/,'').trim().substring(0,40);
+  }
   return s||raw.replace(/[。、\n].*/,'').trim().substring(0,40)||raw.substring(0,40);
 }
 function showFlash(ok){
@@ -1692,12 +1701,15 @@ function isPersonName2(e,mode){
   const s=raw.replace(/[。参照\s]/g,'');
   return s.length>0&&/^[ァ-ヶーｦ-ﾟ・＝]+$/.test(s);
 }
+const _jaRe2=/[ぁ-んァ-ヶー一-龯]/;
 function hasGoodLbl2(e,mode){
   if(isPersonName2(e,mode)) return false;
   if(e.cat==='abbr') return !!(e.def&&e.def.length>=4);
   const raw=(mode==='ej'?e.ja:e.en)||'';
   const s=raw.replace(/^=\s*\S+\s+/,'').replace(/^（追記）/,'').replace(/^（[^）]{8,}）\s*/,'').trim();
-  return s.length>=4;
+  if(s.length<4) return false;
+  if(mode==='ej' && !_jaRe2.test(s)) return false;
+  return true;
 }
 function _hideDailyAll(){
   ['daily-start','daily-prog-bar','daily-quiz-area','daily-result','daily-cal-area']
