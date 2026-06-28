@@ -1625,7 +1625,9 @@ function pick(btn,ok,correct){
   if(card&&correct){
     const isEJ=qMode==='ej';
     const head=isEJ?correct.en:correct.ja;
-    const defText=isEJ?correct.ja:(correct.en+'\n\n'+(correct.def||'')).trim();
+    const defText=isEJ
+      ?(correct.cat==='abbr'?correct.def:correct.ja)
+      :(correct.en+'\n\n'+(correct.def||'')).trim();
     card.innerHTML=
       `<div class="ddc-en">${isEJ?'英和':'和英'}</div>`+
       `<div class="ddc-head">${esc(head)}</div>`+
@@ -1821,7 +1823,9 @@ function dailyPick(btn,ok,q,correct,chosenIdx){
   if(entry){
     const isEJ=q.type==='ej';
     const head=isEJ?entry.en:entry.ja;
-    const defText=isEJ?entry.ja:(entry.en+'\n\n'+(entry.def||'')).trim();
+    const defText=isEJ
+      ?(entry.cat==='abbr'?entry.def:entry.ja)
+      :(entry.en+'\n\n'+(entry.def||'')).trim();
     card.innerHTML=
       `<div class="ddc-en">${isEJ?'英和':'和英'}</div>`+
       `<div class="ddc-head">${esc(head)}</div>`+
