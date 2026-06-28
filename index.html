@@ -1520,11 +1520,14 @@ function nextQ(){
   }
   const used=new Set([correct]);const wrongs=[];let t=0;
   const cLblC=choiceLbl(correct);const cLen=cLblC.length;const cFirst=cLblC[0]||'';
+  const cEnFirst=(correct.en||'').split(/[,\/]/)[0].trim().toLowerCase();
   while(wrongs.length<4&&t++<600){
     const c=pool[Math.floor(Math.random()*pool.length)];
     if(!used.has(c)&&hasGoodLbl(c)){
       const lbl=choiceLbl(c);
       if(lbl.trim().length<2) continue;
+      // JEモード: 正解と英語先頭語が同じ項目は選択肢に出さない（紛らわしすぎる）
+      if(qMode==='je'&&cEnFirst.length>=2){const eF=(c.en||'').split(/[,\/]/)[0].trim().toLowerCase();if(eF===cEnFirst) continue;}
       // 最初の350回は「似た選択肢」を優先（長さが近い or 頭文字一致）
       if(t<350){
         const lenOk=cLen>0&&Math.min(cLen,lbl.length)/Math.max(cLen,lbl.length)>0.45;
@@ -1677,12 +1680,15 @@ function makeDailyQuestions(){
     const pool=(q.type==='ej'?ejPool:jePool).filter((_,i)=>i!==q.idx);
     const wrongs=[];const used=new Set([q.idx]);let t=0;
     const dLbl=dailyChoiceLbl(correct,q.type);const dLen=dLbl.length;const dFirst=dLbl[0]||'';
+    const dEnFirst=(correct.en||'').split(/[,\/]/)[0].trim().toLowerCase();
     while(wrongs.length<3&&t++<600){
       const ri=Math.floor(Math.random()*pool.length);
       const orig=q.type==='ej'?ejPool.indexOf(pool[ri]):jePool.indexOf(pool[ri]);
       if(!used.has(orig)&&hasGoodLbl2(pool[ri],q.type)){
         const lbl=dailyChoiceLbl(pool[ri],q.type);
         if(lbl.trim().length<2) continue;
+        // JEモード: 正解と英語先頭語が同じ項目は選択肢に出さない
+        if(q.type==='je'&&dEnFirst.length>=2){const eF=(pool[ri].en||'').split(/[,\/]/)[0].trim().toLowerCase();if(eF===dEnFirst) continue;}
         if(t<350){
           const lenOk=dLen>0&&Math.min(dLen,lbl.length)/Math.max(dLen,lbl.length)>0.45;
           const firstOk=dFirst&&lbl[0]===dFirst;
