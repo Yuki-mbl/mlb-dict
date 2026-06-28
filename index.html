@@ -1549,7 +1549,7 @@ function renderQ(){
   choices.forEach(ch=>{
     const btn=document.createElement('button');
     btn.className='choice';btn.textContent=choiceLbl(ch);
-    btn.onclick=()=>pick(btn,ch===correct||isEquivAnswer(ch,correct,qMode),correct);
+    btn.onclick=()=>pick(btn,ch===correct,correct);
     grid.appendChild(btn);
   });
 }
@@ -1597,15 +1597,6 @@ function showFlash(ok){
   clearTimeout(el._t1);clearTimeout(el._t2);
   el._t1=setTimeout(()=>el.classList.replace('show','hide'),800);
   el._t2=setTimeout(()=>{el.className='';mk.textContent='';},1100);
-}
-function isEquivAnswer(chosen,correct,mode){
-  if(chosen===correct) return true;
-  if(mode==='je'){
-    const cFirst=(correct.en||'').split(/[,、\/]/)[0].trim().toLowerCase();
-    const chFirst=(chosen.en||'').split(/[,、\/]/)[0].trim().toLowerCase();
-    return cFirst.length>=2&&cFirst===chFirst;
-  }
-  return false;
 }
 function pick(btn,ok,correct){
   if(ans) return;ans=true;
@@ -1774,7 +1765,7 @@ function renderDailyQ(){
     const btn=document.createElement('button');
     btn.className='choice';
     btn.textContent=dailyChoiceLbl(entry,q.type);
-    btn.onclick=()=>dailyPick(btn,ci===q.correct||isEquivAnswer(entry,correct,q.type),q,correct,ci);
+    btn.onclick=()=>dailyPick(btn,ci===q.correct,q,correct,ci);
     grid.appendChild(btn);
   });
 }
