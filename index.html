@@ -1550,8 +1550,10 @@ function renderQ(){
   $('next-btn').disabled=true;
   const grid=$('choices');grid.innerHTML='';
   choices.forEach(ch=>{
+    const lbl=choiceLbl(ch);
+    if(!lbl.trim()&&ch!==correct) return;
     const btn=document.createElement('button');
-    btn.className='choice';btn.textContent=choiceLbl(ch);
+    btn.className='choice';btn.textContent=lbl;
     btn.onclick=()=>pick(btn,ch===correct,correct);
     grid.appendChild(btn);
   });
@@ -1770,9 +1772,11 @@ function renderDailyQ(){
   const grid=$('daily-choices');grid.innerHTML='';
   q.choices.forEach(ci=>{
     const entry=arr[ci];
+    const lbl=dailyChoiceLbl(entry,q.type);
+    if(!lbl.trim()&&ci!==q.correct) return;
     const btn=document.createElement('button');
     btn.className='choice';
-    btn.textContent=dailyChoiceLbl(entry,q.type);
+    btn.textContent=lbl;
     btn.onclick=()=>dailyPick(btn,ci===q.correct,q,correct,ci);
     grid.appendChild(btn);
   });
