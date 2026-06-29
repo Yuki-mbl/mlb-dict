@@ -1507,8 +1507,10 @@ function nextQ(){
   } else {
     correct=pool[Math.floor(Math.random()*pool.length)];
   }
-  // 正解ラベルが空のエントリは出題しない（defのないabbrなど）
-  if(!choiceLbl(correct).trim()){renderQ();return;}
+  // 正解ラベルが空、またはEJモードで日本語を含まない場合は出題しない
+  const _cLbl=choiceLbl(correct);
+  if(!_cLbl.trim()){renderQ();return;}
+  if(qMode==='ej'&&!/[ぁ-んァ-ヶー一-龯]/.test(_cLbl)){renderQ();return;}
   // 選択肢として表示できるか判定
   const _jaRe=/[ぁ-んァ-ヶー一-龯]/;
   function hasGoodLbl(e){
