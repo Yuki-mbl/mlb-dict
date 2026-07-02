@@ -1405,20 +1405,16 @@ function choiceLbl(entry){
   s=s.replace(/\s*cf\..*$/i,'').replace(/\s*e\.g\..*$/i,'');
   // ；：以降除去
   s=s.replace(/\s*[；：].*$/,'');
-  // 末尾の句点・読点・空白を除去
+  // 末尾の句点・読点・空白を除去（読点での途中カットはしない＝意味が途切れるため）
   s=s.replace(/[。、\s]+$/,'').trim();
-  // 読点（、）で区切られた最初の節のみ使用（長すぎる選択肢を防ぐ）
-  const kuIdx=s.indexOf('、');
-  if(kuIdx>4) s=s.substring(0,kuIdx);
-  s=s.replace(/[。、\s]+$/,'').trim();
-  // 40文字を超えたら省略
-  if(s.length>40) s=s.substring(0,40)+'…';
+  // 60文字を超えたら省略（読点区切りの完全な文を保持）
+  if(s.length>60) s=s.substring(0,60)+'…';
   // EJモードで日本語が含まれない場合はraw中の日本語部分を抽出して使用
   if(qMode==='ej' && s && !/[ぁ-んァ-ヶー一-龯]/.test(s)){
     const jaM=raw.match(/[ぁ-んァ-ヶー一-龯][^。\n]*/);
-    if(jaM) s=jaM[0].replace(/\s*cf\..*$/i,'').replace(/[。、\s]+$/,'').trim().substring(0,40);
+    if(jaM) s=jaM[0].replace(/\s*cf\..*$/i,'').replace(/[。\s]+$/,'').trim().substring(0,60);
   }
-  return s||raw.replace(/[。、\n].*/,'').trim().substring(0,40)||raw.substring(0,40);
+  return s||raw.replace(/[。\n].*/,'').trim().substring(0,60)||raw.substring(0,60);
 }
 // ── キャラクター表情切替 ──
 const CHAR_IMG={def:'images/デフォ.png',joy:'images/よろこび.png',bat:'images/バッター.png',pit:'images/ピッチャー.png'};
@@ -1633,11 +1629,8 @@ function dailyChoiceLbl(entry,mode){
   s=s.replace(/^（[^）]{8,}）\s*/,'');
   const m=s.match(/^([^。\n]+。?)/);if(m) s=m[1];
   s=s.replace(/[“”„][^””„]*[“”„]/g,'').trim().replace(/\s*cf\..*$/i,'').replace(/\s*e\.g\..*$/i,'').replace(/\s*[；：].*$/,'').replace(/[。、\s]+$/,'').trim();
-  const kuIdx=s.indexOf('、');
-  if(kuIdx>4) s=s.substring(0,kuIdx);
-  s=s.replace(/[。、\s]+$/,'').trim();
-  if(s.length>40) s=s.substring(0,40)+'…';
-  return s||raw.replace(/[。、\n].*/,'').trim().substring(0,40)||raw.substring(0,40);
+  if(s.length>60) s=s.substring(0,60)+'…';
+  return s||raw.replace(/[。\n].*/,'').trim().substring(0,60)||raw.substring(0,60);
 }
 function dailyPick(btn,ok,q,correct,chosenIdx){
   if(dailyAns) return;
