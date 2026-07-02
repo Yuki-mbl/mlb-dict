@@ -172,8 +172,18 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 #quiz-flash.hide{opacity:0;transition:opacity .3s}
 #quiz-flash-mark{font-size:160px;line-height:1;font-weight:900;
   text-shadow:0 0 40px rgba(0,0,0,.15)}
-#quiz-flash.ok #quiz-flash-mark{color:var(--c-ok-mark)}
 #quiz-flash.ng #quiz-flash-mark{color:var(--c-ng-mark)}
+/* 正解時: キャラが下から大きく飛び出す（マークは非表示） */
+#quiz-flash-char{display:none;position:absolute;bottom:0;left:50%;
+  height:52vh;max-height:440px;width:auto;transform:translateX(-50%);
+  filter:drop-shadow(0 8px 16px rgba(0,0,0,.28));pointer-events:none}
+#quiz-flash.ok #quiz-flash-mark{display:none}
+#quiz-flash.ok #quiz-flash-char{display:block;animation:char-jump-in .75s cubic-bezier(.34,1.56,.64,1)}
+@keyframes char-jump-in{
+  0%{transform:translate(-50%,115%) scale(.7) rotate(-6deg)}
+  60%{transform:translate(-50%,-6%) scale(1.06) rotate(3deg)}
+  100%{transform:translate(-50%,0) scale(1) rotate(0)}
+}
 #modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:999;
   display:none;transition:background .28s}
 #modal-backdrop.open{display:block;background:rgba(0,0,0,.45)}
@@ -655,7 +665,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 
   <!-- ── モーダル背景 ── -->
   <!-- ── 正解/不正解フラッシュ ── -->
-  <div id="quiz-flash"><span id="quiz-flash-mark"></span></div>
+  <div id="quiz-flash"><img id="quiz-flash-char" src="images/よろこび.png" alt=""><span id="quiz-flash-mark"></span></div>
 
   <div id="modal-backdrop" onclick="closeModal()"></div>
 
@@ -1422,10 +1432,11 @@ function setChar(imgId,key,pop){
 function showFlash(ok){
   const el=$('quiz-flash');const mk=$('quiz-flash-mark');
   el.className='show '+(ok?'ok':'ng');
-  mk.textContent=ok?'○':'✕';
+  mk.textContent=ok?'':'✕';
   clearTimeout(el._t1);clearTimeout(el._t2);
-  el._t1=setTimeout(()=>el.classList.replace('show','hide'),800);
-  el._t2=setTimeout(()=>{el.className='';mk.textContent='';},1100);
+  const hold=ok?1200:800;
+  el._t1=setTimeout(()=>el.classList.replace('show','hide'),hold);
+  el._t2=setTimeout(()=>{el.className='';mk.textContent='';},hold+300);
 }
 function pick(btn,ok,correct){
   if(ans) return;ans=true;
