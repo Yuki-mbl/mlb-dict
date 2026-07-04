@@ -249,6 +249,9 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .quiz-char img{height:106px;width:auto;object-fit:contain;transition:opacity .3s}
 @keyframes char-pop{0%{transform:scale(1)}45%{transform:scale(1.18) rotate(-4deg)}100%{transform:scale(1)}}
 .char-pop{animation:char-pop .5s cubic-bezier(.34,1.56,.64,1)}
+/* ダイヤモンド上のキャラ用（中央寄せtranslateを保持したままpop） */
+@keyframes char-pop-d{0%{transform:translate(-50%,-50%) scale(1)}45%{transform:translate(-50%,-50%) scale(1.2) rotate(-4deg)}100%{transform:translate(-50%,-50%) scale(1)}}
+.char-pop-d{animation:char-pop-d .5s cubic-bezier(.34,1.56,.64,1)}
 /* ── クイズ目次 ── */
 #quiz-menu{flex:1;overflow-y:auto;padding:22px 18px;display:flex;flex-direction:column;gap:16px}
 #quiz-menu::-webkit-scrollbar{display:none}
@@ -266,6 +269,10 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .qmenu-txt{display:flex;flex-direction:column;gap:3px;min-width:0}
 .qmenu-name{font-family:var(--ff-d);font-size:22px;font-weight:900;color:var(--c-ink)}
 .qmenu-sub{font-size:13px;font-weight:600;color:var(--c-ink);opacity:.75;line-height:1.4}
+.qmenu-score{background:var(--c-parchment);border:var(--bw) solid var(--c-border);
+  border-radius:var(--r-lg);box-shadow:var(--shadow-s);padding:8px 0 12px}
+.qmenu-score .score-cols{display:flex}
+.qmenu-score .score-col{flex:1;text-align:center}
 /* ── サブページ共通（戻るバー） ── */
 .subpage-bar{display:flex;align-items:center;gap:10px;padding:8px 14px;
   background:var(--c-canvas);border-bottom:1px solid var(--c-hairline);flex-shrink:0}
@@ -279,18 +286,20 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 /* ── ダイヤモンド（塁）エリア ── */
 #quiz-play{flex:1;display:flex;flex-direction:column;overflow-y:auto;min-height:0}
 #quiz-play::-webkit-scrollbar{display:none}
-#quiz-char{height:150px;background:#c9ecff}
-.diamond-wrap{position:relative;height:100%;aspect-ratio:1/1}
-.quiz-char img.diamond-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;mix-blend-mode:multiply}
+#quiz-char{height:230px;background:#c9ecff}
+.diamond-wrap{position:relative;height:100%;width:100%}
+.quiz-char img.diamond-img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;mix-blend-mode:multiply}
 .quiz-char img.dchar{position:absolute;height:26%;width:auto;transform:translate(-50%,-50%);
   filter:drop-shadow(0 2px 2px rgba(0,0,0,.25));transition:opacity .3s}
-.quiz-char img.dchar-home{left:50%;top:74%;height:32%}
-#dchar-1{left:79%;top:53%}
-#dchar-2{left:61%;top:17%}
-#dchar-3{left:23%;top:40%}
+.quiz-char img.dchar-home{left:50%;top:80%;height:34%}
+#dchar-1{left:80%;top:52%}
+#dchar-2{left:50%;top:22%}
+#dchar-3{left:20%;top:52%}
 /* ── アウトカウント ── */
-.quiz-outs{text-align:center;font-family:var(--ff-d);font-size:13px;font-weight:900;
-  letter-spacing:2px;color:var(--c-coral);padding:0 0 8px}
+.quiz-outs-bar{text-align:center;background:var(--c-canvas);
+  border-bottom:1px solid var(--c-hairline);padding:8px 0;flex-shrink:0}
+.quiz-outs{font-family:var(--ff-d);font-size:15px;font-weight:900;
+  letter-spacing:3px;color:var(--c-coral)}
 /* ── 走者が横切る演出 ── */
 .quiz-card{position:relative}
 #run-char{position:absolute;top:-6px;height:96px;width:auto;left:-110px;display:none;z-index:30;pointer-events:none}
@@ -553,6 +562,25 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
     <!-- 目次 -->
     <div id="quiz-menu">
       <div class="qmenu-title-row"><img src="images/よろこび.png" alt=""><span>あそぶ・まなぶ</span></div>
+      <div class="qmenu-score">
+        <div class="score-correct-hdr">正解数</div>
+        <div class="score-cols">
+          <div class="score-col">
+            <div class="score-lbl">英和</div>
+            <div class="score-val-row">
+              <div class="score-val" id="sc-ej">0 / 2482</div>
+              <div class="score-rate" id="sc-ej-rate">--%</div>
+            </div>
+          </div>
+          <div class="score-col">
+            <div class="score-lbl">和英</div>
+            <div class="score-val-row">
+              <div class="score-val" id="sc-je">0 / 1111</div>
+              <div class="score-rate" id="sc-je-rate">--%</div>
+            </div>
+          </div>
+        </div>
+      </div>
       <button class="qmenu-card qmenu-quiz" onclick="startQuizPlay()">
         <img src="images/バッター.png" alt="">
         <span class="qmenu-txt"><span class="qmenu-name">クイズ</span><span class="qmenu-sub">英和・和英ミックスで腕試し！3アウトで交代</span></span>
@@ -580,26 +608,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
           <img class="dchar" id="dchar-3" src="images/左向き.png" alt="" style="display:none">
         </div>
       </div>
-      <div class="quiz-score-bar">
-        <div class="score-correct-hdr">正解数</div>
-        <div class="score-cols">
-          <div class="score-col">
-            <div class="score-lbl">英和</div>
-            <div class="score-val-row">
-              <div class="score-val" id="sc-ej">0 / 2482</div>
-              <div class="score-rate" id="sc-ej-rate">--%</div>
-            </div>
-          </div>
-          <div class="score-col">
-            <div class="score-lbl">和英</div>
-            <div class="score-val-row">
-              <div class="score-val" id="sc-je">0 / 1111</div>
-              <div class="score-rate" id="sc-je-rate">--%</div>
-            </div>
-          </div>
-        </div>
-        <div class="quiz-outs" id="quiz-outs">OUT ○○○</div>
-      </div>
+      <div class="quiz-outs-bar"><span class="quiz-outs" id="quiz-outs">OUT ○○○</span></div>
       <div class="quiz-card">
         <img id="run-char" src="images/右向き.png" alt="">
         <div class="quiz-q">
@@ -1556,8 +1565,10 @@ function setChar(imgId,key,pop){
   const img=$(imgId);
   if(!img) return;
   img.src=CHAR_IMG[key]||CHAR_IMG.def;
-  img.classList.remove('char-pop');
-  if(pop){void img.offsetWidth;img.classList.add('char-pop');}
+  // ダイヤモンド上のホームキャラはtranslateで中央寄せしているため専用popを使う
+  const cls=img.classList.contains('dchar')?'char-pop-d':'char-pop';
+  img.classList.remove('char-pop','char-pop-d');
+  if(pop){void img.offsetWidth;img.classList.add(cls);}
 }
 function showFlash(ok){
   const el=$('quiz-flash');const mk=$('quiz-flash-mark');
