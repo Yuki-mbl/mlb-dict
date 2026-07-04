@@ -1216,7 +1216,7 @@ function defToHtml(text,mode){
     const ejMap=getEJMap();
     let out='',last=0;
     // グループ: 1=「」参照term, 2=裸参照term, 3=英語ともいう, 4=日本語ともいう, 5=対立語は, 6=対義語は
-    const reJA=/[「｢]([^」｣]+)[」｣]参照|([ぁ-んァ-ヶー一-龯・（）()ａ-ｚＡ-Ｚa-zA-Z0-9]+(?:[ 　][ぁ-んァ-ヶー一-龯・（）()ａ-ｚＡ-Ｚa-zA-Z0-9]+)*)参照|([A-Za-z][A-Za-z0-9 \-\/\(\)\']*[A-Za-z0-9])(とも(?:いう|言う))|([ぁ-んァ-ヶー一-龯ー・（）]+)(とも(?:いう|言う))|(対立語|対義語)は([ぁ-んァ-ヶー一-龯ー・（）]+)|cf\.[ ]?([ぁ-んァ-ヶー一-龯・（）()ａ-ｚＡ-Ｚa-zA-Z0-9]+(?:[ 　][ぁ-んァ-ヶー一-龯・（）()ａ-ｚＡ-Ｚa-zA-Z0-9]+)*)/g;
+    const reJA=/[「｢]([^」｣]+)[」｣]参照|([ぁ-んァ-ヶー一-龯・（）()ａ-ｚＡ-Ｚa-zA-Z0-9]+(?:[ 　][ぁ-んァ-ヶー一-龯・（）()ａ-ｚＡ-Ｚa-zA-Z0-9]+)*)参照|([A-Za-z][A-Za-z0-9 \-\/\(\)\']*[A-Za-z0-9])(とも(?:いう|言う))|([ぁ-んァ-ヶー一-龯ー・（）]+)(とも(?:いう|言う))|(対立語|対義語)は([ぁ-んァ-ヶー一-龯ー・（）]+)|cf\.[ ]?([ぁ-んァ-ヶー一-龯・（）()ａ-ｚＡ-Ｚa-zA-Z0-9\-]+(?:[ 　][ぁ-んァ-ヶー一-龯・（）()ａ-ｚＡ-Ｚa-zA-Z0-9\-]+)*)/g;
     let m;
     while((m=reJA.exec(s))!==null){
       out+=esc(s.slice(last,m.index));
@@ -1253,7 +1253,7 @@ function defToHtml(text,mode){
           out+=esc(label)+'は'+`<a class="def-xref def-xref-search" onclick="xrefSearch('${q}')">${esc(term)}</a>`;
         }
       } else if(m[9]!==undefined){
-        // cf.〇〇（JEモード内の日本語cf.参照）
+        // cf.〇〇（JEモード内のcf.参照：日本語・英語どちらも）
         const term=m[9].trim();
         const termNoDot=term.replace(/・/g,'');
         const idx=jeMap.has(term)?jeMap.get(term):jeMap.has(termNoDot)?jeMap.get(termNoDot):undefined;
@@ -1261,9 +1261,14 @@ function defToHtml(text,mode){
           out+='cf.'+`<a class="def-xref" onclick="openXRef(${idx},'je')">${esc(term)}</a>`;
         } else {
           const ejKey=term.toLowerCase();
-          const ejHit=ejMap.has(ejKey)?ejMap.get(ejKey):-1;
+          const ejKeyAlt=ejKey.includes('-')?ejKey.replace(/-/g,' '):ejKey.replace(/ /g,'-');
+          const ejHit=ejMap.has(ejKey)?ejMap.get(ejKey):ejMap.has(ejKeyAlt)?ejMap.get(ejKeyAlt):-1;
+          const jeEn=getJEEnMap();
+          const jeEnHit=jeEn.has(ejKey)?jeEn.get(ejKey):jeEn.has(ejKeyAlt)?jeEn.get(ejKeyAlt):-1;
           if(ejHit>=0){
             out+='cf.'+`<a class="def-xref" onclick="openXRef(${ejHit},'ej')">${esc(term)}</a>`;
+          } else if(jeEnHit>=0){
+            out+='cf.'+`<a class="def-xref" onclick="openXRef(${jeEnHit},'je')">${esc(term)}</a>`;
           } else {
             const q=term.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
             out+='cf.'+`<a class="def-xref def-xref-search" onclick="xrefSearch('${q}')">${esc(term)}</a>`;
