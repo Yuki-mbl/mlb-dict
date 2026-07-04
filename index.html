@@ -173,12 +173,13 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 #quiz-flash-mark{font-size:160px;line-height:1;font-weight:900;
   text-shadow:0 0 40px rgba(0,0,0,.15)}
 #quiz-flash.ng #quiz-flash-mark{color:var(--c-ng-mark)}
-/* 正解時: キャラが下から大きく飛び出す（マークは非表示） */
+#quiz-flash.ok #quiz-flash-mark{color:var(--c-ok-mark)}
+/* 正解時（.char付き）: キャラが下から大きく飛び出す（マークは非表示） */
 #quiz-flash-char{display:none;position:absolute;bottom:0;left:50%;
   height:52vh;max-height:440px;width:auto;transform:translateX(-50%);
   filter:drop-shadow(0 8px 16px rgba(0,0,0,.28));pointer-events:none}
-#quiz-flash.ok #quiz-flash-mark{display:none}
-#quiz-flash.ok #quiz-flash-char{display:block;animation:char-jump-in .75s cubic-bezier(.34,1.56,.64,1)}
+#quiz-flash.char #quiz-flash-mark{display:none}
+#quiz-flash.char #quiz-flash-char{display:block;animation:char-jump-in .75s cubic-bezier(.34,1.56,.64,1)}
 @keyframes char-jump-in{
   0%{transform:translate(-50%,115%) scale(.7) rotate(-6deg)}
   60%{transform:translate(-50%,-6%) scale(1.06) rotate(3deg)}
@@ -1580,12 +1581,12 @@ function setChar(imgId,key,pop){
   img.classList.remove('char-pop','char-pop-d');
   if(pop){void img.offsetWidth;img.classList.add(cls);}
 }
-function showFlash(ok){
+function showFlash(ok,withChar){
   const el=$('quiz-flash');const mk=$('quiz-flash-mark');
-  el.className='show '+(ok?'ok':'ng');
-  mk.textContent=ok?'':'✕';
+  el.className='show '+(ok?'ok':'ng')+(ok&&withChar?' char':'');
+  mk.textContent=ok?'○':'✕';
   clearTimeout(el._t1);clearTimeout(el._t2);
-  const hold=ok?1200:800;
+  const hold=ok&&withChar?1200:800;
   el._t1=setTimeout(()=>el.classList.replace('show','hide'),hold);
   el._t2=setTimeout(()=>{el.className='';mk.textContent='';},hold+300);
 }
@@ -1598,7 +1599,7 @@ function pick(btn,ok,correct){
     quizStreak++;
     if(quizStreak>=4){
       // 4連続正解: キャラが下から大きく飛び出す＋大きく振動、塁をリセット
-      showFlash(true);
+      showFlash(true,true);
       vibrate([120,60,220]);
       clearBases();
       quizStreak=0;
