@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "MLB Dictionary",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-c", "import os,http.server; p=int(os.environ.get('PORT',8765)); httpd=http.server.ThreadingHTTPServer(('',p),http.server.SimpleHTTPRequestHandler); print(f'Serving on {p}'); httpd.serve_forever()"],
+      "port": 8765,
+      "autoPort": true
+    }
+  ]
+}

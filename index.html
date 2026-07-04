@@ -249,6 +249,73 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .quiz-char img{height:106px;width:auto;object-fit:contain;transition:opacity .3s}
 @keyframes char-pop{0%{transform:scale(1)}45%{transform:scale(1.18) rotate(-4deg)}100%{transform:scale(1)}}
 .char-pop{animation:char-pop .5s cubic-bezier(.34,1.56,.64,1)}
+/* ── クイズ目次 ── */
+#quiz-menu{flex:1;overflow-y:auto;padding:22px 18px;display:flex;flex-direction:column;gap:16px}
+#quiz-menu::-webkit-scrollbar{display:none}
+.qmenu-title-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:4px;
+  font-family:var(--ff-d);font-size:24px;font-weight:900;color:var(--c-ink)}
+.qmenu-title-row img{height:56px;width:auto}
+.qmenu-card{display:flex;align-items:center;gap:16px;padding:16px 18px;
+  border:var(--bw) solid var(--c-border);border-radius:var(--r-lg);box-shadow:var(--shadow-m);
+  cursor:pointer;text-align:left;transition:all .12s;-webkit-tap-highlight-color:transparent}
+.qmenu-card:active{transform:translate(3px,3px);box-shadow:none}
+.qmenu-card img{height:72px;width:auto;flex-shrink:0}
+.qmenu-quiz{background:var(--c-accent)}
+.qmenu-daily{background:var(--c-orange)}
+.qmenu-review{background:#ffd9d6}
+.qmenu-txt{display:flex;flex-direction:column;gap:3px;min-width:0}
+.qmenu-name{font-family:var(--ff-d);font-size:22px;font-weight:900;color:var(--c-ink)}
+.qmenu-sub{font-size:13px;font-weight:600;color:var(--c-ink);opacity:.75;line-height:1.4}
+/* ── サブページ共通（戻るバー） ── */
+.subpage-bar{display:flex;align-items:center;gap:10px;padding:8px 14px;
+  background:var(--c-canvas);border-bottom:1px solid var(--c-hairline);flex-shrink:0}
+.subpage-title{font-family:var(--ff-d);font-size:17px;font-weight:900;color:var(--c-ink)}
+.back-btn{padding:6px 14px;border:2px solid var(--c-border);border-radius:var(--r-pill);
+  background:var(--c-parchment);box-shadow:var(--shadow-s);font-family:var(--ff-t);
+  font-size:13px;font-weight:800;color:var(--c-ink);cursor:pointer;flex-shrink:0;
+  transition:all .12s;-webkit-tap-highlight-color:transparent}
+.back-btn:active{transform:translate(2px,2px);box-shadow:none}
+.subpage-hdr{display:flex;align-items:center;gap:12px}
+/* ── ダイヤモンド（塁）エリア ── */
+#quiz-play{flex:1;display:flex;flex-direction:column;overflow-y:auto;min-height:0}
+#quiz-play::-webkit-scrollbar{display:none}
+#quiz-char{height:150px;background:#c9ecff}
+.diamond-wrap{position:relative;height:100%;aspect-ratio:1/1}
+.quiz-char img.diamond-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;mix-blend-mode:multiply}
+.quiz-char img.dchar{position:absolute;height:26%;width:auto;transform:translate(-50%,-50%);
+  filter:drop-shadow(0 2px 2px rgba(0,0,0,.25));transition:opacity .3s}
+.quiz-char img.dchar-home{left:50%;top:74%;height:32%}
+#dchar-1{left:79%;top:53%}
+#dchar-2{left:61%;top:17%}
+#dchar-3{left:23%;top:40%}
+/* ── アウトカウント ── */
+.quiz-outs{text-align:center;font-family:var(--ff-d);font-size:13px;font-weight:900;
+  letter-spacing:2px;color:var(--c-coral);padding:0 0 8px}
+/* ── 走者が横切る演出 ── */
+.quiz-card{position:relative}
+#run-char{position:absolute;top:-6px;height:96px;width:auto;left:-110px;display:none;z-index:30;pointer-events:none}
+#run-char.run{display:block}
+#run-char.run-lr{animation:run-lr 1.1s linear forwards}
+#run-char.run-rl{animation:run-rl 1.1s linear forwards}
+@keyframes run-lr{from{left:-110px}to{left:100%}}
+@keyframes run-rl{from{left:100%}to{left:-110px}}
+/* ── THREE OUT 演出 ── */
+#three-out{position:fixed;inset:0;z-index:900;display:none;align-items:center;justify-content:center;
+  background:rgba(30,30,46,.55);pointer-events:none}
+#three-out.show{display:flex}
+.three-out-txt{font-family:var(--ff-d);font-size:52px;font-weight:900;color:#fff;
+  background:var(--c-coral);border:4px solid var(--c-border);border-radius:var(--r-lg);
+  box-shadow:var(--shadow-l);padding:18px 34px;transform:rotate(-6deg);
+  animation:three-out-pop .45s cubic-bezier(.34,1.56,.64,1)}
+@keyframes three-out-pop{0%{transform:rotate(-6deg) scale(.3)}70%{transform:rotate(-6deg) scale(1.12)}100%{transform:rotate(-6deg) scale(1)}}
+/* ── 辞書検索バー横の略語ボタン ── */
+.search-row{display:flex;align-items:center;gap:8px}
+.search-row .search-wrap{flex:1;min-width:0}
+.abbr-jump-btn{flex-shrink:0;padding:9px 16px;border:var(--bw) solid var(--c-border);
+  border-radius:var(--r-pill);background:var(--c-orange);box-shadow:var(--shadow-s);
+  font-family:var(--ff-t);font-size:14px;font-weight:800;color:var(--c-ink);cursor:pointer;
+  transition:all .12s;-webkit-tap-highlight-color:transparent}
+.abbr-jump-btn:active{transform:translate(2px,2px);box-shadow:none}
 .quiz-score-bar{display:flex;flex-direction:column;background:var(--c-score-bg);
   border-bottom:1px solid var(--c-hairline);flex-shrink:0;
   transition:background .25s,border-color .25s}
@@ -433,10 +500,13 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       <h1><img src="images/デフォ.png" alt="">メジャーリーグ野球用語英和・和英辞典</h1>
     </div>
     <div class="search-bar">
-      <div class="search-wrap">
-        <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" stroke="none" fill="currentColor"/></svg>
-        <input id="s-input" type="text" placeholder="検索…" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
-        <button class="s-clear" id="s-clear" onclick="clearSearch()">✕</button>
+      <div class="search-row">
+        <div class="search-wrap">
+          <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" stroke="none" fill="currentColor"/></svg>
+          <input id="s-input" type="text" placeholder="検索…" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+          <button class="s-clear" id="s-clear" onclick="clearSearch()">✕</button>
+        </div>
+        <button class="abbr-jump-btn" onclick="goTab('abbr')">略語</button>
       </div>
     </div>
     <div class="sub-tabs">
@@ -451,7 +521,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 
   <!-- ── 略語 ── -->
   <div id="tab-abbr" class="tab-panel">
-    <div class="fav-hdr"><h1>統計略語辞典</h1></div>
+    <div class="fav-hdr subpage-hdr"><button class="back-btn" onclick="goTab('dict')">← 辞書</button><h1>統計略語辞典</h1></div>
     <div class="search-bar">
       <div class="search-wrap">
         <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" stroke="none" fill="currentColor"/></svg>
@@ -479,32 +549,59 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 
   <!-- ── クイズ ── -->
   <div id="tab-quiz" class="tab-panel">
+
+    <!-- 目次 -->
+    <div id="quiz-menu">
+      <div class="qmenu-title-row"><img src="images/よろこび.png" alt=""><span>あそぶ・まなぶ</span></div>
+      <button class="qmenu-card qmenu-quiz" onclick="startQuizPlay()">
+        <img src="images/バッター.png" alt="">
+        <span class="qmenu-txt"><span class="qmenu-name">クイズ</span><span class="qmenu-sub">英和・和英ミックスで腕試し！3アウトで交代</span></span>
+      </button>
+      <button class="qmenu-card qmenu-daily" onclick="goTab('daily')">
+        <img src="images/ピッチャー.png" alt="">
+        <span class="qmenu-txt"><span class="qmenu-name">今日の10問</span><span class="qmenu-sub">毎日コツコツ10問チャレンジ</span></span>
+      </button>
+      <button class="qmenu-card qmenu-review" onclick="goTab('review')">
+        <img src="images/デフォ.png" alt="">
+        <span class="qmenu-txt"><span class="qmenu-name">復習</span><span class="qmenu-sub">間違えた問題をおさらい</span></span>
+      </button>
+    </div>
+
+    <!-- プレイ画面 -->
+    <div id="quiz-play" style="display:none">
     <div class="quiz-inner">
-      <div class="quiz-char" id="quiz-char"><img id="quiz-char-img" src="images/デフォ.png" alt="character"></div>
+      <div class="subpage-bar"><button class="back-btn" onclick="quizToMenu()">← 目次</button></div>
+      <div class="quiz-char" id="quiz-char">
+        <div class="diamond-wrap">
+          <img class="diamond-img" src="images/ベース.png" alt="">
+          <img class="dchar dchar-home" id="quiz-char-img" src="images/デフォ.png" alt="">
+          <img class="dchar" id="dchar-1" src="images/右向き.png" alt="" style="display:none">
+          <img class="dchar" id="dchar-2" src="images/左向き.png" alt="" style="display:none">
+          <img class="dchar" id="dchar-3" src="images/左向き.png" alt="" style="display:none">
+        </div>
+      </div>
       <div class="quiz-score-bar">
         <div class="score-correct-hdr">正解数</div>
         <div class="score-cols">
           <div class="score-col">
-            <div class="score-lbl">英和クイズ</div>
+            <div class="score-lbl">英和</div>
             <div class="score-val-row">
               <div class="score-val" id="sc-ej">0 / 2482</div>
               <div class="score-rate" id="sc-ej-rate">--%</div>
             </div>
           </div>
           <div class="score-col">
-            <div class="score-lbl">和英クイズ</div>
+            <div class="score-lbl">和英</div>
             <div class="score-val-row">
               <div class="score-val" id="sc-je">0 / 1111</div>
               <div class="score-rate" id="sc-je-rate">--%</div>
             </div>
           </div>
         </div>
-      </div>
-      <div class="quiz-mode-bar">
-        <button class="qmode-btn active" id="qm-ej" onclick="setQMode('ej')">英和クイズ</button>
-        <button class="qmode-btn" id="qm-je" onclick="setQMode('je')">和英クイズ</button>
+        <div class="quiz-outs" id="quiz-outs">OUT ○○○</div>
       </div>
       <div class="quiz-card">
+        <img id="run-char" src="images/右向き.png" alt="">
         <div class="quiz-q">
           <div class="quiz-q-lbl" id="qq-lbl">問題</div>
           <div class="quiz-q-term" id="qq-term">—</div>
@@ -514,11 +611,16 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
         <div id="quiz-def-card" style="display:none"></div>
       </div>
     </div>
+    </div>
+
+    <!-- スリーアウト演出 -->
+    <div id="three-out"><span class="three-out-txt">THREE OUT!</span></div>
   </div>
 
   <!-- ── 今日の10問 ── -->
   <div id="tab-daily" class="tab-panel">
     <div class="daily-inner">
+      <div class="subpage-bar"><button class="back-btn" onclick="goTab('quiz')">← 目次</button><span class="subpage-title">今日の10問</span></div>
 
       <!-- スタート画面 -->
       <div id="daily-start" style="display:none">
@@ -580,7 +682,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 
   <!-- ── 復習リスト ── -->
   <div id="tab-review" class="tab-panel">
-    <div class="review-hdr"><h1>復習リスト</h1></div>
+    <div class="review-hdr subpage-hdr"><button class="back-btn" onclick="goTab('quiz')">← 目次</button><h1>復習リスト</h1></div>
     <div id="review-list"></div>
   </div>
 
@@ -634,10 +736,6 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
       辞書
     </button>
-    <button class="bnav-btn" id="bnav-abbr" onclick="goTab('abbr')">
-      <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></svg>
-      略語
-    </button>
     <button class="bnav-btn" id="bnav-fav" onclick="goTab('fav')">
       <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
       お気に入り
@@ -645,14 +743,6 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
     <button class="bnav-btn" id="bnav-quiz" onclick="goTab('quiz')">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       クイズ
-    </button>
-    <button class="bnav-btn" id="bnav-daily" onclick="goTab('daily')">
-      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      今日
-    </button>
-    <button class="bnav-btn" id="bnav-review" onclick="goTab('review')">
-      <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><polyline points="3 6 4 7 6 5"/><polyline points="3 12 4 13 6 11"/><polyline points="3 18 4 19 6 17"/></svg>
-      復習
     </button>
     <button class="bnav-btn" id="bnav-settings" onclick="goTab('settings')">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
@@ -736,7 +826,10 @@ function goTab(t){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
   $('tab-'+t).classList.add('active');
-  $('bnav-'+t).classList.add('active');
+  // ナビに無いタブは親タブをハイライト（略語→辞書、今日/復習→クイズ）
+  const _navMap={abbr:'dict',daily:'quiz',review:'quiz'};
+  const _nb=$('bnav-'+(_navMap[t]||t));
+  if(_nb) _nb.classList.add('active');
   tab=t;
   if(t==='dict' && sq){
     // 辞書タブに戻るとき: 検索をクリアして最後に見ていた位置へ
@@ -749,7 +842,7 @@ function goTab(t){
   }
   if(t==='abbr') renderAbbrList();
   if(t==='fav') renderFavList();
-  if(t==='quiz'&&!cq) nextQ();
+  if(t==='quiz') quizToMenu();
   if(t==='daily') initDaily();
   if(t==='review') renderReviewList();
   if(t==='settings') updateScores();
@@ -1287,11 +1380,49 @@ function toggleMFav(){
 }
 
 // ── Quiz ──────────────────────────────────────────────────────────────────────
-function setQMode(m){
-  qMode=m;
-  $('qm-ej').classList.toggle('active',m==='ej');
-  $('qm-je').classList.toggle('active',m==='je');
-  retryQueue[m]=[];cq=null;nextQ();
+// クイズ状態: 連続正解数・アウト数
+let quizStreak=0, quizOuts=0;
+function vibrate(p){try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}}
+function startQuizPlay(){
+  $('quiz-menu').style.display='none';
+  $('quiz-play').style.display='';
+  quizStreak=0;quizOuts=0;
+  updateOuts();clearBases();
+  cq=null;nextQ();
+}
+function quizToMenu(){
+  const play=$('quiz-play'),menu=$('quiz-menu');
+  if(play) play.style.display='none';
+  if(menu) menu.style.display='';
+}
+function updateOuts(){
+  const el=$('quiz-outs');
+  if(el) el.textContent='OUT '+'●'.repeat(quizOuts)+'○'.repeat(Math.max(0,3-quizOuts));
+}
+function clearBases(){
+  ['dchar-1','dchar-2','dchar-3'].forEach(id=>{const e=$(id);if(e)e.style.display='none';});
+}
+function placeRunner(n){
+  const e=$('dchar-'+n);
+  if(e) e.style.display='';
+}
+function runAcross(dir){
+  const img=$('run-char');
+  if(!img) return;
+  img.src=dir==='r'?CHAR_IMG.runR:CHAR_IMG.runL;
+  img.className='run '+(dir==='r'?'run-lr':'run-rl');
+  clearTimeout(img._t);
+  img._t=setTimeout(()=>{img.className='';},1200);
+}
+function threeOut(){
+  const el=$('three-out');
+  vibrate(250);
+  if(el) el.classList.add('show');
+  setTimeout(()=>{
+    if(el) el.classList.remove('show');
+    quizStreak=0;quizOuts=0;updateOuts();clearBases();
+    quizToMenu();
+  },1800);
 }
 function isPersonName(e){
   if(e.cat==='abbr') return false; // 略語エントリは除外しない
@@ -1301,6 +1432,8 @@ function isPersonName(e){
   return s.length>0&&/^[ァ-ヶーｦ-ﾟ・＝]+$/.test(s);
 }
 function nextQ(){
+  // 英和・和英ミックス出題: 問題ごとにランダムでモードを決定
+  qMode=Math.random()<0.5?'ej':'je';
   const data=qMode==='ej'?EJ:JE;
   if(data.length<5) return;
   const st=qs[qMode];
@@ -1417,7 +1550,7 @@ function choiceLbl(entry){
   return s||raw.replace(/[。\n].*/,'').trim().substring(0,60)||raw.substring(0,60);
 }
 // ── キャラクター表情切替 ──
-const CHAR_IMG={def:'images/デフォ.png',joy:'images/よろこび.png',bat:'images/バッター.png',pit:'images/ピッチャー.png'};
+const CHAR_IMG={def:'images/デフォ.png',joy:'images/よろこび.png',bat:'images/バッター.png',pit:'images/ピッチャー.png',runR:'images/右向き.png',runL:'images/左向き.png'};
 function setChar(imgId,key,pop){
   const img=$(imgId);
   if(!img) return;
@@ -1438,8 +1571,27 @@ function pick(btn,ok,correct){
   if(ans) return;ans=true;
   const st=qs[qMode];st.n++;if(ok) st.ok++;
   updateScores();
-  showFlash(ok);
   setChar('quiz-char-img',ok?'joy':'def',ok);
+  if(ok){
+    quizStreak++;
+    if(quizStreak>=4){
+      // 4連続正解: キャラが下から大きく飛び出す＋大きく振動
+      showFlash(true);
+      vibrate([120,60,220]);
+      clearBases();
+      quizStreak=0;
+    } else {
+      // 1問目=右向きが左→右、2・3問目=左向きが右→左＋塁に走者を置く
+      runAcross(quizStreak===1?'r':'l');
+      placeRunner(quizStreak);
+      vibrate(35);
+    }
+  } else {
+    quizStreak=0;
+    quizOuts++;
+    updateOuts();
+    showFlash(false);
+  }
   btn.classList.add(ok?'ok':'ng');
   if(!ok){
     const cLbl=choiceLbl(correct);
@@ -1469,6 +1621,11 @@ function pick(btn,ok,correct){
       (sub?`<div class="ddc-sub">${esc(sub)}</div>`:'')+
       (defText?`<div class="ddc-def">${defToHtml(defText,isEJ?'ej':'je')}</div>`:'');
     card.style.display='';
+  }
+  // 3アウトでクイズ終了 → THREE OUT! を表示して目次へ
+  if(!ok&&quizOuts>=3){
+    $('next-btn').disabled=true;
+    setTimeout(threeOut,900);
   }
 }
 
@@ -1642,6 +1799,7 @@ function dailyPick(btn,ok,q,correct,chosenIdx){
     addToReview(q.type,q.idx);
   }
   showFlash(ok);
+  if(ok) vibrate(35);
   setChar('daily-char-img',ok?'joy':'def',ok);
   btn.classList.add(ok?'ok':'ng');
   if(!ok){
