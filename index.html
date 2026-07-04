@@ -179,11 +179,11 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   height:52vh;max-height:440px;width:auto;transform:translateX(-50%);
   filter:drop-shadow(0 8px 16px rgba(0,0,0,.28));pointer-events:none}
 #quiz-flash.char #quiz-flash-mark{display:none}
-#quiz-flash.char #quiz-flash-char{display:block;animation:char-jump-in .75s cubic-bezier(.34,1.56,.64,1)}
+#quiz-flash.char #quiz-flash-char{display:block;animation:char-jump-in .95s cubic-bezier(.34,1.5,.64,1) forwards}
 @keyframes char-jump-in{
-  0%{transform:translate(-50%,115%) scale(.7) rotate(-6deg)}
-  60%{transform:translate(-50%,-6%) scale(1.06) rotate(3deg)}
-  100%{transform:translate(-50%,0) scale(1) rotate(0)}
+  0%{transform:translate(-50%,120%) scale(.72) rotate(-8deg)}
+  65%{transform:translate(-50%,-98%) scale(1.02) rotate(5deg)}
+  100%{transform:translate(-50%,-90%) scale(1) rotate(0)}
 }
 #modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:999;
   display:none;transition:background .28s}
@@ -1655,7 +1655,7 @@ function showFlash(ok,withChar){
   el.className='show '+(ok?'ok':'ng')+(ok&&withChar?' char':'');
   mk.textContent=ok?'○':'✕';
   clearTimeout(el._t1);clearTimeout(el._t2);
-  const hold=ok&&withChar?1200:800;
+  const hold=ok&&withChar?1600:800;
   el._t1=setTimeout(()=>el.classList.replace('show','hide'),hold);
   el._t2=setTimeout(()=>{el.className='';mk.textContent='';},hold+300);
 }
