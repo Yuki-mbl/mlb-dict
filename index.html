@@ -1660,22 +1660,24 @@ function pick(btn,ok,correct){
       vibrate([120,60,220]);
       clearBases();
       quizStreak=0;
+    } else if(basesLoaded){
+      // 満塁は維持（3問連続で満塁後はそのまま置きっぱなし）
+      runAcross('l');
+      showBases([1,2,3]);
+      vibrate(35);
+    } else if(quizStreak>=2){
+      // 連続正解 → 塁を積み上げて残す（streak2→1,2塁 / streak3→満塁）
+      const n=Math.min(quizStreak,3);
+      runnerBase=n;
+      runAcross('l');
+      if(n>=3){ basesLoaded=true; showBases([1,2,3]); }
+      else { showBases([1,2]); }
+      vibrate(35);
     } else {
-      // 走者を1つ進める（1→2→3塁）
+      // 連続でない（最初の1問 or ミス後）→ 単独走者が進塁するだけ
       runnerBase=Math.min(runnerBase+1,3);
-      // 1塁は右向きが左→右、2・3塁は左向きが右→左に走らせる
       runAcross(runnerBase===1?'r':'l');
-      if(quizStreak>=3){
-        // 3問連続正解 → 満塁（3人置きっぱなし）
-        basesLoaded=true;runnerBase=3;
-        showBases([1,2,3]);
-      } else if(basesLoaded){
-        // 満塁は維持
-        showBases([1,2,3]);
-      } else {
-        // 連続でない場合は単独走者が進塁するだけ
-        showBases([runnerBase]);
-      }
+      showBases([runnerBase]);
       vibrate(35);
     }
   } else {
