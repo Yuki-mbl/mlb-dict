@@ -638,7 +638,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   <!-- ── 今日の10問 ── -->
   <div id="tab-daily" class="tab-panel">
     <div class="daily-inner">
-      <div class="subpage-bar"><button class="back-btn" onclick="goTab('quiz')">← 目次</button><span class="subpage-title">今日の10問</span></div>
+      <div class="subpage-bar"><button class="back-btn" onclick="quizMenu()">← 目次</button><span class="subpage-title">今日の10問</span></div>
 
       <!-- スタート画面 -->
       <div id="daily-start" style="display:none">
@@ -700,7 +700,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 
   <!-- ── 復習リスト ── -->
   <div id="tab-review" class="tab-panel">
-    <div class="review-hdr subpage-hdr"><button class="back-btn" onclick="goTab('quiz')">← 目次</button><h1>復習リスト</h1></div>
+    <div class="review-hdr subpage-hdr"><button class="back-btn" onclick="quizMenu()">← 目次</button><h1>復習リスト</h1></div>
     <div id="review-list"></div>
   </div>
 
@@ -758,7 +758,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
       お気に入り
     </button>
-    <button class="bnav-btn" id="bnav-quiz" onclick="goTab('quiz')">
+    <button class="bnav-btn" id="bnav-quiz" onclick="goQuizNav()">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       クイズ
     </button>
@@ -860,10 +860,26 @@ function goTab(t){
   }
   if(t==='abbr') renderAbbrList();
   if(t==='fav') renderFavList();
-  if(t==='quiz') quizToMenu();
-  if(t==='daily') initDaily();
-  if(t==='review') renderReviewList();
+  if(t==='quiz'){ if(lastQuizSection==='play') quizShowPlay(); else quizToMenu(); }
+  if(t==='daily'){ lastQuizSection='daily'; initDaily(); }
+  if(t==='review'){ lastQuizSection='review'; renderReviewList(); }
   if(t==='settings') updateScores();
+}
+// クイズ系のどのサブ画面にいたか（menu / play / daily / review）
+let lastQuizSection='menu';
+// 下部ナビ「クイズ」: 直前のクイズ系サブ画面へ戻る
+function goQuizNav(){
+  if(lastQuizSection==='daily') goTab('daily');
+  else if(lastQuizSection==='review') goTab('review');
+  else goTab('quiz');
+}
+// 目次へ戻る（今日の10問・復習の「← 目次」用）
+function quizMenu(){ lastQuizSection='menu'; goTab('quiz'); }
+// 進行中のクイズ画面を再表示（状態はリセットしない）
+function quizShowPlay(){
+  const play=$('quiz-play'),menu=$('quiz-menu');
+  if(menu) menu.style.display='none';
+  if(play) play.style.display='';
 }
 
 // ── Dict mode ─────────────────────────────────────────────────────────────────
@@ -1431,6 +1447,7 @@ function toggleMFav(){
 let quizStreak=0, quizOuts=0, runnerBase=0, basesLoaded=false;
 function vibrate(p){try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}}
 function startQuizPlay(){
+  lastQuizSection='play';
   $('quiz-menu').style.display='none';
   $('quiz-play').style.display='';
   quizStreak=0;quizOuts=0;
@@ -1438,6 +1455,7 @@ function startQuizPlay(){
   cq=null;nextQ();
 }
 function quizToMenu(){
+  lastQuizSection='menu';
   const play=$('quiz-play'),menu=$('quiz-menu');
   if(play) play.style.display='none';
   if(menu) menu.style.display='';
