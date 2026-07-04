@@ -1742,6 +1742,9 @@ function _hideDailyAll(){
     .forEach(id=>{const el=$(id);if(el)el.style.display='none';});
 }
 function startDailyQuiz(){
+  // 最初の未回答問題から開始
+  dailyCurIdx=dailyState?dailyState.ans.findIndex(a=>a===null):0;
+  if(dailyCurIdx<0) dailyCurIdx=0;
   _hideDailyAll();
   $('daily-char').style.display='';
   $('daily-prog-bar').style.display='';
@@ -1755,11 +1758,10 @@ function initDaily(){
     try{dailyState=JSON.parse(raw);}catch(e){dailyState=null;}
   }
   if(!dailyState||dailyState.date!==today){
-    // 新しい日 → スタート画面を表示
+    // 新しい日 → スタート画面を挟まず即開始
     dailyState={date:today,qs:makeDailyQuestions(),ans:Array(10).fill(null)};
     localStorage.setItem('mlb_daily_state',JSON.stringify(dailyState));
-    _hideDailyAll();
-    $('daily-start').style.display='';
+    startDailyQuiz();
     return;
   }
   // find first unanswered
@@ -1768,9 +1770,12 @@ function initDaily(){
     _hideDailyAll();
     showDailyResult();
   } else {
-    // 途中再開 → スタート画面
+    // 途中再開 → スタート画面を挟まず続きから
     _hideDailyAll();
-    $('daily-start').style.display='';
+    $('daily-char').style.display='';
+    $('daily-prog-bar').style.display='';
+    $('daily-quiz-area').style.display='';
+    renderDailyQ();
   }
 }
 function renderDailyQ(){
