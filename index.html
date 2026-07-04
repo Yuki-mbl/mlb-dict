@@ -1436,13 +1436,13 @@ function threeOut(){
   const el=$('three-out');
   vibrate(250);
   if(el){el.classList.remove('fade');el.classList.add('show');}
-  // しばらく表示 → 全体をフェードアウト → 目次へ戻す
-  setTimeout(()=>{if(el) el.classList.add('fade');},1600);
+  // しばらく表示 → フェードアウトと同時に目次へ戻す
   setTimeout(()=>{
-    if(el){el.classList.remove('show','fade');}
+    if(el) el.classList.add('fade');
     quizStreak=0;quizOuts=0;updateOuts();clearBases();
     quizToMenu();
-  },2350);
+  },1600);
+  setTimeout(()=>{if(el) el.classList.remove('show','fade');},2350);
 }
 function isPersonName(e){
   if(e.cat==='abbr') return false; // 略語エントリは除外しない
