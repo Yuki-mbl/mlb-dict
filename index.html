@@ -1318,7 +1318,7 @@ function defToHtml(text,mode){
   }
   let out='',last=0;
   // cf. の後はカンマ/読点区切りで複数ターム、= の後は単一ターム（数字始まりの略語も対応）
-  const re=/(=|[Cc]f\.)\s*([A-Za-z0-9][A-Za-z0-9 \-\/\(\)\']*(?:[,、]\s*[A-Za-z0-9][A-Za-z0-9 \-\/\(\)\']*)*)/g;
+  const re=/(=|[Cc]f\.)\s*([A-Za-z0-9](?:(?! [Cc]f\.)[A-Za-z0-9 \-\/\(\)\'])*(?:[,、]\s*[A-Za-z0-9](?:(?! [Cc]f\.)[A-Za-z0-9 \-\/\(\)\'])*)*)/g;
   let m;
   while((m=re.exec(s))!==null){
     out+=esc(s.slice(last,m.index));
@@ -1654,7 +1654,7 @@ function pick(btn,ok,correct){
     card.innerHTML=
       `<div class="ddc-en">${isEJ?'英和':'和英'}</div>`+
       `<div class="ddc-head">${esc(head)}</div>`+
-      (sub?`<div class="ddc-sub">${esc(sub)}</div>`:'')+
+      (sub?`<div class="ddc-sub">${defToHtml(sub,isEJ?'ej':'je')}</div>`:'')+
       (defText?`<div class="ddc-def">${defToHtml(defText,isEJ?'ej':'je')}</div>`:'');
     card.style.display='';
   }
@@ -1871,7 +1871,7 @@ function dailyPick(btn,ok,q,correct,chosenIdx){
     card.innerHTML=
       `<div class="ddc-en">${isEJ?'英和':'和英'}</div>`+
       `<div class="ddc-head">${esc(head)}</div>`+
-      (sub?`<div class="ddc-sub">${esc(sub)}</div>`:'')+
+      (sub?`<div class="ddc-sub">${defToHtml(sub,isEJ?'ej':'je')}</div>`:'')+
       (defText?`<div class="ddc-def">${defToHtml(defText,isEJ?'ej':'je')}</div>`:'');
     card.style.display='';
   }
