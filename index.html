@@ -1173,6 +1173,24 @@ function getJEMap(){
   }
   return JE_MAP;
 }
+// 英語→JEエントリ（JEの英訳から引く。EJ見出しに無い英語用語のリンク先解決用）
+let JE_EN_MAP=null;
+function getJEEnMap(){
+  if(!JE_EN_MAP){
+    JE_EN_MAP=new Map();
+    JE.forEach((e,i)=>{
+      if(!e.en) return;
+      // 「A, B」「A/B」等の区切りで複数英訳がある場合は各語を登録
+      e.en.split(/[,、\/]/).forEach(part=>{
+        const k=part.trim().toLowerCase().replace(/\s*\(.*?\)\s*/g,'').trim();
+        if(k.length>=2 && !JE_EN_MAP.has(k)) JE_EN_MAP.set(k,i);
+        const kAlt=k.includes('-')?k.replace(/-/g,' '):k.replace(/ /g,'-');
+        if(kAlt!==k && !JE_EN_MAP.has(kAlt)) JE_EN_MAP.set(kAlt,i);
+      });
+    });
+  }
+  return JE_EN_MAP;
+}
 function defToHtml(text,mode){
   const s=formatDef(text);
   if(!s) return '';
@@ -1289,6 +1307,7 @@ function defToHtml(text,mode){
            :(keyS&&map.has(keyS))?map.get(keyS)
            :-1;
   }
+  const jeEnMap=getJEEnMap();
   function linkOneTerm(raw,fallback,_noSplit){
     const trimmed=raw.trim();
     if(!trimmed) return esc(raw);
@@ -1299,6 +1318,16 @@ function defToHtml(text,mode){
       if(hit>=0){
         const rest=trimmed.slice(base.length);
         return `<a class="def-xref" onclick="openXRef(${hit},'ej')">${esc(base)}</a>${esc(rest)}`;
+      }
+    }
+    // EJ見出しに無ければ、JEエントリの英訳から探して和英エントリへ飛ばす
+    for(let n=words.length;n>=1;n--){
+      const base=words.slice(0,n).join(' ');
+      const k=base.toLowerCase();
+      const jeHit=jeEnMap.has(k)?jeEnMap.get(k):(jeEnMap.has(k.replace(/-/g,' '))?jeEnMap.get(k.replace(/-/g,' ')):-1);
+      if(jeHit>=0){
+        const rest=trimmed.slice(base.length);
+        return `<a class="def-xref" onclick="openXRef(${jeHit},'je')">${esc(base)}</a>${esc(rest)}`;
       }
     }
     // スラッシュ区切りを「A/B」→「Aリンク/Bリンク」に分解（1段のみ、再帰防止）
