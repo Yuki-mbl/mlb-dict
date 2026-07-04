@@ -292,6 +292,8 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .quiz-char img.dchar{position:absolute;height:26%;width:auto;transform:translate(-50%,-50%);
   filter:drop-shadow(0 2px 2px rgba(0,0,0,.25));transition:opacity .3s}
 .quiz-char img.dchar-home{left:50%;top:80%;height:34%}
+/* 塁上ランナー: 足が塁に乗るよう下端寄りにアンカー */
+.quiz-char img.dchar-runner{height:24%;transform:translate(-50%,-84%)}
 #dchar-1{left:82%;top:48%}
 #dchar-2{left:50%;top:15%}
 #dchar-3{left:18%;top:48%}
@@ -603,9 +605,9 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
         <div class="diamond-wrap">
           <img class="diamond-img" src="images/ベース.png" alt="">
           <img class="dchar dchar-home" id="quiz-char-img" src="images/デフォ.png" alt="">
-          <img class="dchar" id="dchar-1" src="images/盗塁待ち.png" alt="" style="display:none">
-          <img class="dchar" id="dchar-2" src="images/盗塁待ち.png" alt="" style="display:none">
-          <img class="dchar" id="dchar-3" src="images/盗塁待ち.png" alt="" style="display:none">
+          <img class="dchar dchar-runner" id="dchar-1" src="images/盗塁待ち.png" alt="" style="display:none">
+          <img class="dchar dchar-runner" id="dchar-2" src="images/盗塁待ち.png" alt="" style="display:none">
+          <img class="dchar dchar-runner" id="dchar-3" src="images/盗塁待ち.png" alt="" style="display:none">
         </div>
       </div>
       <div class="quiz-outs-bar"><span class="quiz-outs" id="quiz-outs">OUT ○○○</span></div>
