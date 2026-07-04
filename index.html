@@ -507,6 +507,15 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .stat-n{font-family:var(--ff-d);font-size:26px;font-weight:900;
   color:var(--c-primary);line-height:1.1}
 .stat-l{font-family:var(--ff-t);font-size:12px;color:var(--c-muted);margin-top:3px}
+/* ── 起動スプラッシュ ── */
+#splash{position:fixed;inset:0;z-index:3000;background:#12224a;
+  display:flex;align-items:center;justify-content:center;
+  opacity:1;transition:opacity .7s ease}
+#splash img{max-width:100%;max-height:100%;object-fit:contain;
+  animation:splash-in .5s ease}
+#splash.hide{opacity:0}
+#splash.gone{display:none}
+@keyframes splash-in{from{opacity:0;transform:scale(1.04)}to{opacity:1;transform:scale(1)}}
 </style>
 </head>
 <body>
@@ -791,6 +800,9 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       <div class="modal-def" id="m-def"></div>
     </div>
   </div>
+
+  <!-- ── 起動スプラッシュ ── -->
+  <div id="splash"><img src="images/表紙.png" alt=""></div>
 </div>
 
 <script>
@@ -2064,29 +2076,30 @@ function saveState(){
 // ── Init ──────────────────────────────────────────────────────────────────────
 const _st=JSON.parse(localStorage.getItem('mlb_state')||'null');
 const _savedPos=localStorage.getItem('mlb_pos');
-if(_st){
-  // タブ復元（quiz/favのみ; dictはデフォルト）
-  if(_st.tab && _st.tab!=='dict'){
-    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
-    document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
-    $('tab-'+_st.tab).classList.add('active');
-    $('bnav-'+_st.tab).classList.add('active');
-    tab=_st.tab;
-  }
-}
+// タブ復元は下のrequestAnimationFrame内でgoTab()に一本化（ナビ非表示タブでも正しく描画）
 
-// 描画はrequestAnimationFrameで行い、ページ骨格を先に表示してからリストを挿入
-requestAnimationFrame(()=>{
+// 初期描画（スプラッシュが覆っている間に実施）。setTimeoutでbfcache/背景タブでも確実に実行
+setTimeout(()=>{
   renderDictList();
   renderIdxBar();
-  if(_st && _st.tab==='quiz' && !cq) nextQ();
-  if(_st && _st.tab==='fav') renderFavList();
+  // 最後に使った画面を復元（dict以外はgoTabで正しく描画）
+  if(_st && _st.tab && _st.tab!=='dict'){
+    try{ goTab(_st.tab); }catch(e){}
+  }
   // EJモードのスクロール位置のみ復元
   const _savedParts=_savedPos?_savedPos.split('|'):null;
   if(_savedParts && _savedParts[0]==='ej' && _savedParts[1] && !sq){
     setTimeout(()=>scrollToLetter(_savedParts[1]),80);
   }
-});
+},0);
+
+// ── 起動スプラッシュ: ふわっと表紙を出してからアプリ画面へ ──
+(function(){
+  const sp=document.getElementById('splash');
+  if(!sp) return;
+  setTimeout(()=>sp.classList.add('hide'),300);
+  setTimeout(()=>sp.classList.add('gone'),1050);
+})();
 
 // タブ切替・スクロール時にstate保存
 $('dict-list').addEventListener('scroll',()=>{
