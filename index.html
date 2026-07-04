@@ -849,8 +849,8 @@ function goTab(t){
   const _nb=$('bnav-'+(_navMap[t]||t));
   if(_nb) _nb.classList.add('active');
   tab=t;
-  // カンニング防止: 未回答のまま辞書を開いたら、そのクイズには戻れない
-  if(t==='dict'&&(lastQuizSection==='play'||lastQuizSection==='daily')){
+  // カンニング防止: 未回答のまま辞書・略語を開いたら、そのクイズには戻れない
+  if((t==='dict'||t==='abbr')&&(lastQuizSection==='play'||lastQuizSection==='daily')){
     const unanswered=lastQuizSection==='play'?!ans:!dailyAns;
     if(unanswered) lastQuizSection='menu';
   }
