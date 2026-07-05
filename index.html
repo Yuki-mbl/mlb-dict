@@ -1144,8 +1144,15 @@ function renderAbbrList(){
   if(bar){
     const letters = [...seenLetters].sort();
     bar.innerHTML = letters.map(l =>
-      `<span class="idx-l" onclick="(function(){const t=document.getElementById('abbr-sec-${l}');if(t){const sc=t.closest('.dict-body');if(sc)sc.scrollTop=t.offsetTop-sc.offsetTop;}})();">${l}</span>`
+      `<span class="idx-l" onclick="scrollToAbbrLetter('${l}')">${l}</span>`
     ).join('');
+  }
+}
+function scrollToAbbrLetter(l){
+  const list=$('abbr-list');
+  const t=document.getElementById('abbr-sec-'+l);
+  if(list&&t){
+    list.scrollTop=t.getBoundingClientRect().top-list.getBoundingClientRect().top+list.scrollTop;
   }
 }
 function clearAbbrSearch(){
@@ -1521,7 +1528,8 @@ function isPersonName(e){
   const s=raw.replace(/[。参照\s]/g,'');
   return s.length>0&&/^[ァ-ヶーｦ-ﾟ・＝]+$/.test(s);
 }
-function nextQ(){
+function nextQ(_depth){
+  _depth=_depth||0;
   // 英和・和英ミックス出題: 問題ごとにランダムでモードを決定
   qMode=Math.random()<0.5?'ej':'je';
   const data=qMode==='ej'?EJ:JE;
@@ -1542,20 +1550,19 @@ function nextQ(){
   } else {
     correct=pool[Math.floor(Math.random()*pool.length)];
   }
-  // 正解ラベルが空、またはEJモードで日本語を含まない場合は出題しない
+  // 正解ラベルが空、またはEJモードで日本語を含まない場合は別の問題を引き直す
   const _cLbl=choiceLbl(correct);
-  if(!_cLbl.trim()){renderQ();return;}
-  if(qMode==='ej'&&!/[ぁ-んァ-ヶー一-龯]/.test(_cLbl)){renderQ();return;}
+  if(!_cLbl.trim()){ if(_depth<25) nextQ(_depth+1); return; }
+  if(qMode==='ej'&&!/[ぁ-んァ-ヶー一-龯]/.test(_cLbl)){ if(_depth<25) nextQ(_depth+1); return; }
   // 選択肢として表示できるか判定
   const _jaRe=/[ぁ-んァ-ヶー一-龯]/;
   function hasGoodLbl(e){
     if(isPersonName(e)) return false;
     if(e.cat==='abbr') return !!(e.def&&e.def.length>=4);
-    const raw=(qMode==='ej'?e.ja:e.en)||'';
-    const s=raw.replace(/^=\s*\S+\s+/,'').replace(/^（追記）/,'').replace(/^（[^）]{8,}）\s*/,'').trim();
-    if(s.length<4) return false;
-    // EJモード: 日本語が含まれない選択肢は除外（英語シノニム参照のみのエントリ対策）
-    if(qMode==='ej' && !_jaRe.test(s)) return false;
+    // 実際に表示するラベルで判定（cf.のみ・括弧残骸などを除外）
+    const lbl=choiceLbl(e);
+    if(!lbl || lbl.trim().length<2) return false;
+    if(qMode==='ej' && !_jaRe.test(lbl)) return false;
     return true;
   }
   const used=new Set([correct]);const wrongs=[];let t=0;
@@ -1628,6 +1635,10 @@ function choiceLbl(entry){
   s=s.replace(/\s*cf\..*$/i,'').replace(/\s*e\.g\..*$/i,'');
   // ；：以降除去
   s=s.replace(/\s*[；：].*$/,'');
+  // 先頭・末尾に残った鉤括弧・引用符の残骸を除去
+  s=s.replace(/^[「｢『"”'\s]+/,'').replace(/[「｢『」｣』"”'\s]+$/,'').trim();
+  // cf./e.g. だけが残った場合は無効化
+  if(/^(cf\.|e\.g\.)/i.test(s)) s='';
   // 末尾の句点・読点・空白を除去（読点での途中カットはしない＝意味が途切れるため）
   s=s.replace(/[。、\s]+$/,'').trim();
   // 60文字を超えたら省略（読点区切りの完全な文を保持）
@@ -1637,7 +1648,12 @@ function choiceLbl(entry){
     const jaM=raw.match(/[ぁ-んァ-ヶー一-龯][^。\n]*/);
     if(jaM) s=jaM[0].replace(/\s*cf\..*$/i,'').replace(/[。\s]+$/,'').trim().substring(0,60);
   }
-  return s||raw.replace(/[。\n].*/,'').trim().substring(0,60)||raw.substring(0,60);
+  if(!s){
+    // 生テキストから cf./e.g./括弧を除いた最初の断片（無ければ空のまま）
+    s=raw.replace(/\s*cf\..*$/i,'').replace(/\s*e\.g\..*$/i,'')
+         .replace(/[「｢」｣『』]/g,'').replace(/[。\n].*/,'').trim().substring(0,60);
+  }
+  return s;
 }
 // ── キャラクター表情切替 ──
 const CHAR_IMG={def:'images/デフォ.png',joy:'images/よろこび.png',bat:'images/バッター.png',pit:'images/ピッチャー.png',runR:'images/右向き.png',runL:'images/左向き.png'};
