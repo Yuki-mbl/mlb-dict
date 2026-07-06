@@ -524,7 +524,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 /* ── 起動スプラッシュ ── */
 #splash{position:fixed;inset:0;z-index:3000;background:#12224a;
   display:flex;align-items:center;justify-content:center;
-  opacity:1;transition:opacity .7s ease}
+  opacity:1;transition:opacity .45s ease}
 #splash img{max-width:100%;max-height:100%;object-fit:contain;
   animation:splash-in .5s ease}
 #splash.hide{opacity:0}
@@ -2171,8 +2171,8 @@ setTimeout(()=>{
 (function(){
   const sp=document.getElementById('splash');
   if(!sp) return;
-  setTimeout(()=>sp.classList.add('hide'),300);
-  setTimeout(()=>sp.classList.add('gone'),1050);
+  setTimeout(()=>sp.classList.add('hide'),850);
+  setTimeout(()=>sp.classList.add('gone'),1320);
 })();
 
 // タブ切替・スクロール時にstate保存
