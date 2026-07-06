@@ -1487,8 +1487,8 @@ function toggleMFav(){
 }
 
 // ── Quiz ──────────────────────────────────────────────────────────────────────
-// クイズ状態: 連続正解数・アウト数・塁の走者[1塁,2塁,3塁]・得点
-let quizStreak=0, quizOuts=0, bases=[false,false,false];
+// クイズ状態: 連続正解数・アウト数・走者の到達塁(0=なし,1〜3)・得点
+let quizStreak=0, quizOuts=0, runnerBase=0;
 let runsTotal=parseInt(localStorage.getItem('mlb_runs')||'0',10)||0; // 累計得点
 function vibrate(p){try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}}
 // ── 難易度（進む塁数 1=単打 / 2=二塁打 / 3=三塁打）──
@@ -1554,28 +1554,12 @@ function updateOuts(){
   if(el) el.textContent='OUT '+'●'.repeat(quizOuts)+'○'.repeat(Math.max(0,3-quizOuts));
 }
 function clearBases(){
-  bases=[false,false,false];
+  runnerBase=0;
   renderBases();
 }
-// bases配列に従って走者を表示
+// 単独走者の到達塁に応じて表示（0=なし）
 function renderBases(){
-  [1,2,3].forEach(n=>{const e=$('dchar-'+n);if(e)e.style.display=bases[n-1]?'':'none';});
-}
-// ヒット（value塁進む）: 塁上の走者＋打者を進め、本塁を踏んだ人数を返す
-function advanceRunners(value){
-  let runs=0;
-  // 各走者を value 塁進める（3塁より先＝生還）
-  const np=[false,false,false];
-  for(let i=0;i<3;i++){
-    if(!bases[i]) continue;
-    const pos=(i+1)+value; // 現在塁(1-3)+進塁
-    if(pos>=4) runs++; else np[pos-1]=true;
-  }
-  // 打者を value 塁へ（value>=4は本塁打で生還）
-  if(value>=4) runs++; else np[value-1]=true;
-  bases=np;
-  renderBases();
-  return runs;
+  [1,2,3].forEach(n=>{const e=$('dchar-'+n);if(e)e.style.display=(runnerBase===n)?'':'none';});
 }
 function runAcross(dir){
   const img=$('run-char');
@@ -1763,17 +1747,22 @@ function pick(btn,ok,correct){
   if(ok){
     quizStreak++;
     const hit=(cq&&cq.hit)?cq.hit:1;   // 難易度＝進む塁数（1/2/3）
+    // 走者を難易度ぶん進める。本塁到達（4以上）で得点
+    runnerBase+=hit;
+    let runs=0;
+    if(runnerBase>=4){ runs=1; runnerBase=0; }
     if(quizStreak>=4){
-      // 4連続正解: ホームラン！全走者＋打者が生還、大ジャンプ＋大振動
-      const runs=advanceRunners(4);
+      // 4連続正解: ホームラン！走者が残っていれば生還させ、大ジャンプ＋大振動
+      if(runnerBase>0){ runs+=1; runnerBase=0; }
+      else if(runs===0){ runs+=1; }
+      renderBases();
       addRuns(runs);
       showFlash(true,true);
       vibrate([120,60,220]);
       quizStreak=0;
     } else {
-      // 通常ヒット: 難易度ぶん進塁、本塁を踏んだ人数を得点
+      renderBases();
       runAcross(hit>=2?'l':'r');
-      const runs=advanceRunners(hit);
       addRuns(runs);
       vibrate(runs>0?[40,40,60]:35);
     }
