@@ -2034,6 +2034,8 @@ function dailyNextQ(){
   }
 }
 function showDailyResult(){
+  // 結果画面では下部ナビ「クイズ」で目次に戻れるようにする
+  lastQuizSection='menu';
   _hideDailyAll();
   $('daily-result').style.display='';
   const correct=dailyState.ans.filter(a=>a===true).length;
