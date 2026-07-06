@@ -524,7 +524,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 /* ── 起動スプラッシュ ── */
 #splash{position:fixed;inset:0;z-index:3000;background:#12224a;
   display:flex;align-items:center;justify-content:center;
-  opacity:1;transition:opacity .45s ease}
+  opacity:1;transition:opacity 1s ease}
 #splash img{max-width:100%;max-height:100%;object-fit:contain;
   animation:splash-in .5s ease}
 #splash.hide{opacity:0}
@@ -1984,8 +1984,10 @@ function dailyPick(btn,ok,q,correct,chosenIdx){
   if(!ok){
     addToReview(q.type,q.idx);
   }
-  showFlash(ok);
-  if(ok) vibrate(35);
+  // 10問目の正解はクイズのホームインと同じ飛び出す演出
+  const isLast=dailyCurIdx===9;
+  if(ok&&isLast){ showFlash(true,true); vibrate([120,60,220]); }
+  else { showFlash(ok); if(ok) vibrate(35); }
   setChar('daily-char-img',ok?'joy':'def',ok);
   btn.classList.add(ok?'ok':'ng');
   if(!ok){
@@ -2171,8 +2173,8 @@ setTimeout(()=>{
 (function(){
   const sp=document.getElementById('splash');
   if(!sp) return;
-  setTimeout(()=>sp.classList.add('hide'),850);
-  setTimeout(()=>sp.classList.add('gone'),1320);
+  setTimeout(()=>sp.classList.add('hide'),1400);
+  setTimeout(()=>sp.classList.add('gone'),2450);
 })();
 
 // タブ切替・スクロール時にstate保存
