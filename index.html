@@ -1556,24 +1556,35 @@ function clearBases(){
 function renderBases(){
   [1,2,3].forEach(n=>{const e=$('dchar-'+n);if(e)e.style.display=bases[n-1]?'':'none';});
 }
-// ヒット（value塁進む）: 塁上の走者＋打者を進め、本塁を踏んだ人数を返す（連続正解で塁に残る）
+// ヒット（value塁進む）: 塁上の走者＋打者を進める。{runs, dirs}を返す
+// dirs=動いた走者ごとの走る向き（リード走者→打者の順）。到達1塁='r'(左→右)、それ以外='l'(右→左)
 function advanceRunners(value){
   let runs=0;
   const np=[false,false,false];
-  for(let i=0;i<3;i++){
+  const dirs=[];
+  // リード走者（3塁側）から順に
+  for(let i=2;i>=0;i--){
     if(!bases[i]) continue;
     const pos=(i+1)+value; // 現在塁(1-3)+進塁
-    if(pos>=4) runs++; else np[pos-1]=true;
+    if(pos>=4){ runs++; dirs.push('l'); }         // 生還
+    else { np[pos-1]=true; dirs.push(pos===1?'r':'l'); }
   }
-  if(value>=4) runs++; else np[value-1]=true; // 打者
+  // 打者（最後）
+  if(value>=4){ runs++; dirs.push('l'); } else { np[value-1]=true; dirs.push(value===1?'r':'l'); }
   bases=np;
   renderBases();
-  return runs;
+  return {runs, dirs};
+}
+// 複数の走者を順番に走らせる
+function runSequence(dirs){
+  if(!dirs||!dirs.length) return;
+  dirs.forEach((d,i)=>setTimeout(()=>runAcross(d), i*520));
 }
 function runAcross(dir){
   const img=$('run-char');
   if(!img) return;
   img.src=dir==='r'?CHAR_IMG.runR:CHAR_IMG.runL;
+  img.className='';void img.offsetWidth; // アニメ再スタート
   img.className='run '+(dir==='r'?'run-lr':'run-rl');
   clearTimeout(img._t);
   img._t=setTimeout(()=>{img.className='';},1200);
@@ -1758,17 +1769,18 @@ function pick(btn,ok,correct){
     const hit=(cq&&cq.hit)?cq.hit:1;   // 難易度＝進む塁数（1/2/3）
     if(quizStreak>=4){
       // 4連続正解: 満塁ホームラン！塁上の走者＋打者が全員生還、大ジャンプ＋大振動
-      const runs=advanceRunners(4);
-      addRuns(runs);
+      const r=advanceRunners(4);
+      runSequence(r.dirs);
+      addRuns(r.runs);
       showFlash(true,true);
       vibrate([120,60,220]);
       quizStreak=0;
     } else {
-      // 通常ヒット: 難易度ぶん進塁。走者は塁に残り、本塁を踏んだら得点
-      runAcross(hit>=2?'l':'r');
-      const runs=advanceRunners(hit);
-      addRuns(runs);
-      vibrate(runs>0?[40,40,60]:35);
+      // 通常ヒット: 難易度ぶん進塁。動いた走者を順番に走らせ、本塁を踏んだら得点
+      const r=advanceRunners(hit);
+      runSequence(r.dirs);
+      addRuns(r.runs);
+      vibrate(r.runs>0?[40,40,60]:35);
     }
   } else {
     quizStreak=0;
