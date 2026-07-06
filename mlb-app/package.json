@@ -1,0 +1,20 @@
+{
+  "name": "mlb-dict-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "メジャーリーグ野球用語 英和・和英辞典＆クイズ (iOS wrapper)",
+  "scripts": {
+    "copyweb": "node copyweb.js",
+    "sync": "npm run copyweb && npx cap sync ios",
+    "icons": "npx @capacitor/assets generate --ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.1.2",
+    "@capacitor/ios": "^6.1.2",
+    "@capacitor/splash-screen": "^6.0.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.2",
+    "@capacitor/assets": "^3.0.5"
+  }
+}

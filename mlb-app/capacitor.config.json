@@ -1,0 +1,16 @@
+{
+  "appId": "jp.fantamstick.mlbdict",
+  "appName": "MLB野球用語辞典",
+  "webDir": "www",
+  "backgroundColor": "#12224a",
+  "ios": {
+    "contentInset": "always"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 800,
+      "backgroundColor": "#12224a",
+      "showSpinner": false
+    }
+  }
+}
