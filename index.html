@@ -298,11 +298,25 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 #dchar-1{left:82%;top:48%}
 #dchar-2{left:50%;top:15%}
 #dchar-3{left:18%;top:48%}
-/* ── アウトカウント ── */
-.quiz-outs-bar{text-align:center;background:var(--c-canvas);
-  border-bottom:1px solid var(--c-hairline);padding:8px 0;flex-shrink:0}
+/* ── アウトカウント・得点 ── */
+.quiz-outs-bar{display:flex;align-items:center;justify-content:center;gap:18px;
+  background:var(--c-canvas);border-bottom:1px solid var(--c-hairline);padding:8px 0;flex-shrink:0}
 .quiz-outs{font-family:var(--ff-d);font-size:15px;font-weight:900;
   letter-spacing:3px;color:var(--c-coral)}
+.quiz-runs-lbl{font-family:var(--ff-d);font-size:15px;font-weight:900;color:var(--c-primary)}
+.quiz-runs-lbl #quiz-runs{display:inline-block;color:var(--c-coral);font-size:19px;min-width:1.2em;text-align:center}
+@keyframes run-bump{0%{transform:scale(1)}40%{transform:scale(1.5)}100%{transform:scale(1)}}
+.run-bump{animation:run-bump .45s cubic-bezier(.34,1.56,.64,1)}
+/* 難易度バッジ */
+.hit-badge{display:inline-block;font-family:var(--ff-t);font-size:11px;font-weight:800;
+  padding:1px 7px;border-radius:var(--r-pill);border:1.5px solid var(--c-border);margin-left:6px;vertical-align:middle}
+.hit-1{background:var(--c-accent);color:var(--c-ink)}
+.hit-2{background:var(--c-orange);color:var(--c-ink)}
+.hit-3{background:var(--c-coral);color:#fff}
+/* 目次の累計得点 */
+.menu-runs-row{text-align:center;font-family:var(--ff-d);font-weight:900;font-size:15px;
+  color:var(--c-primary);padding:6px 0 2px;border-top:1px solid var(--c-hairline);margin-top:4px}
+.menu-runs-row #menu-runs{color:var(--c-coral);font-size:20px}
 /* ── 走者が横切る演出 ── */
 .quiz-card{position:relative}
 #run-char{position:absolute;top:-6px;height:96px;width:auto;left:-110px;display:none;z-index:30;pointer-events:none}
@@ -598,6 +612,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
             </div>
           </div>
         </div>
+        <div class="menu-runs-row">⚾ 累計得点 <span id="menu-runs">0</span> 点</div>
       </div>
       <button class="qmenu-card qmenu-quiz" onclick="startQuizPlay()">
         <img src="images/バッター.png" alt="">
@@ -626,7 +641,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
           <img class="dchar dchar-runner" id="dchar-3" src="images/盗塁待ち.png" alt="" style="display:none">
         </div>
       </div>
-      <div class="quiz-outs-bar"><span class="quiz-outs" id="quiz-outs">OUT ○○○</span></div>
+      <div class="quiz-outs-bar"><span class="quiz-outs" id="quiz-outs">OUT ○○○</span><span class="quiz-runs-lbl">得点 <span id="quiz-runs">0</span></span></div>
       <div class="quiz-card">
         <img id="run-char" src="images/右向き.png" alt="">
         <div class="quiz-q">
@@ -1472,34 +1487,95 @@ function toggleMFav(){
 }
 
 // ── Quiz ──────────────────────────────────────────────────────────────────────
-// クイズ状態: 連続正解数・アウト数・走者の到達塁(0〜3)・満塁フラグ
-let quizStreak=0, quizOuts=0, runnerBase=0, basesLoaded=false;
+// クイズ状態: 連続正解数・アウト数・塁の走者[1塁,2塁,3塁]・得点
+let quizStreak=0, quizOuts=0, bases=[false,false,false];
+let runsTotal=parseInt(localStorage.getItem('mlb_runs')||'0',10)||0; // 累計得点
 function vibrate(p){try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}}
+// ── 難易度（進む塁数 1=単打 / 2=二塁打 / 3=三塁打）──
+// 主要語の手調整（自動判定を上書き）。enの小文字・括弧除去で照合
+const DIFF_OVERRIDE={
+  // やさしい（1）
+  'hit':1,'run':1,'out':1,'ball':1,'strike':1,'base':1,'walk':1,'catch':1,'pitcher':1,'batter':1,
+  'home run':1,'single':1,'double':1,'triple':1,'inning':1,'error':1,'save':1,'win':1,'loss':1,
+  // 難しい（3）＝慣用句・スラング
+  'can of corn':3,'ducks on the pond':3,'around the horn':3,'in the hole':3,'on deck':2,
+  'texas leaguer':3,'frozen rope':3,'cup of coffee':3,'high and tight':3,'seventh inning stretch':3,
+  'grand slam':2,'squeeze play':3,'hit and run':2,'sacrifice fly':2,'double play':2,'triple play':3,
+  'pinch hitter':2,'designated hitter':2,'utility player':2,'quality start':3,'walk-off':3,'walkoff':3,
+};
+function difficultyOf(e){
+  if(!e) return 1;
+  const key=(e.en||'').toLowerCase().replace(/\(.*?\)/g,'').replace(/[=＝].*$/,'').trim();
+  if(DIFF_OVERRIDE[key]!=null) return DIFF_OVERRIDE[key];
+  // カタカナ語（日本語がほぼカタカナ）＝やさしい
+  const ja=(e.ja||'');
+  const kata=(ja.match(/[ァ-ヶーヴ・]/g)||[]).length;
+  const jaLen=ja.replace(/[\s、。（）()「」・]/g,'').length;
+  if(jaLen>0 && kata/jaLen>0.7) return 1;
+  // 英語の単語数で判定
+  const words=key.split(/[\s\-\/]+/).filter(Boolean);
+  const wc=words.length;
+  if(wc>=3) return 3;
+  if(wc===2) return 2;
+  if(key.length>=10) return 2; // 長い1語
+  return 1;
+}
 function startQuizPlay(){
   lastQuizSection='play';
   $('quiz-menu').style.display='none';
   $('quiz-play').style.display='';
   quizStreak=0;quizOuts=0;
-  updateOuts();clearBases();
+  updateOuts();clearBases();updateRuns();
   cq=null;nextQ();
+}
+// 累計得点の表示更新
+function updateRuns(){
+  const a=$('quiz-runs'),b=$('menu-runs');
+  if(a) a.textContent=runsTotal;
+  if(b) b.textContent=runsTotal;
+}
+function addRuns(n){
+  if(n<=0) return;
+  runsTotal+=n;
+  localStorage.setItem('mlb_runs',String(runsTotal));
+  updateRuns();
+  const el=$('quiz-runs');
+  if(el){el.classList.remove('run-bump');void el.offsetWidth;el.classList.add('run-bump');}
 }
 function quizToMenu(){
   lastQuizSection='menu';
   const play=$('quiz-play'),menu=$('quiz-menu');
   if(play) play.style.display='none';
   if(menu) menu.style.display='';
+  updateRuns();
 }
 function updateOuts(){
   const el=$('quiz-outs');
   if(el) el.textContent='OUT '+'●'.repeat(quizOuts)+'○'.repeat(Math.max(0,3-quizOuts));
 }
 function clearBases(){
-  runnerBase=0;basesLoaded=false;
-  ['dchar-1','dchar-2','dchar-3'].forEach(id=>{const e=$(id);if(e)e.style.display='none';});
+  bases=[false,false,false];
+  renderBases();
 }
-// 表示する塁の集合を指定（例: [2] なら2塁のみ、[1,2,3] なら満塁）
-function showBases(nums){
-  [1,2,3].forEach(n=>{const e=$('dchar-'+n);if(e)e.style.display=nums.includes(n)?'':'none';});
+// bases配列に従って走者を表示
+function renderBases(){
+  [1,2,3].forEach(n=>{const e=$('dchar-'+n);if(e)e.style.display=bases[n-1]?'':'none';});
+}
+// ヒット（value塁進む）: 塁上の走者＋打者を進め、本塁を踏んだ人数を返す
+function advanceRunners(value){
+  let runs=0;
+  // 各走者を value 塁進める（3塁より先＝生還）
+  const np=[false,false,false];
+  for(let i=0;i<3;i++){
+    if(!bases[i]) continue;
+    const pos=(i+1)+value; // 現在塁(1-3)+進塁
+    if(pos>=4) runs++; else np[pos-1]=true;
+  }
+  // 打者を value 塁へ（value>=4は本塁打で生還）
+  if(value>=4) runs++; else np[value-1]=true;
+  bases=np;
+  renderBases();
+  return runs;
 }
 function runAcross(dir){
   const img=$('run-char');
@@ -1584,7 +1660,7 @@ function nextQ(_depth){
       used.add(c);wrongs.push(c);
     }
   }
-  cq={correct,choices:[...wrongs,correct].sort(()=>Math.random()-.5)};
+  cq={correct,choices:[...wrongs,correct].sort(()=>Math.random()-.5),hit:difficultyOf(correct)};
   ans=false;
   const qdc=$('quiz-def-card');if(qdc)qdc.style.display='none';
   renderQ();
@@ -1593,7 +1669,11 @@ function renderQ(){
   if(!cq) return;
   const{correct,choices}=cq;
   setChar('quiz-char-img',qMode==='ej'?'bat':'pit');
-  $('qq-lbl').textContent=qMode==='ej'?'英語 → 日本語':'日本語 → 英語';
+  const modeLbl=qMode==='ej'?'英語 → 日本語':'日本語 → 英語';
+  const hit=cq.hit||1;
+  const hitLbl=hit>=3?'⚾ 三塁打（3塁）':hit===2?'⚾ 二塁打（2塁）':'⚾ 単打（1塁）';
+  const qq=$('qq-lbl');
+  qq.innerHTML=esc(modeLbl)+' <span class="hit-badge hit-'+hit+'">'+hitLbl+'</span>';
   $('qq-term').textContent=qMode==='ej'?correct.en:correct.ja;
   $('next-btn').disabled=true;
   const grid=$('choices');grid.innerHTML='';
@@ -1682,31 +1762,20 @@ function pick(btn,ok,correct){
   setChar('quiz-char-img',ok?'joy':'def',ok);
   if(ok){
     quizStreak++;
+    const hit=(cq&&cq.hit)?cq.hit:1;   // 難易度＝進む塁数（1/2/3）
     if(quizStreak>=4){
-      // 4連続正解: キャラが下から大きく飛び出す＋大きく振動、塁をリセット
+      // 4連続正解: ホームラン！全走者＋打者が生還、大ジャンプ＋大振動
+      const runs=advanceRunners(4);
+      addRuns(runs);
       showFlash(true,true);
       vibrate([120,60,220]);
-      clearBases();
       quizStreak=0;
-    } else if(basesLoaded){
-      // 満塁は維持（3問連続で満塁後はそのまま置きっぱなし）
-      runAcross('l');
-      showBases([1,2,3]);
-      vibrate(35);
-    } else if(quizStreak>=2){
-      // 連続正解 → 塁を積み上げて残す（streak2→1,2塁 / streak3→満塁）
-      const n=Math.min(quizStreak,3);
-      runnerBase=n;
-      runAcross('l');
-      if(n>=3){ basesLoaded=true; showBases([1,2,3]); }
-      else { showBases([1,2]); }
-      vibrate(35);
     } else {
-      // 連続でない（最初の1問 or ミス後）→ 単独走者が進塁するだけ
-      runnerBase=Math.min(runnerBase+1,3);
-      runAcross(runnerBase===1?'r':'l');
-      showBases([runnerBase]);
-      vibrate(35);
+      // 通常ヒット: 難易度ぶん進塁、本塁を踏んだ人数を得点
+      runAcross(hit>=2?'l':'r');
+      const runs=advanceRunners(hit);
+      addRuns(runs);
+      vibrate(runs>0?[40,40,60]:35);
     }
   } else {
     quizStreak=0;
