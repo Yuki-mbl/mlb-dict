@@ -543,8 +543,8 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   border:var(--bw) solid var(--c-border);box-shadow:var(--shadow-m);
   border-radius:var(--r-lg);padding:14px 16px}
 .home-hero img{height:70px;width:auto;flex-shrink:0}
-.home-greet{font-family:var(--ff-d);font-size:22px;font-weight:900;color:var(--c-ink)}
-.home-date{font-size:13px;font-weight:700;color:var(--c-ink);opacity:.7;margin-top:2px}
+.home-title{font-family:var(--ff-d);font-size:17px;font-weight:900;color:var(--c-ink);line-height:1.25;letter-spacing:.02em}
+.home-date{font-size:16px;font-weight:800;color:var(--c-ink);opacity:.72;margin-top:6px}
 .home-row2{display:grid;grid-template-columns:1fr 1.4fr;gap:12px}
 .home-mini{background:var(--c-parchment);border:var(--bw) solid var(--c-border);
   box-shadow:var(--shadow-s);border-radius:var(--r-md);padding:12px 14px}
@@ -616,7 +616,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       <div class="home-hero">
         <img src="images/よろこび.png" alt="">
         <div class="home-hero-txt">
-          <div class="home-greet" id="home-greet">こんにちは！</div>
+          <div class="home-title">メジャーリーグ野球用語<br>英和・和英辞典 ＆ クイズ</div>
           <div class="home-date" id="home-date"></div>
         </div>
       </div>
@@ -1099,9 +1099,6 @@ function pickWordOfDay(){
 function openWordOfDay(){ if(_wordOfDay) openModal(_wordOfDay,'ej'); }
 function renderHome(){
   const d=new Date();
-  const h=d.getHours();
-  const greet=h<11?'おはようございます！':h<18?'こんにちは！':'こんばんは！';
-  if($('home-greet')) $('home-greet').textContent=greet;
   if($('home-date')) $('home-date').textContent=(d.getMonth()+1)+'月'+d.getDate()+'日（'+'日月火水木金土'[d.getDay()]+'）';
   // 連続ログイン
   const streak=updateStreak();
