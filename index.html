@@ -379,6 +379,11 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .qmode-btn:active{transform:translate(2px,2px);box-shadow:none}
 .qmode-btn.active{background:var(--c-primary);color:#fff}
 .quiz-card{padding:16px 14px 14px;flex:1}
+.pitch-clock{height:10px;background:var(--c-card);border:2px solid var(--c-border);
+  border-radius:6px;overflow:hidden;margin-bottom:12px}
+.pitch-clock-fill{height:100%;width:100%;background:var(--c-accent)}
+.pitch-clock-fill.warn{background:var(--c-coral);animation:pc-blink .5s steps(2,start) infinite}
+@keyframes pc-blink{50%{opacity:.4}}
 .quiz-q{background:var(--c-parchment);border-radius:var(--r-lg);
   border:var(--bw) solid var(--c-border);box-shadow:var(--shadow-m);
   padding:22px 16px;text-align:center;margin-bottom:16px;transition:background .25s}
@@ -787,7 +792,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       </div>
       <button class="qmenu-card qmenu-quiz" onclick="startQuizPlay()">
         <img src="images/バッター.png" alt="">
-        <span class="qmenu-txt"><span class="qmenu-name">クイズ</span><span class="qmenu-sub">英和・和英ミックスで腕試し！3アウトで交代</span></span>
+        <span class="qmenu-txt"><span class="qmenu-name">クイズ</span><span class="qmenu-sub">英和・和英ミックス！制限時間あり・3アウトで交代</span></span>
       </button>
       <button class="qmenu-card qmenu-daily" onclick="goTab('daily')">
         <img src="images/ピッチャー.png" alt="">
@@ -816,6 +821,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       </div>
       <div class="quiz-card">
         <img id="run-char" src="images/右向き.png" alt="">
+        <div class="pitch-clock"><div class="pitch-clock-fill" id="pitch-clock-fill"></div></div>
         <div class="quiz-q">
           <div class="quiz-q-lbl" id="qq-lbl">問題</div>
           <div class="quiz-q-term" id="qq-term">—</div>
@@ -1995,7 +2001,7 @@ function startQuizPlay(){
   lastQuizSection='play';
   $('quiz-menu').style.display='none';
   $('quiz-play').style.display='';
-  quizStreak=0;quizOuts=0;
+  quizStreak=0;quizOuts=0;quizAsked=0;
   updateOuts();clearBases();updateRuns();
   cq=null;nextQ();
 }
@@ -2143,6 +2149,7 @@ function nextQ(_depth){
   }
   cq={correct,choices:[...wrongs,correct].sort(()=>Math.random()-.5),hit:difficultyOf(correct)};
   ans=false;
+  quizAsked++;   // 出題数（進むほど制限時間を短縮）
   const qdc=$('quiz-def-card');if(qdc)qdc.style.display='none';
   renderQ();
 }
@@ -2166,6 +2173,31 @@ function renderQ(){
     btn.onclick=()=>pick(btn,ch===correct,correct);
     grid.appendChild(btn);
   });
+  startPitchClock();
+}
+// ── ピッチクロック（制限時間） ──
+let quizTimer=null, quizAsked=0;
+function pitchMs(){ return Math.max(6000, 12000 - Math.floor(quizAsked/4)*1000); } // 12→…→6秒
+function startPitchClock(){
+  const fill=$('pitch-clock-fill'); if(!fill) return;
+  clearTimeout(quizTimer); clearTimeout(fill._warn);
+  const ms=pitchMs();
+  fill.style.transition='none'; fill.style.width='100%'; fill.classList.remove('warn');
+  void fill.offsetWidth;
+  fill.style.transition='width '+ms+'ms linear';
+  fill.style.width='0%';
+  fill._warn=setTimeout(()=>fill.classList.add('warn'),Math.max(0,ms-3000));
+  quizTimer=setTimeout(onTimeUp,ms);
+}
+function stopPitchClock(){
+  clearTimeout(quizTimer);quizTimer=null;
+  const fill=$('pitch-clock-fill');
+  if(fill){ clearTimeout(fill._warn); const w=getComputedStyle(fill).width; fill.style.transition='none'; fill.style.width=w; }
+}
+function onTimeUp(){
+  if(ans||!cq) return;
+  // 時間切れ＝見逃し三振（1アウト）。不正解として処理
+  pick(null,false,cq.correct);
 }
 function choiceLbl(entry){
   // 略語エントリはdef（日本語説明）を選択肢に使う
@@ -2238,6 +2270,7 @@ function showFlash(ok,withChar){
 }
 function pick(btn,ok,correct){
   if(ans) return;ans=true;
+  stopPitchClock();
   const st=qs[qMode];st.n++;if(ok) st.ok++;
   updateScores();
   setChar('quiz-char-img',ok?'joy':'def',ok);
@@ -2262,7 +2295,7 @@ function pick(btn,ok,correct){
     showFlash(false);
     // 走者は塁に残す（クリアしない）
   }
-  btn.classList.add(ok?'ok':'ng');
+  if(btn) btn.classList.add(ok?'ok':'ng');
   if(!ok){
     const cLbl=choiceLbl(correct);
     document.querySelectorAll('.choice').forEach(b=>{
