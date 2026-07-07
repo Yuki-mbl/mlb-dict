@@ -1161,8 +1161,8 @@ function goTab(t){
     const unanswered=lastQuizSection==='play'?!ans:!dailyAns;
     if(unanswered) lastQuizSection='menu';
   }
-  // 辞書ボタン: お気に入り(♥)表示中なら通常の辞書に戻す
-  if(t==='dict' && dictFav){ setDictMode(dictMode); }
+  // 辞書ボタン: お気に入り(♥)表示中なら通常の辞書に戻す（位置を復元）
+  if(t==='dict' && dictFav){ exitDictFav(); }
   else if(t==='dict' && sq){
     // 辞書タブに戻るとき: 検索をクリアして最後に見ていた位置へ
     sq=''; $('s-input').value=''; $('s-clear').classList.remove('show');
@@ -1355,18 +1355,28 @@ function setDictMode(m){
   $('dict-list').scrollTop=0;
   renderDictList(); renderIdxBar();
 }
+let _dictSavedTop=0; // お気に入りに入る直前の辞書スクロール位置
 // ♥をもう一度押したら元の辞書（英和/和英）に戻る
 function toggleDictFav(){
-  if(dictFav) setDictMode(dictMode);
+  if(dictFav) exitDictFav();
   else showDictFav();
 }
 function showDictFav(){
+  if(!dictFav) _dictSavedTop=$('dict-list').scrollTop; // 位置を記憶
   dictFav=true;
   updateDictTabs();
   $('idx-bar').style.display='none';
   $('s-input').value=''; sq=''; $('s-clear').classList.remove('show');
   $('dict-list').scrollTop=0;
   renderDictFav();
+}
+// お気に入りから元の辞書へ戻る（直前のスクロール位置を復元）
+function exitDictFav(){
+  dictFav=false;
+  updateDictTabs();
+  $('idx-bar').style.display='';
+  renderDictList(); renderIdxBar();
+  $('dict-list').scrollTop=_dictSavedTop;
 }
 // favKey → {エントリ, モード} の逆引き（初回のみ構築）
 let _favLookup=null;
@@ -2610,6 +2620,7 @@ function cacheHeaders(){
 }
 function saveScrollPos(){
   const list=$('dict-list');
+  if(dictFav) return; // お気に入り表示中は辞書位置を上書きしない
   if(!list||!_headerCache.length) return;
   const st=list.scrollTop+4;
   let cur=null;
