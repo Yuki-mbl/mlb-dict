@@ -556,6 +556,37 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .home-act img{height:56px;width:auto}
 .home-act-quiz{background:var(--c-accent)}
 .home-act-daily{background:var(--c-orange)}
+/* ── 今日の試合・順位表 ── */
+.home-games-hd{display:flex;align-items:center;justify-content:space-between}
+.standings-btn{padding:4px 12px;border:2px solid var(--c-border);border-radius:var(--r-pill);
+  background:var(--c-accent);box-shadow:var(--shadow-s);font-family:var(--ff-t);
+  font-size:12px;font-weight:800;color:var(--c-ink);cursor:pointer;
+  transition:all .12s;-webkit-tap-highlight-color:transparent}
+.standings-btn:active{transform:translate(2px,2px);box-shadow:none}
+.home-games-body{font-size:14px;color:var(--c-muted)}
+.game-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed var(--c-hairline)}
+.game-row:last-child{border-bottom:none}
+.game-team{flex:1;font-weight:700;color:var(--c-ink);font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.game-team.away{text-align:right}
+.game-mid{flex-shrink:0;text-align:center;min-width:74px}
+.game-score{font-family:var(--ff-d);font-weight:900;font-size:17px;color:var(--c-ink)}
+.game-state{font-size:10px;font-weight:800;border-radius:var(--r-pill);padding:1px 8px;display:inline-block}
+.game-state.live{background:var(--c-coral);color:#fff}
+.game-state.final{background:var(--c-primary);color:#fff}
+.game-state.pre{background:var(--c-parchment);border:1.5px solid var(--c-border);color:var(--c-ink)}
+#tab-standings{overflow-y:auto;-webkit-overflow-scrolling:touch}
+#tab-standings::-webkit-scrollbar{display:none}
+.standings-body{padding:14px 16px 28px;display:flex;flex-direction:column;gap:16px;color:var(--c-muted)}
+.stand-div{background:var(--c-parchment);border:var(--bw) solid var(--c-border);
+  box-shadow:var(--shadow-s);border-radius:var(--r-lg);overflow:hidden}
+.stand-div-hd{background:var(--c-accent);border-bottom:2px solid var(--c-border);
+  font-family:var(--ff-d);font-weight:900;font-size:15px;color:var(--c-ink);padding:7px 14px}
+.stand-table{width:100%;border-collapse:collapse;font-size:13px}
+.stand-table th{font-size:10.5px;font-weight:800;color:var(--c-muted);text-align:right;padding:6px 8px 2px;letter-spacing:.5px}
+.stand-table th:first-child{text-align:left;padding-left:14px}
+.stand-table td{padding:6px 8px;text-align:right;color:var(--c-ink);border-top:1px dashed var(--c-hairline);
+  font-variant-numeric:tabular-nums}
+.stand-table td:first-child{text-align:left;padding-left:14px;font-weight:700;white-space:nowrap}
 /* ── 起動スプラッシュ ── */
 #splash{position:fixed;inset:0;z-index:3000;background:#12224a;
   display:flex;align-items:center;justify-content:center;
@@ -604,11 +635,24 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
         <div class="home-trivia-body" id="home-trivia">—</div>
       </div>
 
+      <div class="home-card home-games-card">
+        <div class="home-card-hd home-games-hd">⚾ 今日の試合
+          <button class="standings-btn" onclick="goTab('standings')">順位表 →</button>
+        </div>
+        <div id="home-games" class="home-games-body">読み込み中…</div>
+      </div>
+
       <div class="home-actions">
         <button class="home-act home-act-quiz" onclick="goTab('quiz')"><img src="images/バッター.png" alt="">クイズ</button>
         <button class="home-act home-act-daily" onclick="goTab('daily')"><img src="images/ピッチャー.png" alt="">今日の10問</button>
       </div>
     </div>
+  </div>
+
+  <!-- ── 順位表 ── -->
+  <div id="tab-standings" class="tab-panel">
+    <div class="fav-hdr subpage-hdr"><button class="back-btn" onclick="goTab('home')">← ホーム</button><h1>順位表</h1></div>
+    <div id="standings-body" class="standings-body">読み込み中…</div>
   </div>
 
   <!-- ── 辞書 ── -->
@@ -951,7 +995,7 @@ function goTab(t){
   document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
   $('tab-'+t).classList.add('active');
   // ナビに無いタブは親タブをハイライト（略語→辞書、今日/復習→クイズ）
-  const _navMap={abbr:'dict',daily:'quiz',review:'quiz'};
+  const _navMap={abbr:'dict',daily:'quiz',review:'quiz',standings:'home'};
   const _nb=$('bnav-'+(_navMap[t]||t));
   if(_nb) _nb.classList.add('active');
   tab=t;
@@ -970,6 +1014,7 @@ function goTab(t){
       requestAnimationFrame(()=>setTimeout(()=>scrollToLetter(_parts[1]),80));
   }
   if(t==='home') renderHome();
+  if(t==='standings') renderStandings();
   if(t==='abbr') renderAbbrList();
   if(t==='fav') renderFavList();
   if(t==='quiz'){ if(lastQuizSection==='play') quizShowPlay(); else quizToMenu(); }
@@ -1040,6 +1085,83 @@ function renderHome(){
   }
   // 今日の豆知識
   if($('home-trivia')&&TRIVIA.length) $('home-trivia').textContent=TRIVIA[daySeed()%TRIVIA.length];
+  // 今日の試合（ネット必要）
+  loadGames();
+}
+// ── MLBライブ（statsapi.mlb.com 公開API） ─────────────────────────────────────
+const TEAM_JA={108:'エンゼルス',109:'Dバックス',110:'オリオールズ',111:'レッドソックス',112:'カブス',113:'レッズ',114:'ガーディアンズ',115:'ロッキーズ',116:'タイガース',117:'アストロズ',118:'ロイヤルズ',119:'ドジャース',120:'ナショナルズ',121:'メッツ',133:'アスレチックス',134:'パイレーツ',135:'パドレス',136:'マリナーズ',137:'ジャイアンツ',138:'カージナルス',139:'レイズ',140:'レンジャーズ',141:'ブルージェイズ',142:'ツインズ',143:'フィリーズ',144:'ブレーブス',145:'ホワイトソックス',146:'マーリンズ',147:'ヤンキース',158:'ブルワーズ'};
+const DIV_JA={200:'ア・リーグ西地区',201:'ア・リーグ東地区',202:'ア・リーグ中地区',203:'ナ・リーグ西地区',204:'ナ・リーグ東地区',205:'ナ・リーグ中地区'};
+function teamJa(t){return TEAM_JA[t.id]||t.teamName||t.name||'';}
+// 米国東部時間での「今日」の日付（MLBの試合日はET基準）
+function etDateStr(){
+  const p=new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+  return p; // YYYY-MM-DD
+}
+// キャッシュつきfetch（分単位TTL）
+async function cachedJson(url,key,ttlMin){
+  try{
+    const c=JSON.parse(localStorage.getItem(key)||'null');
+    if(c&&Date.now()-c.t<ttlMin*60000) return c.d;
+  }catch(e){}
+  const r=await fetch(url);
+  if(!r.ok) throw new Error('http '+r.status);
+  const d=await r.json();
+  try{localStorage.setItem(key,JSON.stringify({t:Date.now(),d}));}catch(e){}
+  return d;
+}
+function gameStateJa(g){
+  const s=g.status&&g.status.abstractGameState;
+  if(s==='Live') return {cls:'live',txt:'試合中'};
+  if(s==='Final') return {cls:'final',txt:'終了'};
+  // 開始時刻（日本時間）
+  try{
+    const t=new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit'}).format(new Date(g.gameDate));
+    return {cls:'pre',txt:t+' 開始'};
+  }catch(e){ return {cls:'pre',txt:'予定'}; }
+}
+async function loadGames(){
+  const el=$('home-games');
+  if(!el) return;
+  try{
+    const d=await cachedJson('https://statsapi.mlb.com/api/v1/schedule?sportId=1&date='+etDateStr(),'mlb_games',5);
+    const games=(d.dates&&d.dates[0]&&d.dates[0].games)||[];
+    if(!games.length){ el.innerHTML='<div style="padding:6px 0">今日は試合がありません</div>'; return; }
+    el.innerHTML=games.map(g=>{
+      const st=gameStateJa(g);
+      const a=g.teams.away, h=g.teams.home;
+      const score=(st.cls==='pre')?'vs':(a.score??'-')+' - '+(h.score??'-');
+      return `<div class="game-row">
+        <span class="game-team away">${esc(teamJa(a.team))}</span>
+        <span class="game-mid"><span class="game-score">${esc(String(score))}</span><br><span class="game-state ${st.cls}">${esc(st.txt)}</span></span>
+        <span class="game-team">${esc(teamJa(h.team))}</span>
+      </div>`;
+    }).join('');
+  }catch(e){
+    el.innerHTML='<div style="padding:6px 0">オフラインのため表示できません</div>';
+  }
+}
+async function renderStandings(){
+  const el=$('standings-body');
+  if(!el) return;
+  el.textContent='読み込み中…';
+  try{
+    const y=new Date().getFullYear();
+    const d=await cachedJson('https://statsapi.mlb.com/api/v1/standings?leagueId=103,104&season='+y+'&standingsTypes=regularSeason','mlb_standings',30);
+    const recs=d.records||[];
+    if(!recs.length){ el.textContent='順位表を取得できませんでした'; return; }
+    // 地区ID順（ア東・ア中・ア西・ナ東・ナ中・ナ西）
+    const order=[201,202,200,204,205,203];
+    recs.sort((a,b)=>order.indexOf(a.division.id)-order.indexOf(b.division.id));
+    el.innerHTML=recs.map(rec=>{
+      const rows=rec.teamRecords.map(tr=>
+        `<tr><td>${esc(teamJa(tr.team))}</td><td>${tr.wins}</td><td>${tr.losses}</td><td>${esc(tr.winningPercentage)}</td><td>${esc(tr.gamesBack)}</td></tr>`
+      ).join('');
+      return `<div class="stand-div"><div class="stand-div-hd">${esc(DIV_JA[rec.division.id]||'')}</div>
+        <table class="stand-table"><tr><th>チーム</th><th>勝</th><th>敗</th><th>率</th><th>差</th></tr>${rows}</table></div>`;
+    }).join('');
+  }catch(e){
+    el.textContent='オフラインのため順位表を表示できません';
+  }
 }
 // クイズ系のどのサブ画面にいたか（menu / play / daily / review）
 let lastQuizSection='menu';
