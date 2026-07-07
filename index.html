@@ -2080,8 +2080,8 @@ function isPersonName(e){
 }
 function nextQ(_depth){
   _depth=_depth||0;
-  // 英和・和英ミックス出題: 問題ごとにランダムでモードを決定
-  qMode=Math.random()<0.5?'ej':'je';
+  // 英和・和英ミックス出題: 和英は簡単めなので約7問に1問（残りは英和）
+  qMode=Math.random()<(1/7)?'je':'ej';
   const data=qMode==='ej'?EJ:JE;
   if(data.length<5) return;
   const st=qs[qMode];
