@@ -2250,7 +2250,13 @@ function pick(btn,ok,correct){
       const r=advanceRunners(hit);
       runSequence(r.dirs);
       addRuns(r.runs);
-      vibrate(r.runs>0?[40,40,60]:35);
+      if(r.runs>0){
+        // ホームイン（得点）したらキャラが下から飛び出す＋大きく振動
+        showFlash(true,true);
+        vibrate([120,60,220]);
+      } else {
+        vibrate(35);
+      }
     }
   } else {
     quizStreak=0;
