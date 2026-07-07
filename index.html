@@ -564,6 +564,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   transition:all .12s;-webkit-tap-highlight-color:transparent}
 .standings-btn:active{transform:translate(2px,2px);box-shadow:none}
 .home-games-body{font-size:14px;color:var(--c-muted)}
+.home-games-note{font-size:10.5px;color:var(--c-muted2);margin-top:8px;text-align:center;letter-spacing:.3px}
 .game-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed var(--c-hairline)}
 .game-row:last-child{border-bottom:none}
 .game-team{flex:1;font-weight:700;color:var(--c-ink);font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -640,6 +641,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
           <button class="standings-btn" onclick="goTab('standings')">順位表 →</button>
         </div>
         <div id="home-games" class="home-games-body">読み込み中…</div>
+        <div class="home-games-note">米国日付の本日の試合／開始時刻は日本時間／約5分ごとに更新</div>
       </div>
 
       <div class="home-actions">
@@ -1113,10 +1115,10 @@ function gameStateJa(g){
   const s=g.status&&g.status.abstractGameState;
   if(s==='Live') return {cls:'live',txt:'試合中'};
   if(s==='Final') return {cls:'final',txt:'終了'};
-  // 開始時刻（日本時間）
+  // 開始時刻（日本時間で表示）
   try{
     const t=new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit'}).format(new Date(g.gameDate));
-    return {cls:'pre',txt:t+' 開始'};
+    return {cls:'pre',txt:'日本時間 '+t+' 開始'};
   }catch(e){ return {cls:'pre',txt:'予定'}; }
 }
 async function loadGames(){
