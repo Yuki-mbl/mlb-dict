@@ -1368,12 +1368,21 @@ function showDictFav(){
   $('dict-list').scrollTop=0;
   renderDictFav();
 }
-// 辞書内お気に入り一覧（英和・和英まとめて表示）
+// favKey → {エントリ, モード} の逆引き（初回のみ構築）
+let _favLookup=null;
+function getFavLookup(){
+  if(!_favLookup){
+    _favLookup=new Map();
+    EJ.forEach(e=>_favLookup.set(favKey(e),{e,m:'ej'}));
+    JE.forEach(e=>{const k=favKey(e);if(!_favLookup.has(k))_favLookup.set(k,{e,m:'je'});});
+  }
+  return _favLookup;
+}
+// 辞書内お気に入り一覧（追加した順・新しいものが上）
 function renderDictFav(){
-  const all=[].concat(
-    EJ.filter(isFav).map(e=>({e,m:'ej'})),
-    JE.filter(isFav).map(e=>({e,m:'je'}))
-  );
+  const lk=getFavLookup();
+  // favsは追加順のSet。逆順で新しい順に
+  const all=[...favs].reverse().map(k=>lk.get(k)).filter(Boolean);
   const list=$('dict-list');
   if(!all.length){
     list.innerHTML=`<div class="empty"><img src="images/デフォ.png" alt=""><p>お気に入りに追加した単語が<br>ここに表示されます</p></div>`;
