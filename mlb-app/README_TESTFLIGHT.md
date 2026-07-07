@@ -65,7 +65,8 @@ npx cap open ios         # Xcode が開く
 3. Xcode でバージョン/ビルド番号を上げて再 Archive → Upload
 
 ## メモ
-- アプリ内でも起動時に表紙スプラッシュが出ます。加えてネイティブの起動画面
-  （resources/splash.png）も一瞬表示されます。
+- 起動画面は **ネイティブスプラッシュ**（`resources/splash.png`＝Fantamstickロゴ／白背景）
+  のみ。アプリ内の表紙スプラッシュは廃止し、起動後は直接ホーム画面が開きます。
+  `npm run icons` でロゴがネイティブに反映されます。背景色は白（capacitor.config.json）。
 - 得点・お気に入り等は端末内（localStorage）に保存されます。
 - 審査ガイドライン 4.2 対策として Web を同梱しオフライン動作にしています。
