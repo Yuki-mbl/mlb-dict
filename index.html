@@ -588,15 +588,6 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .stand-table td{padding:6px 8px;text-align:right;color:var(--c-ink);border-top:1px dashed var(--c-hairline);
   font-variant-numeric:tabular-nums}
 .stand-table td:first-child{text-align:left;padding-left:14px;font-weight:700;white-space:nowrap}
-/* ── 起動スプラッシュ ── */
-#splash{position:fixed;inset:0;z-index:3000;background:#12224a;
-  display:flex;align-items:center;justify-content:center;
-  opacity:1;transition:opacity 1s ease}
-#splash img{max-width:100%;max-height:100%;object-fit:contain;
-  animation:splash-in .5s ease}
-#splash.hide{opacity:0}
-#splash.gone{display:none}
-@keyframes splash-in{from{opacity:0;transform:scale(1.04)}to{opacity:1;transform:scale(1)}}
 </style>
 </head>
 <body>
@@ -939,9 +930,6 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       <div class="modal-def" id="m-def"></div>
     </div>
   </div>
-
-  <!-- ── 起動スプラッシュ ── -->
-  <div id="splash"><img src="images/表紙.png" alt=""></div>
 </div>
 
 <script>
@@ -2462,14 +2450,6 @@ setTimeout(()=>{
     setTimeout(()=>scrollToLetter(_savedParts[1]),80);
   }
 },0);
-
-// ── 起動スプラッシュ: ふわっと表紙を出してからアプリ画面へ ──
-(function(){
-  const sp=document.getElementById('splash');
-  if(!sp) return;
-  setTimeout(()=>sp.classList.add('hide'),1400);
-  setTimeout(()=>sp.classList.add('gone'),2450);
-})();
 
 // タブ切替・スクロール時にstate保存
 $('dict-list').addEventListener('scroll',()=>{
