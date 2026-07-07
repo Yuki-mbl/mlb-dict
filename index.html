@@ -1775,17 +1775,19 @@ function difficultyOf(e){
   if(!e) return 1;
   const key=(e.en||'').toLowerCase().replace(/\(.*?\)/g,'').replace(/[=＝].*$/,'').trim();
   if(DIFF_OVERRIDE[key]!=null) return DIFF_OVERRIDE[key];
-  // カタカナ語（日本語がほぼカタカナ）＝やさしい
-  const ja=(e.ja||'');
-  const kata=(ja.match(/[ァ-ヶーヴ・]/g)||[]).length;
-  const jaLen=ja.replace(/[\s、。（）()「」・]/g,'').length;
-  if(jaLen>0 && kata/jaLen>0.7) return 1;
-  // 英語の単語数で判定
+  // 訳語の先頭（説明の前）＝実際の答え部分だけでカタカナ率を見る
+  const head=(e.ja||'').split(/[：:；;。\n、]/)[0];
+  const kata=(head.match(/[ァ-ヶーヴ・]/g)||[]).length;
+  const headLen=head.replace(/[\s（）()「」・]/g,'').length;
+  const isLoan=headLen>0 && kata/headLen>=0.7; // カタカナ外来語＝やさしい
+  if(isLoan) return 1;
+  // 英語の単語数（単打を基本に、本当に難しいものだけ上げる）
   const words=key.split(/[\s\-\/]+/).filter(Boolean);
   const wc=words.length;
-  if(wc>=3) return 3;
-  if(wc===2) return 2;
-  if(key.length>=10) return 2; // 長い1語
+  if(wc>=4) return 3;        // 4語以上のフレーズ＝三塁打
+  if(wc>=3) return 2;        // 3語＝二塁打
+  if(wc===2) return 1;       // 2語の複合語は基本やさしい（単打）
+  if(key.length>=14) return 2; // 非常に長い1語のみ二塁打
   return 1;
 }
 function startQuizPlay(){
