@@ -2237,26 +2237,16 @@ function pick(btn,ok,correct){
   if(ok){
     quizStreak++;
     const hit=(cq&&cq.hit)?cq.hit:1;   // 難易度＝進む塁数（1/2/3）
-    if(quizStreak>=4){
-      // 4連続正解: 満塁ホームラン！塁上の走者＋打者が全員生還、大ジャンプ＋大振動
-      const r=advanceRunners(4);
-      runSequence(r.dirs);
-      addRuns(r.runs);
+    // ヒットの塁数だけ進塁。動いた走者を順番に走らせ、本塁を踏んだら得点
+    const r=advanceRunners(hit);
+    runSequence(r.dirs);
+    addRuns(r.runs);
+    if(r.runs>0){
+      // ホームイン（得点）したらキャラが下から飛び出す＋大きく振動
       showFlash(true,true);
       vibrate([120,60,220]);
-      quizStreak=0;
     } else {
-      // 通常ヒット: 難易度ぶん進塁。動いた走者を順番に走らせ、本塁を踏んだら得点
-      const r=advanceRunners(hit);
-      runSequence(r.dirs);
-      addRuns(r.runs);
-      if(r.runs>0){
-        // ホームイン（得点）したらキャラが下から飛び出す＋大きく振動
-        showFlash(true,true);
-        vibrate([120,60,220]);
-      } else {
-        vibrate(35);
-      }
+      vibrate(35);
     }
   } else {
     quizStreak=0;
