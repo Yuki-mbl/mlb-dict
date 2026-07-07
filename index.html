@@ -521,6 +521,39 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .stat-n{font-family:var(--ff-d);font-size:26px;font-weight:900;
   color:var(--c-primary);line-height:1.1}
 .stat-l{font-family:var(--ff-t);font-size:12px;color:var(--c-muted);margin-top:3px}
+/* ── 初回オンボーディング ── */
+#onboard{position:fixed;inset:0;z-index:3000;background:var(--c-canvas);
+  display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+.ob-card{width:100%;max-width:420px;background:#fff;border:var(--bw) solid var(--c-border);
+  box-shadow:var(--shadow-l);border-radius:var(--r-lg);padding:22px 20px 24px;text-align:center}
+.ob-hero{height:96px;width:auto;margin-bottom:6px}
+.ob-title{font-family:var(--ff-d);font-size:24px;font-weight:900;color:var(--c-ink)}
+.ob-sub{font-size:13px;color:var(--c-muted);margin-bottom:14px}
+.ob-q{font-family:var(--ff-d);font-size:14px;font-weight:900;color:var(--c-primary);
+  text-align:left;margin:14px 2px 8px}
+.ob-opts{display:flex;gap:8px}
+.ob-opts-age{flex-wrap:wrap}
+.ob-opt{flex:1;min-width:72px;padding:11px 6px;border:var(--bw) solid var(--c-border);
+  border-radius:var(--r-md);background:var(--c-parchment);box-shadow:var(--shadow-s);
+  font-family:var(--ff-t);font-size:14px;font-weight:800;color:var(--c-ink);cursor:pointer;
+  transition:all .12s;-webkit-tap-highlight-color:transparent}
+.ob-opt:active{transform:translate(2px,2px);box-shadow:none}
+.ob-opt.sel{background:var(--c-accent)}
+.ob-next,.ob-ok{width:100%;margin-top:20px;padding:14px;border:var(--bw) solid var(--c-border);
+  border-radius:var(--r-pill);background:var(--c-coral);color:#fff;box-shadow:var(--shadow-m);
+  font-family:var(--ff-t);font-size:17px;font-weight:800;cursor:pointer;transition:all .12s;
+  -webkit-tap-highlight-color:transparent}
+.ob-next:active,.ob-ok:active{transform:translate(3px,3px);box-shadow:none}
+.ob-next:disabled{opacity:.4;cursor:default;transform:none;box-shadow:var(--shadow-m)}
+.ob-nick{font-family:var(--ff-d);font-size:26px;font-weight:900;color:var(--c-ink);
+  background:var(--c-card);border:var(--bw) solid var(--c-border);border-radius:var(--r-md);
+  padding:18px 12px;margin:8px 0 12px;min-height:1.4em;overflow-wrap:anywhere;
+  animation:char-pop .4s cubic-bezier(.34,1.56,.64,1)}
+.ob-reroll{width:100%;padding:11px;border:2px solid var(--c-border);border-radius:var(--r-pill);
+  background:var(--c-parchment);box-shadow:var(--shadow-s);font-family:var(--ff-t);
+  font-size:15px;font-weight:800;color:var(--c-ink);cursor:pointer;transition:all .12s;
+  -webkit-tap-highlight-color:transparent}
+.ob-reroll:active{transform:translate(2px,2px);box-shadow:none}
 /* ── 設定: サポート等 ── */
 .settings-group-label{font-family:var(--ff-t);font-size:12px;font-weight:800;
   color:var(--c-muted);letter-spacing:.06em;padding:6px 6px 0}
@@ -545,6 +578,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .home-hero img{height:70px;width:auto;flex-shrink:0}
 .home-title{font-family:var(--ff-d);font-size:17px;font-weight:900;color:var(--c-ink);line-height:1.25;letter-spacing:.02em}
 .home-date{font-size:16px;font-weight:800;color:var(--c-ink);opacity:.72;margin-top:6px}
+.home-player{font-size:13px;font-weight:800;color:var(--c-primary);margin-top:4px}
 .home-row2{display:grid;grid-template-columns:1fr 1.4fr;gap:12px}
 .home-mini{background:var(--c-card);border:var(--bw) solid var(--c-border);
   box-shadow:var(--shadow-s);border-radius:var(--r-md);padding:12px 14px}
@@ -618,6 +652,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
         <div class="home-hero-txt">
           <div class="home-title">メジャーリーグ野球用語<br>英和・和英辞典 ＆ クイズ</div>
           <div class="home-date" id="home-date"></div>
+          <div class="home-player" id="home-player"></div>
         </div>
       </div>
 
@@ -972,6 +1007,41 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       <div class="modal-def" id="m-def"></div>
     </div>
   </div>
+
+  <!-- ── 初回オンボーディング ── -->
+  <div id="onboard" style="display:none">
+    <div class="ob-card">
+      <div id="ob-step1">
+        <img class="ob-hero" src="images/よろこび.png" alt="">
+        <div class="ob-title">ようこそ！</div>
+        <div class="ob-sub">はじめに教えてね（あとで変更可）</div>
+        <div class="ob-q">性別</div>
+        <div class="ob-opts" id="ob-gender">
+          <button type="button" class="ob-opt" data-v="m" onclick="obSel('gender',this)">男</button>
+          <button type="button" class="ob-opt" data-v="f" onclick="obSel('gender',this)">女</button>
+          <button type="button" class="ob-opt" data-v="n" onclick="obSel('gender',this)">無回答</button>
+        </div>
+        <div class="ob-q">年代</div>
+        <div class="ob-opts ob-opts-age" id="ob-age">
+          <button type="button" class="ob-opt" data-v="10" onclick="obSel('age',this)">10代以下</button>
+          <button type="button" class="ob-opt" data-v="20" onclick="obSel('age',this)">20代</button>
+          <button type="button" class="ob-opt" data-v="30" onclick="obSel('age',this)">30代</button>
+          <button type="button" class="ob-opt" data-v="40" onclick="obSel('age',this)">40代</button>
+          <button type="button" class="ob-opt" data-v="50" onclick="obSel('age',this)">50代</button>
+          <button type="button" class="ob-opt" data-v="60" onclick="obSel('age',this)">60代以上</button>
+        </div>
+        <button class="ob-next" id="ob-next" disabled onclick="obToStep2()">つぎへ →</button>
+      </div>
+      <div id="ob-step2" style="display:none">
+        <img class="ob-hero" src="images/バッター.png" alt="">
+        <div class="ob-title">ニックネームを選ぼう</div>
+        <div class="ob-sub">気に入らなければ引き直してね</div>
+        <div class="ob-nick" id="ob-nick">—</div>
+        <button class="ob-reroll" onclick="obReroll()">🔄 引き直す</button>
+        <button class="ob-ok" onclick="obConfirm()">これにする！</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -1009,6 +1079,58 @@ const REVIEW_URL='';   // App Store公開後にレビューURLを設定
 function openExt(url){ try{ window.open(url,'_blank'); }catch(e){ location.href=url; } }
 function rateApp(){ if(REVIEW_URL) openExt(REVIEW_URL); else alert('公開後にApp Storeで評価いただけます。応援ありがとうございます！'); }
 function reportBug(){ location.href='mailto:'+SUPPORT_EMAIL+'?subject='+encodeURIComponent('【MLB野球用語辞典】不具合報告'); }
+// ── 初回オンボーディング（性別・年代・ニックネーム） ──
+const NICK={
+  coolPre:['豪快な','剛腕','鉄壁の','快速','電光石火の','不動の','百戦錬磨の','孤高の','精密機械','逆転の','無敵の','伝説の','絶対的','変幻自在の','一撃必殺の','沈黙の','冷静沈着な','熱血','天才','韋駄天','豪速球','超人','神速の','爆裂','無双の','大器','鉄腕','快足の','一匹狼','ミスター'],
+  coolSuf:['エース','4番','キャプテン','クローザー','スラッガー','守護神','大砲','遊撃手','二刀流','先発','リードオフマン','主砲','番長','ストッパー','助っ人','強打者','豪腕投手','切り込み隊長','扇の要','鉄人'],
+  cutePre:['きらめく','ふんわり','ちいさな','にこにこ','ぴょんぴょん','もちもち','ときめき','ゆるふわ','キラキラ','まんまる','ぽかぽか','ふわもこ','ぷにぷに','るんるん','わくわく','ほんわか','すやすや','ふわり','こつこつ','ぱたぱた'],
+  cuteSuf:['ベースちゃん','ボールちゃん','グローブちゃん','ホームランガール','ルーキーちゃん','マネージャー','応援団長','かっとばし娘','一年生','ベンチ女子','ミットちゃん','バットちゃん','スパイクちゃん','主将ちゃん','応援女子','球場の妖精'],
+  netaM:['三振王','ベンチ温め係','帰宅部エース','二日酔いの4番','遅刻魔クローザー','満塁の申し子','サヨナラ男','敬遠された男','代走のプロ','ヤジ将軍','カレー好き遊撃手','補欠の星','エラーの帝王','肩だけは一流','声だけデカい4番','三日坊主エース','ネクストの主','塁上の哲学者','空振りアーティスト','ビール売りの星'],
+  netaF:['三振ガール','おやつ番長','昼寝の女王','サボり上手','ベンチアイドル','かき氷担当','応援だけは一流','スコア係','まかない女子','送りバント職人','声出し隊長','補欠アイドル','ベンチの主','現地観戦の達人','グッズ全部買う人','ルーキーのお姉さん','塁間のお散歩','日焼け対策は万全']
+};
+function _p(a){return a[Math.floor(Math.random()*a.length)];}
+function genNickname(g){
+  if(g==='m') return Math.random()<0.55 ? _p(NICK.coolPre)+_p(NICK.coolSuf) : _p(NICK.netaM);
+  if(g==='f') return Math.random()<0.55 ? _p(NICK.cutePre)+_p(NICK.cuteSuf) : _p(NICK.netaF);
+  const r=Math.random();
+  if(r<0.3) return _p(NICK.coolPre)+_p(NICK.coolSuf);
+  if(r<0.6) return _p(NICK.cutePre)+_p(NICK.cuteSuf);
+  if(r<0.8) return _p(NICK.netaM);
+  return _p(NICK.netaF);
+}
+let _ob={gender:null,age:null,nick:''};
+function getProfile(){ try{return JSON.parse(localStorage.getItem('mlb_profile')||'null');}catch(e){return null;} }
+function obSel(kind,btn){
+  _ob[kind]=btn.getAttribute('data-v');
+  btn.parentElement.querySelectorAll('.ob-opt').forEach(b=>b.classList.toggle('sel',b===btn));
+  $('ob-next').disabled=!(_ob.gender&&_ob.age);
+}
+function obToStep2(){
+  $('ob-step1').style.display='none';
+  $('ob-step2').style.display='';
+  obReroll();
+}
+function obReroll(){
+  _ob.nick=genNickname(_ob.gender);
+  const el=$('ob-nick'); el.textContent=_ob.nick;
+  el.style.animation='none';void el.offsetWidth;el.style.animation='';
+}
+function obConfirm(){
+  const prof={gender:_ob.gender,age:_ob.age,nick:_ob.nick,ts:todayStr()};
+  localStorage.setItem('mlb_profile',JSON.stringify(prof));
+  $('onboard').style.display='none';
+  goTab('home');
+}
+function maybeShowOnboard(){
+  if(getProfile()) return false;
+  _ob={gender:null,age:null,nick:''};
+  $('ob-step2').style.display='none';
+  $('ob-step1').style.display='';
+  $('ob-next').disabled=true;
+  document.querySelectorAll('#onboard .ob-opt').forEach(b=>b.classList.remove('sel'));
+  $('onboard').style.display='flex';
+  return true;
+}
 
 // 行代表文字セット（ア行ならア）
 const _KANA_ROW_HEADS='アカサタナハマヤラワ';
@@ -1100,6 +1222,8 @@ function openWordOfDay(){ if(_wordOfDay) openModal(_wordOfDay,'ej'); }
 function renderHome(){
   const d=new Date();
   if($('home-date')) $('home-date').textContent=(d.getMonth()+1)+'月'+d.getDate()+'日（'+'日月火水木金土'[d.getDay()]+'）';
+  const _pf=getProfile();
+  if($('home-player')) $('home-player').textContent=_pf&&_pf.nick?('⚾ '+_pf.nick):'';
   // 連続ログイン
   const streak=updateStreak();
   if($('home-streak-n')) $('home-streak-n').textContent=streak;
@@ -2494,6 +2618,8 @@ setTimeout(()=>{
   if(_savedParts && _savedParts[0]==='ej' && _savedParts[1] && !sq){
     setTimeout(()=>scrollToLetter(_savedParts[1]),80);
   }
+  // 初回のみ: 性別・年代・ニックネームのオンボーディングを表示
+  maybeShowOnboard();
 },0);
 
 // タブ切替・スクロール時にstate保存
