@@ -10,8 +10,10 @@ const imgDst = path.join(www, 'images');
 
 fs.mkdirSync(imgDst, { recursive: true });
 
-// index.html
-fs.copyFileSync(path.join(root, 'index.html'), path.join(www, 'index.html'));
+// index.html / privacy.html / terms.html
+for (const f of ['index.html', 'privacy.html', 'terms.html']) {
+  fs.copyFileSync(path.join(root, f), path.join(www, f));
+}
 
 // images（未使用の BSO.jpeg は除外）
 for (const f of fs.readdirSync(imgSrc)) {

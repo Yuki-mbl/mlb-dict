@@ -518,6 +518,20 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .stat-n{font-family:var(--ff-d);font-size:26px;font-weight:900;
   color:var(--c-primary);line-height:1.1}
 .stat-l{font-family:var(--ff-t);font-size:12px;color:var(--c-muted);margin-top:3px}
+/* ── 設定: サポート等 ── */
+.settings-group-label{font-family:var(--ff-t);font-size:12px;font-weight:800;
+  color:var(--c-muted);letter-spacing:.06em;padding:6px 6px 0}
+.settings-row-val{font-family:var(--ff-t);font-size:15px;color:var(--c-muted);font-variant-numeric:tabular-nums}
+.settings-link{display:flex;align-items:center;gap:12px;width:100%;
+  padding:14px 16px;background:transparent;border:none;
+  border-bottom:1px solid var(--c-hairline);cursor:pointer;text-align:left;
+  -webkit-tap-highlight-color:transparent;transition:background .12s}
+.settings-link:last-child{border-bottom:none}
+.settings-link:active{background:var(--c-canvas)}
+.settings-link .sl-ic{width:22px;height:22px;flex-shrink:0;fill:none;
+  stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.settings-link .sl-txt{flex:1;font-family:var(--ff-t);font-size:16px;font-weight:700;color:var(--c-ink)}
+.settings-link .sl-chev{color:var(--c-muted2);font-size:22px;font-weight:700;line-height:1}
 /* ── ホーム ── */
 #tab-home{overflow-y:auto;-webkit-overflow-scrolling:touch}
 #tab-home::-webkit-scrollbar{display:none}
@@ -875,8 +889,33 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
         </div>
       </div>
 
+      <div class="settings-group-label">サポート</div>
+      <div class="settings-section">
+        <button class="settings-link" onclick="rateApp()">
+          <svg class="sl-ic" viewBox="0 0 24 24" style="color:#f5a13c"><polygon points="12 2 15 9 22 9.3 16.5 14 18.5 21 12 17 5.5 21 7.5 14 2 9.3 9 9"/></svg>
+          <span class="sl-txt">アプリを評価する</span><span class="sl-chev">›</span>
+        </button>
+        <button class="settings-link" onclick="reportBug()">
+          <svg class="sl-ic" viewBox="0 0 24 24" style="color:var(--c-coral)"><path d="M4 3v18"/><path d="M4 4h13l-2 4 2 4H4"/></svg>
+          <span class="sl-txt">不具合を報告</span><span class="sl-chev">›</span>
+        </button>
+        <button class="settings-link" onclick="openExt('privacy.html')">
+          <svg class="sl-ic" viewBox="0 0 24 24" style="color:#2fbf6b"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5z"/></svg>
+          <span class="sl-txt">プライバシーポリシー</span><span class="sl-chev">›</span>
+        </button>
+        <button class="settings-link" onclick="openExt('terms.html')">
+          <svg class="sl-ic" viewBox="0 0 24 24" style="color:var(--c-accent)"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5z"/></svg>
+          <span class="sl-txt">利用規約</span><span class="sl-chev">›</span>
+        </button>
+      </div>
+
+      <div class="settings-group-label">このアプリについて</div>
+      <div class="settings-section">
+        <div class="settings-row"><div class="settings-row-label">バージョン</div><div class="settings-row-val">1.0.0</div></div>
+      </div>
+
       <div class="about-card">
-        <div class="about-title">このアプリについて</div>
+        <div class="about-title">辞書データについて</div>
         <div class="about-body" id="about-body">本アプリの辞書データは、以下の書籍に基づいています。<br><br>
           <strong>大リーグ早わかり野球用語<br>英和・和英小辞典</strong><br>
           阿部 達 編著／現代図書<br>
@@ -961,6 +1000,12 @@ function favKey(e){return(e.en||'')+'||'+(e.ja||'')+(e.def||'')}
 function saveFavs(){localStorage.setItem('mlb_favs',JSON.stringify([...favs]))}
 function isFav(e){return favs.has(favKey(e))}
 function toggleFav(e){const k=favKey(e);favs.has(k)?favs.delete(k):favs.add(k);saveFavs()}
+// ── サポート系リンク ──
+const SUPPORT_EMAIL='support@fantamstick.jp';   // 問い合わせ先（適宜変更可）
+const REVIEW_URL='';   // App Store公開後にレビューURLを設定
+function openExt(url){ try{ window.open(url,'_blank'); }catch(e){ location.href=url; } }
+function rateApp(){ if(REVIEW_URL) openExt(REVIEW_URL); else alert('公開後にApp Storeで評価いただけます。応援ありがとうございます！'); }
+function reportBug(){ location.href='mailto:'+SUPPORT_EMAIL+'?subject='+encodeURIComponent('【MLB野球用語辞典】不具合報告'); }
 
 // 行代表文字セット（ア行ならア）
 const _KANA_ROW_HEADS='アカサタナハマヤラワ';
