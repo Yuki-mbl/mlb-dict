@@ -105,6 +105,9 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   -webkit-tap-highlight-color:transparent}
 .sub-tab:active{transform:translate(2px,2px);box-shadow:none}
 .sub-tab.active{color:var(--c-ink);background:var(--c-accent)}
+/* ♥ お気に入りサブタブ（ピンク） */
+.sub-tab-fav{flex:0 0 auto;width:52px;color:#ff6f9c;font-size:18px;line-height:1}
+.sub-tab-fav.active{background:#ff9cbb;color:#fff}
 
 /* ── Dict body ── */
 .dict-body{flex:1;display:flex;overflow:hidden;position:relative;min-height:0}
@@ -721,6 +724,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
     <div class="sub-tabs">
       <button class="sub-tab active" id="dict-tab-ej" onclick="setDictMode('ej')">英和 (EN→JA)</button>
       <button class="sub-tab" id="dict-tab-je" onclick="setDictMode('je')">和英 (JA→EN)</button>
+      <button class="sub-tab sub-tab-fav" id="dict-tab-fav" onclick="showDictFav()" aria-label="お気に入り">♥</button>
     </div>
     <div class="dict-body">
       <div class="entry-list" id="dict-list"></div>
@@ -744,16 +748,8 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
     </div>
   </div>
 
-  <!-- ── お気に入り ── -->
-  <div id="tab-fav" class="tab-panel">
-    <div class="fav-hdr"><h1>お気に入り</h1></div>
-    <div class="sub-tabs">
-      <button class="sub-tab active" id="fav-tab-ej" onclick="setFavMode('ej')">英和</button>
-      <button class="sub-tab" id="fav-tab-je" onclick="setFavMode('je')">和英</button>
-    </div>
-    <div class="dict-body">
-      <div class="entry-list" id="fav-list"></div>
-    </div>
+  <!-- ── お気に入りは辞書内の♥サブタブへ統合 ── -->
+  <div id="tab-fav-unused" class="tab-panel" style="display:none">
   </div>
 
   <!-- ── クイズ ── -->
@@ -976,10 +972,6 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
       辞書
     </button>
-    <button class="bnav-btn" id="bnav-fav" onclick="goTab('fav')" style="--ic:#ff6f9c">
-      <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
-      お気に入り
-    </button>
     <button class="bnav-btn" id="bnav-quiz" onclick="goQuizNav()" style="--ic:#f5a13c">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path fill="none" d="M6.2 5.6Q9.6 12 6.2 18.4"/><path fill="none" d="M17.8 5.6Q14.4 12 17.8 18.4"/></svg>
       クイズ
@@ -1179,7 +1171,6 @@ function goTab(t){
   if(t==='home') renderHome();
   if(t==='standings') renderStandings();
   if(t==='abbr') renderAbbrList();
-  if(t==='fav') renderFavList();
   if(t==='quiz'){ if(lastQuizSection==='play') quizShowPlay(); else quizToMenu(); }
   if(t==='daily'){ lastQuizSection='daily'; initDaily(); }
   if(t==='review'){ lastQuizSection='review'; renderReviewList(); }
@@ -1345,14 +1336,62 @@ function quizShowPlay(){
 }
 
 // ── Dict mode ─────────────────────────────────────────────────────────────────
+let dictFav=false;   // 辞書内♥（お気に入り）表示中か
+function updateDictTabs(){
+  $('dict-tab-ej').classList.toggle('active',!dictFav&&dictMode==='ej');
+  $('dict-tab-je').classList.toggle('active',!dictFav&&dictMode==='je');
+  const f=$('dict-tab-fav'); if(f) f.classList.toggle('active',dictFav);
+}
 function setDictMode(m){
+  dictFav=false;
   dictMode=m;
-  ['ej','je'].forEach(x=>$('dict-tab-'+x).classList.toggle('active',x===m));
+  updateDictTabs();
+  $('idx-bar').style.display='';
   $('s-input').value=''; sq='';
   $('dict-list').scrollTop=0;
   renderDictList(); renderIdxBar();
 }
+function showDictFav(){
+  dictFav=true;
+  updateDictTabs();
+  $('idx-bar').style.display='none';
+  $('s-input').value=''; sq=''; $('s-clear').classList.remove('show');
+  $('dict-list').scrollTop=0;
+  renderDictFav();
+}
+// 辞書内お気に入り一覧（英和・和英まとめて表示）
+function renderDictFav(){
+  const all=[].concat(
+    EJ.filter(isFav).map(e=>({e,m:'ej'})),
+    JE.filter(isFav).map(e=>({e,m:'je'}))
+  );
+  const list=$('dict-list');
+  if(!all.length){
+    list.innerHTML=`<div class="empty"><img src="images/デフォ.png" alt=""><p>お気に入りに追加した単語が<br>ここに表示されます</p></div>`;
+    return;
+  }
+  const frag=document.createDocumentFragment();
+  all.forEach(({e,m})=>{
+    const head=m==='ej'?e.en:e.ja;
+    const sub =m==='ej'?e.ja:(e.en+(e.def?' — '+e.def:''));
+    const item=document.createElement('div');
+    item.className='entry-item';
+    item.innerHTML=`
+      <div class="entry-text">
+        <div class="entry-head">${esc(head)}<span class="entry-badge ${m}">${m==='ej'?'英和':'和英'}</span></div>
+        <div class="entry-sub">${esc(formatDef(sub))}</div>
+      </div>
+      <button class="fav-btn on" onclick="event.stopPropagation();toggleFavBtn(this,${JSON.stringify(JSON.stringify(e))})">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+      </button>`;
+    item.addEventListener('click',()=>openModal(e,m));
+    frag.appendChild(item);
+  });
+  list.innerHTML='';list.appendChild(frag);
+  list.scrollTop=0;
+}
 $('s-input').addEventListener('input',e=>{
+  if(dictFav){ dictFav=false; updateDictTabs(); $('idx-bar').style.display=''; }
   sq=e.target.value;
   $('s-clear').classList.toggle('show',sq.length>0);
   renderDictList();
@@ -1497,11 +1536,12 @@ function renderDictList(){
 }
 function toggleFavBtn(btn,ejson){
   const e=JSON.parse(ejson);
-  if(tab==='fav' && isFav(e)){
+  // 辞書の♥表示中に外したら、アニメーション後に一覧から消す
+  if(tab==='dict' && dictFav && isFav(e)){
     const item=btn.closest('.entry-item');
     if(item){
       item.classList.add('fav-removing');
-      item.addEventListener('animationend',()=>{toggleFav(e);renderFavList();},{once:true});
+      item.addEventListener('animationend',()=>{toggleFav(e);renderDictFav();},{once:true});
       return;
     }
   }
@@ -1509,41 +1549,7 @@ function toggleFavBtn(btn,ejson){
   const on=isFav(e);
   btn.classList.toggle('on',on);
   btn.querySelector('svg').setAttribute('fill',on?'currentColor':'none');
-  if(tab==='fav') renderFavList();
-}
-
-// ── Fav list ──────────────────────────────────────────────────────────────────
-function setFavMode(m){
-  favMode=m;
-  ['ej','je'].forEach(x=>$('fav-tab-'+x).classList.toggle('active',x===m));
-  renderFavList();
-}
-function renderFavList(){
-  const data=(favMode==='ej'?EJ:JE).filter(isFav);
-  const list=$('fav-list');
-  if(!data.length){
-    list.innerHTML=`<div class="empty"><img src="images/デフォ.png" alt=""><p>お気に入りに追加した単語が<br>ここに表示されます</p></div>`;
-    return;
-  }
-  const frag=document.createDocumentFragment();
-  data.forEach(entry=>{
-    const head=favMode==='ej'?entry.en:entry.ja;
-    const sub =favMode==='ej'?entry.ja:entry.en;
-    const item=document.createElement('div');
-    item.className='entry-item';
-    const subHtmlF=esc(formatDef(sub));
-    item.innerHTML=`
-      <div class="entry-text">
-        <div class="entry-head">${esc(head)}</div>
-        <div class="entry-sub">${subHtmlF}</div>
-      </div>
-      <button class="fav-btn on" onclick="event.stopPropagation();toggleFavBtn(this,${JSON.stringify(JSON.stringify(entry))})">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
-      </button>`;
-    item.addEventListener('click',()=>openModal(entry,favMode));
-    frag.appendChild(item);
-  });
-  list.innerHTML='';list.appendChild(frag);
+  if(tab==='dict' && dictFav) renderDictFav();
 }
 
 // ── Abbr tab ──────────────────────────────────────────────────────────────────
@@ -1884,8 +1890,7 @@ function closeModal(){
   document.body.style.overflow='';
   const list=$('dict-list');
   const savedTop=list.scrollTop;
-  if(tab==='dict') renderDictList();
-  if(tab==='fav')  renderFavList();
+  if(tab==='dict'){ if(dictFav) renderDictFav(); else renderDictList(); }
   list.scrollTop=savedTop;
   // dailyタブで回答済みならnextボタンを有効に戻す
   if(tab==='daily' && dailyAns){
