@@ -621,6 +621,9 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .game-team{flex:1;font-weight:700;color:var(--c-ink);font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .game-team.away{text-align:right}
 .game-mid{flex-shrink:0;text-align:center;min-width:74px}
+.game-dh{display:block;font-size:9.5px;font-weight:800;color:var(--c-primary);
+  background:var(--c-card);border:1.5px solid var(--c-border);border-radius:var(--r-pill);
+  padding:0 6px;margin:0 auto 2px;width:fit-content}
 .game-score{font-family:var(--ff-d);font-weight:900;font-size:17px;color:var(--c-ink)}
 .game-state{font-size:10px;font-weight:800;border-radius:var(--r-pill);padding:1px 8px;display:inline-block}
 .game-state.live{background:var(--c-coral);color:#fff}
@@ -1289,9 +1292,11 @@ async function loadGames(){
       const st=gameStateJa(g);
       const a=g.teams.away, h=g.teams.home;
       const score=(st.cls==='pre')?'vs':(a.score??'-')+' - '+(h.score??'-');
+      // ダブルヘッダー（1日2試合）は第1/第2試合を表示
+      const dh=(g.doubleHeader&&g.doubleHeader!=='N'&&g.gameNumber)?`<span class="game-dh">第${g.gameNumber}試合</span>`:'';
       return `<div class="game-row">
         <span class="game-team away">${esc(teamJa(a.team))}</span>
-        <span class="game-mid"><span class="game-score">${esc(String(score))}</span><br><span class="game-state ${st.cls}">${esc(st.txt)}</span></span>
+        <span class="game-mid">${dh}<span class="game-score">${esc(String(score))}</span><br><span class="game-state ${st.cls}">${esc(st.txt)}</span></span>
         <span class="game-team">${esc(teamJa(h.team))}</span>
       </div>`;
     }).join('');
