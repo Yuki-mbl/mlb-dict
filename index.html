@@ -181,11 +181,11 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   height:52vh;max-height:440px;width:auto;transform:translateX(-50%);
   filter:drop-shadow(0 8px 16px rgba(0,0,0,.28));pointer-events:none}
 #quiz-flash.char #quiz-flash-mark{display:none}
-#quiz-flash.char #quiz-flash-char{display:block;animation:char-jump-in .95s cubic-bezier(.34,1.5,.64,1) forwards}
+#quiz-flash.char #quiz-flash-char{display:block;animation:char-jump-in 1.15s cubic-bezier(.22,.85,.3,1) forwards}
 @keyframes char-jump-in{
-  0%{transform:translate(-50%,120%) scale(.72) rotate(-8deg)}
-  65%{transform:translate(-50%,-98%) scale(1.02) rotate(5deg)}
-  100%{transform:translate(-50%,-90%) scale(1) rotate(0)}
+  0%{transform:translate(-50%,120%) scale(.78)}
+  70%{transform:translate(-50%,-5%) scale(1.03)}
+  100%{transform:translate(-50%,0) scale(1)}
 }
 #modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:999;
   display:none;transition:background .28s}
