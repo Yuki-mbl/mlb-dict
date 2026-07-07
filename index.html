@@ -2001,7 +2001,7 @@ function startQuizPlay(){
   lastQuizSection='play';
   $('quiz-menu').style.display='none';
   $('quiz-play').style.display='';
-  quizStreak=0;quizOuts=0;quizAsked=0;
+  quizStreak=0;quizOuts=0;quizAsked=0;quizGameCorrect=0;
   updateOuts();clearBases();updateRuns();
   cq=null;nextQ();
 }
@@ -2176,8 +2176,9 @@ function renderQ(){
   startPitchClock();
 }
 // ── ピッチクロック（制限時間） ──
-let quizTimer=null, quizAsked=0;
-function pitchMs(){ return Math.max(6000, 12000 - Math.floor(quizAsked/4)*1000); } // 12→…→6秒
+let quizTimer=null, quizAsked=0, quizGameCorrect=0;
+// 制限時間は「正解数（実力）」連動。苦戦中は長め、正解を重ねるほど短縮
+function pitchMs(){ return Math.max(6000, 14000 - Math.floor(quizGameCorrect/3)*1000); } // 14→…→6秒
 function startPitchClock(){
   const fill=$('pitch-clock-fill'); if(!fill) return;
   clearTimeout(quizTimer); clearTimeout(fill._warn);
@@ -2276,6 +2277,7 @@ function pick(btn,ok,correct){
   setChar('quiz-char-img',ok?'joy':'def',ok);
   if(ok){
     quizStreak++;
+    quizGameCorrect++;   // この試合の正解数（制限時間短縮の基準）
     const hit=(cq&&cq.hit)?cq.hit:1;   // 難易度＝進む塁数（1/2/3）
     // ヒットの塁数だけ進塁。動いた走者を順番に走らせ、本塁を踏んだら得点
     const r=advanceRunners(hit);
