@@ -280,6 +280,8 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .subpage-bar{display:flex;align-items:center;gap:10px;padding:8px 14px;
   background:var(--c-canvas);border-bottom:1px solid var(--c-hairline);flex-shrink:0}
 .subpage-title{font-family:var(--ff-d);font-size:17px;font-weight:900;color:var(--c-ink)}
+.daily-runs-lbl{margin-left:auto;font-family:var(--ff-d);font-size:14px;font-weight:900;color:var(--c-primary)}
+.daily-runs-lbl #daily-runs{color:var(--c-coral);font-size:17px}
 .back-btn{padding:6px 14px;border:2px solid var(--c-border);border-radius:var(--r-pill);
   background:var(--c-parchment);box-shadow:var(--shadow-s);font-family:var(--ff-t);
   font-size:13px;font-weight:800;color:var(--c-ink);cursor:pointer;flex-shrink:0;
@@ -420,6 +422,9 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .daily-result-char{height:110px;width:auto;animation:char-pop .6s cubic-bezier(.34,1.56,.64,1)}
 .daily-result-score{font-family:var(--ff-d);font-size:48px;font-weight:900;color:var(--c-ink)}
 .daily-result-sub{font-size:16px;font-weight:700;color:var(--c-ink)}
+.daily-bonus{font-family:var(--ff-d);font-size:15px;font-weight:900;color:var(--c-coral);
+  background:#fff;border:2px solid var(--c-border);border-radius:var(--r-pill);
+  padding:4px 14px;margin-top:2px}
 .daily-done-note{font-size:13px;color:var(--c-sub);margin-top:-8px}
 #quiz-def-card,#daily-def-card{margin:12px 0 4px;padding:16px;background:var(--c-parchment);
   border:var(--bw) solid var(--c-border);box-shadow:var(--shadow-s);border-radius:var(--r-md);text-align:left}
@@ -829,7 +834,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   <!-- ── 今日の10問 ── -->
   <div id="tab-daily" class="tab-panel">
     <div class="daily-inner">
-      <div class="subpage-bar"><button class="back-btn" onclick="quizMenu()">← 目次</button><span class="subpage-title">今日の10問</span></div>
+      <div class="subpage-bar"><button class="back-btn" onclick="quizMenu()">← 目次</button><span class="subpage-title">今日の10問</span><span class="daily-runs-lbl">⚾ 得点 <span id="daily-runs">0</span></span></div>
 
       <!-- スタート画面 -->
       <div id="daily-start" style="display:none">
@@ -863,6 +868,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
             <span style="position:absolute;right:-1.2em;bottom:0.15em;font-size:16px;font-weight:700;color:var(--c-ink)">問</span>
           </div>
           <div class="daily-result-sub">今日の10問 完了！</div>
+          <div class="daily-bonus" id="daily-bonus" style="display:none"></div>
           <div class="daily-done-note">明日またチャレンジしよう</div>
         </div>
         <div class="daily-cal">
@@ -1995,9 +2001,10 @@ function startQuizPlay(){
 }
 // 累計得点の表示更新
 function updateRuns(){
-  const a=$('quiz-runs'),b=$('menu-runs');
+  const a=$('quiz-runs'),b=$('menu-runs'),c=$('daily-runs');
   if(a) a.textContent=runsTotal;
   if(b) b.textContent=runsTotal;
+  if(c) c.textContent=runsTotal;
 }
 function addRuns(n){
   if(n<=0) return;
@@ -2390,6 +2397,7 @@ function startDailyQuiz(){
   renderDailyQ();
 }
 function initDaily(){
+  updateRuns(); // 得点表示を同期
   const today=todayStr();
   const raw=localStorage.getItem('mlb_daily_state');
   if(raw){
@@ -2522,10 +2530,19 @@ function showDailyResult(){
   $('daily-result').style.display='';
   const correct=dailyState.ans.filter(a=>a===true).length;
   $('daily-result-score').textContent=correct+' / 10';
-  // mark done
+  // mark done（1日1回）＋6問以上正解で総得点ボーナス+3
   const today=todayStr();
   let done=JSON.parse(localStorage.getItem('mlb_daily_done')||'[]');
-  if(!done.includes(today)){done.push(today);localStorage.setItem('mlb_daily_done',JSON.stringify(done));}
+  let bonusMsg='';
+  if(!done.includes(today)){
+    done.push(today);localStorage.setItem('mlb_daily_done',JSON.stringify(done));
+    if(correct>=6){ addRuns(3); bonusMsg='6問以上正解ボーナス ＋3点！'; }
+  } else if(correct>=6){
+    bonusMsg='6問以上正解ボーナス ＋3点 獲得済み';
+  }
+  const bn=$('daily-bonus');
+  if(bn){ bn.textContent=bonusMsg; bn.style.display=bonusMsg?'':'none'; }
+  updateRuns();
   // progress bar to 100%
   $('daily-prog-fill').style.width='100%';
   $('daily-prog-lbl').textContent='10 / 10';
