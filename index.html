@@ -660,6 +660,8 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .stand-table td{padding:6px 8px;text-align:right;color:var(--c-ink);border-top:1px dashed var(--c-hairline);
   font-variant-numeric:tabular-nums}
 .stand-table td:first-child{text-align:left;padding-left:14px;font-weight:700;white-space:nowrap}
+.stand-team{display:flex;align-items:center;gap:6px}
+.stand-team .team-logo{width:20px;height:20px}
 </style>
 </head>
 <body>
@@ -1340,7 +1342,7 @@ async function renderStandings(){
     recs.sort((a,b)=>order.indexOf(a.division.id)-order.indexOf(b.division.id));
     el.innerHTML=recs.map(rec=>{
       const rows=rec.teamRecords.map(tr=>
-        `<tr><td>${esc(teamJa(tr.team))}</td><td>${tr.wins}</td><td>${tr.losses}</td><td>${esc(tr.winningPercentage)}</td><td>${esc(tr.gamesBack)}</td></tr>`
+        `<tr><td><span class="stand-team">${teamLogo(tr.team)}<span class="game-team-name">${esc(teamJa(tr.team))}</span></span></td><td>${tr.wins}</td><td>${tr.losses}</td><td>${esc(tr.winningPercentage)}</td><td>${esc(tr.gamesBack)}</td></tr>`
       ).join('');
       return `<div class="stand-div"><div class="stand-div-hd">${esc(DIV_JA[rec.division.id]||'')}</div>
         <table class="stand-table"><tr><th>チーム</th><th>勝</th><th>敗</th><th>率</th><th>差</th></tr>${rows}</table></div>`;
