@@ -2277,8 +2277,20 @@ function setChar(imgId,key,pop){
   img.classList.remove('char-pop','char-pop-d');
   if(pop){void img.offsetWidth;img.classList.add(cls);}
 }
+// ホームイン時に飛び出すポーズをランダム選択
+//  ハート/シー=各30回に1回、ガッツ/王冠/でんわ=各5回に1回、残りは よろこび
+function homeRunPose(){
+  const r=Math.random();
+  if(r<1/30) return 'images/ハート.png';
+  if(r<2/30) return 'images/シー.png';
+  if(r<2/30+1/5) return 'images/ガッツ.png';
+  if(r<2/30+2/5) return 'images/王冠.png';
+  if(r<2/30+3/5) return 'images/でんわ.png';
+  return 'images/よろこび.png';
+}
 function showFlash(ok,withChar){
   const el=$('quiz-flash');const mk=$('quiz-flash-mark');
+  if(ok&&withChar){ const ci=$('quiz-flash-char'); if(ci) ci.src=homeRunPose(); }
   el.className='show '+(ok?'ok':'ng')+(ok&&withChar?' char':'');
   mk.textContent=ok?'○':'✕';
   clearTimeout(el._t1);clearTimeout(el._t2);
