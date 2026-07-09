@@ -633,8 +633,11 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .home-games-note{font-size:10.5px;color:var(--c-muted2);margin-top:8px;text-align:center;letter-spacing:.3px}
 .game-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed var(--c-hairline)}
 .game-row:last-child{border-bottom:none}
-.game-team{flex:1;font-weight:700;color:var(--c-ink);font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.game-team.away{text-align:right}
+.game-team{flex:1;display:flex;align-items:center;gap:6px;min-width:0;
+  font-weight:700;color:var(--c-ink);font-size:13.5px}
+.game-team.away{justify-content:flex-end}
+.game-team-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.team-logo{width:22px;height:22px;flex-shrink:0;object-fit:contain}
 .game-mid{flex-shrink:0;text-align:center;min-width:74px}
 .game-dh{display:block;font-size:9.5px;font-weight:800;color:var(--c-primary);
   background:var(--c-card);border:1.5px solid var(--c-border);border-radius:var(--r-pill);
@@ -1280,7 +1283,16 @@ async function cachedJson(url,key,ttlMin){
 }
 function gameStateJa(g){
   const s=g.status&&g.status.abstractGameState;
-  if(s==='Live') return {cls:'live',txt:'試合中'};
+  if(s==='Live'){
+    // 試合中は「◯回表/裏」を表示（linescoreがあれば）
+    const ls=g.linescore;
+    if(ls&&ls.currentInning){
+      const half=(ls.isTopInning!==undefined)?(ls.isTopInning?'表':'裏')
+                 :((ls.inningState==='Top'||ls.inningState==='Middle')?'表':'裏');
+      return {cls:'live',txt:ls.currentInning+'回'+half};
+    }
+    return {cls:'live',txt:'試合中'};
+  }
   if(s==='Final') return {cls:'final',txt:'終了'};
   // 開始時刻（日本時間で表示）
   try{
@@ -1288,11 +1300,14 @@ function gameStateJa(g){
     return {cls:'pre',txt:'日本時間 '+t+' 開始'};
   }catch(e){ return {cls:'pre',txt:'予定'}; }
 }
+function teamLogo(t){
+  return `<img class="team-logo" src="https://www.mlbstatic.com/team-logos/${t.id}.svg" alt="" onerror="this.style.display='none'">`;
+}
 async function loadGames(){
   const el=$('home-games');
   if(!el) return;
   try{
-    const d=await cachedJson('https://statsapi.mlb.com/api/v1/schedule?sportId=1&date='+etDateStr(),'mlb_games',5);
+    const d=await cachedJson('https://statsapi.mlb.com/api/v1/schedule?sportId=1&hydrate=linescore&date='+etDateStr(),'mlb_games2',5);
     const games=(d.dates&&d.dates[0]&&d.dates[0].games)||[];
     if(!games.length){ el.innerHTML='<div style="padding:6px 0">今日は試合がありません</div>'; return; }
     el.innerHTML=games.map(g=>{
@@ -1302,9 +1317,9 @@ async function loadGames(){
       // ダブルヘッダー（1日2試合）は第1/第2試合を表示
       const dh=(g.doubleHeader&&g.doubleHeader!=='N'&&g.gameNumber)?`<span class="game-dh">第${g.gameNumber}試合</span>`:'';
       return `<div class="game-row">
-        <span class="game-team away">${esc(teamJa(a.team))}</span>
+        <span class="game-team away">${teamLogo(a.team)}<span class="game-team-name">${esc(teamJa(a.team))}</span></span>
         <span class="game-mid">${dh}<span class="game-score">${esc(String(score))}</span><br><span class="game-state ${st.cls}">${esc(st.txt)}</span></span>
-        <span class="game-team">${esc(teamJa(h.team))}</span>
+        <span class="game-team"><span class="game-team-name">${esc(teamJa(h.team))}</span>${teamLogo(h.team)}</span>
       </div>`;
     }).join('');
   }catch(e){
