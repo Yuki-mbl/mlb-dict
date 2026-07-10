@@ -187,6 +187,16 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   70%{transform:translate(-50%,-5%) scale(1.03)}
   100%{transform:translate(-50%,0) scale(1)}
 }
+/* レア（ハート/シー）: 2回飛び出し＋頂点で少し長め */
+#quiz-flash.char.twice #quiz-flash-char{animation:char-jump-twice 2s cubic-bezier(.3,.8,.4,1) forwards}
+@keyframes char-jump-twice{
+  0%{transform:translate(-50%,120%) scale(.78)}
+  16%{transform:translate(-50%,-8%) scale(1.04)}   /* 1回目の頂点 */
+  30%{transform:translate(-50%,10%) scale(1)}       /* 一度下がる */
+  46%{transform:translate(-50%,-8%) scale(1.05)}    /* 2回目の頂点 */
+  66%{transform:translate(-50%,-8%) scale(1.05)}    /* 頂点で少し停止 */
+  100%{transform:translate(-50%,0) scale(1)}        /* 着地 */
+}
 #modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:999;
   display:none;transition:background .28s}
 #modal-backdrop.open{display:block;background:rgba(0,0,0,.45)}
@@ -2290,11 +2300,16 @@ function homeRunPose(){
 }
 function showFlash(ok,withChar){
   const el=$('quiz-flash');const mk=$('quiz-flash-mark');
-  if(ok&&withChar){ const ci=$('quiz-flash-char'); if(ci) ci.src=homeRunPose(); }
-  el.className='show '+(ok?'ok':'ng')+(ok&&withChar?' char':'');
+  let special=false;
+  if(ok&&withChar){
+    const pose=homeRunPose();
+    const ci=$('quiz-flash-char'); if(ci) ci.src=pose;
+    special=pose.includes('ハート')||pose.includes('シー'); // レア＝2回飛び出し
+  }
+  el.className='show '+(ok?'ok':'ng')+(ok&&withChar?' char':'')+(special?' twice':'');
   mk.textContent=ok?'○':'✕';
   clearTimeout(el._t1);clearTimeout(el._t2);
-  const hold=ok&&withChar?1600:800;
+  const hold=special?2600:(ok&&withChar?1600:800);
   el._t1=setTimeout(()=>el.classList.replace('show','hide'),hold);
   el._t2=setTimeout(()=>{el.className='';mk.textContent='';},hold+300);
 }
