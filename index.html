@@ -187,14 +187,14 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   70%{transform:translate(-50%,-5%) scale(1.03)}
   100%{transform:translate(-50%,0) scale(1)}
 }
-/* レア（ハート/シー）: 2回飛び出し＋頂点で少し長め */
-#quiz-flash.char.twice #quiz-flash-char{animation:char-jump-twice 2s cubic-bezier(.3,.8,.4,1) forwards}
+/* レア（ハート/シー）: 2回はっきり飛び出し＋頂点で少し長め */
+#quiz-flash.char.twice #quiz-flash-char{animation:char-jump-twice 2.1s cubic-bezier(.34,1.2,.5,1) forwards}
 @keyframes char-jump-twice{
-  0%{transform:translate(-50%,120%) scale(.78)}
-  16%{transform:translate(-50%,-8%) scale(1.04)}   /* 1回目の頂点 */
-  30%{transform:translate(-50%,10%) scale(1)}       /* 一度下がる */
-  46%{transform:translate(-50%,-8%) scale(1.05)}    /* 2回目の頂点 */
-  66%{transform:translate(-50%,-8%) scale(1.05)}    /* 頂点で少し停止 */
+  0%{transform:translate(-50%,125%) scale(.72)}     /* 画面下から登場 */
+  18%{transform:translate(-50%,-20%) scale(1.06)}   /* 1回目の頂点 */
+  40%{transform:translate(-50%,70%) scale(.92)}     /* しっかり下がる */
+  60%{transform:translate(-50%,-20%) scale(1.06)}   /* 2回目の頂点 */
+  78%{transform:translate(-50%,-20%) scale(1.06)}   /* 頂点で少し停止 */
   100%{transform:translate(-50%,0) scale(1)}        /* 着地 */
 }
 #modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:999;
