@@ -177,25 +177,25 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 #quiz-flash.ng #quiz-flash-mark{color:var(--c-ng-mark)}
 #quiz-flash.ok #quiz-flash-mark{color:var(--c-ok-mark)}
 /* 正解時（.char付き）: キャラが下から大きく飛び出す（マークは非表示） */
-#quiz-flash-char{display:none;position:absolute;bottom:0;left:50%;
-  height:52vh;max-height:440px;width:auto;transform:translateX(-50%);
+#quiz-flash-char{display:none;position:absolute;bottom:0;left:0;right:0;margin:0 auto;
+  height:52vh;max-height:440px;width:auto;transform-origin:center bottom;
   filter:drop-shadow(0 8px 16px rgba(0,0,0,.28));pointer-events:none}
 #quiz-flash.char #quiz-flash-mark{display:none}
 #quiz-flash.char #quiz-flash-char{display:block;animation:char-jump-in 1.15s cubic-bezier(.22,.85,.3,1) forwards}
 @keyframes char-jump-in{
-  0%{transform:translate(-50%,120%) scale(.78)}
-  70%{transform:translate(-50%,-5%) scale(1.03)}
-  100%{transform:translate(-50%,0) scale(1)}
+  0%{transform:translateY(120%) scale(.78)}
+  70%{transform:translateY(-5%) scale(1.03)}
+  100%{transform:translateY(0) scale(1)}
 }
 /* レア（ハート/シー）: 2回はっきり飛び出し＋頂点で少し長め */
 #quiz-flash.char.twice #quiz-flash-char{animation:char-jump-twice 2.1s cubic-bezier(.34,1.2,.5,1) forwards}
 @keyframes char-jump-twice{
-  0%{transform:translate(-50%,125%) scale(.72)}     /* 画面下から登場 */
-  18%{transform:translate(-50%,-20%) scale(1.06)}   /* 1回目の頂点 */
-  40%{transform:translate(-50%,70%) scale(.92)}     /* しっかり下がる */
-  60%{transform:translate(-50%,-20%) scale(1.06)}   /* 2回目の頂点 */
-  78%{transform:translate(-50%,-20%) scale(1.06)}   /* 頂点で少し停止 */
-  100%{transform:translate(-50%,0) scale(1)}        /* 着地 */
+  0%{transform:translateY(125%) scale(.72)}     /* 画面下から登場 */
+  18%{transform:translateY(-20%) scale(1.06)}   /* 1回目の頂点 */
+  40%{transform:translateY(70%) scale(.92)}     /* しっかり下がる */
+  60%{transform:translateY(-20%) scale(1.06)}   /* 2回目の頂点 */
+  78%{transform:translateY(-20%) scale(1.06)}   /* 頂点で少し停止 */
+  100%{transform:translateY(0) scale(1)}        /* 着地 */
 }
 #modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:999;
   display:none;transition:background .28s}
