@@ -176,6 +176,13 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   text-shadow:0 0 40px rgba(0,0,0,.15)}
 #quiz-flash.ng #quiz-flash-mark{color:var(--c-ng-mark)}
 #quiz-flash.ok #quiz-flash-mark{color:var(--c-ok-mark)}
+/* 今日の10問ボーナス「＋N点」大きく表示 */
+#quiz-flash-bonus{display:none;position:absolute;top:26%;left:0;right:0;text-align:center;
+  font-family:var(--ff-d);font-weight:900;font-size:68px;letter-spacing:-1px;
+  color:#fff;-webkit-text-stroke:4px var(--c-border);paint-order:stroke fill;
+  text-shadow:0 6px 0 rgba(0,0,0,.18);pointer-events:none}
+#quiz-flash.bonus #quiz-flash-bonus{display:block;animation:bonus-pop .55s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes bonus-pop{0%{transform:scale(.2) rotate(-8deg);opacity:0}60%{transform:scale(1.15) rotate(4deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
 /* 正解時（.char付き）: キャラが下から大きく飛び出す（マークは非表示） */
 #quiz-flash-char{display:none;position:absolute;bottom:0;left:0;right:0;margin:0 auto;
   height:52vh;max-height:440px;width:auto;transform-origin:center bottom;
@@ -1013,7 +1020,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 
   <!-- ── モーダル背景 ── -->
   <!-- ── 正解/不正解フラッシュ ── -->
-  <div id="quiz-flash"><img id="quiz-flash-char" src="images/よろこび.png" alt=""><span id="quiz-flash-mark"></span></div>
+  <div id="quiz-flash"><img id="quiz-flash-char" src="images/よろこび.png" alt=""><span id="quiz-flash-mark"></span><span id="quiz-flash-bonus"></span></div>
 
   <div id="modal-backdrop" onclick="closeModal()"></div>
 
@@ -2298,6 +2305,19 @@ function homeRunPose(){
   if(r<2/30+3/5) return 'images/でんわ.png';
   return 'images/よろこび.png';
 }
+// 今日の10問ボーナス: 飛び出し画像＋大きな「＋N点」
+function dailyBonusFlash(points){
+  const el=$('quiz-flash');if(!el) return;
+  const ci=$('quiz-flash-char'); if(ci) ci.src=homeRunPose();
+  const bn=$('quiz-flash-bonus');
+  if(bn){ bn.textContent='＋'+points+'点'; bn.style.color=points>=4?'#ffcf33':'#5bc2f4'; }
+  const mk=$('quiz-flash-mark'); if(mk) mk.textContent='';
+  el.className='show ok char bonus';
+  clearTimeout(el._t1);clearTimeout(el._t2);
+  el._t1=setTimeout(()=>el.classList.replace('show','hide'),2300);
+  el._t2=setTimeout(()=>{el.className='';if(bn)bn.textContent='';},2600);
+  vibrate([120,60,220]);
+}
 function showFlash(ok,withChar){
   const el=$('quiz-flash');const mk=$('quiz-flash-mark');
   let special=false;
@@ -2609,15 +2629,20 @@ function showDailyResult(){
   $('daily-result').style.display='';
   const correct=dailyState.ans.filter(a=>a===true).length;
   $('daily-result-score').textContent=correct+' / 10';
-  // mark done（1日1回）＋6問以上正解で総得点ボーナス+3
+  // mark done（1日1回）＋正解数で総得点ボーナス（10問=+4 / 6〜9問=+2）
+  const bonus=correct===10?4:(correct>=6?2:0);
   const today=todayStr();
   let done=JSON.parse(localStorage.getItem('mlb_daily_done')||'[]');
   let bonusMsg='';
   if(!done.includes(today)){
     done.push(today);localStorage.setItem('mlb_daily_done',JSON.stringify(done));
-    if(correct>=6){ addRuns(3); bonusMsg='6問以上正解ボーナス ＋3点！'; }
-  } else if(correct>=6){
-    bonusMsg='6問以上正解ボーナス ＋3点 獲得済み';
+    if(bonus>0){
+      addRuns(bonus);
+      bonusMsg=(correct===10?'全問正解！':'6問以上正解！')+' ＋'+bonus+'点';
+      setTimeout(()=>dailyBonusFlash(bonus),400); // 飛び出し画像＋大きな「＋N点」
+    }
+  } else if(bonus>0){
+    bonusMsg=(correct===10?'全問正解！':'6問以上正解！')+' ＋'+bonus+'点 獲得済み';
   }
   const bn=$('daily-bonus');
   if(bn){ bn.textContent=bonusMsg; bn.style.display=bonusMsg?'':'none'; }
