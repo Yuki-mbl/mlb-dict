@@ -1524,15 +1524,16 @@ function scrollToLetter(l){
 }
 function _scrollToLetterDirect(l){
   const list=$('dict-list');
-  // 実測でジャンプ（キャッシュは非表示中に計測されると0になり得るため信頼しない）
   const el=list.querySelector(`[data-letter="${l}"]`);
-  if(el){
-    const lr=list.getBoundingClientRect();
-    list.scrollTop=el.getBoundingClientRect().top-lr.top+list.scrollTop;
-    return;
-  }
-  const cached=_headerCache.find(h=>h.letter===l);
-  if(cached&&cached.top>0) list.scrollTop=cached.top;
+  if(!el) return;
+  // sec-hdr は position:sticky のため、そのままだと offsetTop/rect が
+  // 固定表示位置にズレる（特に上方向ジャンプが効かない）。一時的に
+  // sticky を解除して本来のコンテンツ内オフセットを取得する。
+  const prev=el.style.position;
+  el.style.position='static';
+  const top=el.offsetTop;
+  el.style.position=prev;
+  list.scrollTop=top;
 }
 
 // ── Render dict list ──────────────────────────────────────────────────────────
@@ -1679,7 +1680,12 @@ function scrollToAbbrLetter(l){
   const list=$('abbr-list');
   const t=document.getElementById('abbr-sec-'+l);
   if(list&&t){
-    list.scrollTop=t.getBoundingClientRect().top-list.getBoundingClientRect().top+list.scrollTop;
+    // sec-hdr の sticky を一時解除して本来のオフセットで正確にジャンプ
+    const prev=t.style.position;
+    t.style.position='static';
+    const top=t.offsetTop;
+    t.style.position=prev;
+    list.scrollTop=top;
   }
 }
 function clearAbbrSearch(){
