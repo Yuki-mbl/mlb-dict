@@ -2158,6 +2158,8 @@ function nextQ(_depth){
   // 正解ラベルが空、またはEJモードで日本語を含まない場合は別の問題を引き直す
   const _cLbl=choiceLbl(correct);
   if(!_cLbl.trim()){ if(_depth<25) nextQ(_depth+1); return; }
+  // 「記号」等、略語表記の残骸だけになった問題は出題しない（別の問題を引き直す）
+  if(/^(記号|符号|略号|略称|略語)$/.test(_cLbl.trim())){ if(_depth<25) nextQ(_depth+1); return; }
   if(qMode==='ej'&&!/[ぁ-んァ-ヶー一-龯]/.test(_cLbl)){ if(_depth<25) nextQ(_depth+1); return; }
   // 選択肢として表示できるか判定
   const _jaRe=/[ぁ-んァ-ヶー一-龯]/;
@@ -2167,6 +2169,7 @@ function nextQ(_depth){
     // 実際に表示するラベルで判定（cf.のみ・括弧残骸などを除外）
     const lbl=choiceLbl(e);
     if(!lbl || lbl.trim().length<2) return false;
+    if(/^(記号|符号|略号|略称|略語)$/.test(lbl.trim())) return false;
     if(qMode==='ej' && !_jaRe.test(lbl)) return false;
     return true;
   }
@@ -2252,8 +2255,9 @@ function choiceLbl(entry){
   }
   const raw=(qMode==='ej'?entry.ja:entry.en)||'';
   let s=raw;
-  // 先頭の「= word1 word2 の略。」形式（複数語略語）を除去してから残りを処理
-  s=s.replace(/^=\s*(?:[A-Za-z0-9\-\/]+\s+)+の略[。]?\s*/,'');
+  // 先頭の「= word1 word2 の略（記号/称/語）。」形式（複数語略語）を除去してから残りを処理
+  // ※「の略記号」を「の略」だけ消すと「記号」が誤って答えになるため記号/称/語まで消す
+  s=s.replace(/^=\s*(?:[A-Za-z0-9\-\/]+\s+)+の略(?:記号|符号|号|称|語)?[。]?\s*/,'');
   // 先頭の「= word 」形式（同義語・一語）を除去
   s=s.replace(/^=\s*\S+\s+/,'');
   // 先頭の「（追記）」を除去
