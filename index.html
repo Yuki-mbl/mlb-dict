@@ -2630,7 +2630,7 @@ function showDailyResult(){
   const correct=dailyState.ans.filter(a=>a===true).length;
   $('daily-result-score').textContent=correct+' / 10';
   // mark done（1日1回）＋正解数で総得点ボーナス（10問=+4 / 6〜9問=+2）
-  const bonus=correct===10?4:(correct>=6?2:0);
+  const bonus=correct===10?5:(correct>=6?3:0);
   const today=todayStr();
   let done=JSON.parse(localStorage.getItem('mlb_daily_done')||'[]');
   let bonusMsg='';
