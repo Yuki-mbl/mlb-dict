@@ -2310,7 +2310,7 @@ function dailyBonusFlash(points){
   const el=$('quiz-flash');if(!el) return;
   const ci=$('quiz-flash-char'); if(ci) ci.src=homeRunPose();
   const bn=$('quiz-flash-bonus');
-  if(bn){ bn.textContent='＋'+points+'点'; bn.style.color=points>=4?'#ffcf33':'#5bc2f4'; }
+  if(bn){ bn.textContent='＋'+points+'点'; bn.style.color=points>=5?'#ffcf33':'#e8e8ee'; }
   const mk=$('quiz-flash-mark'); if(mk) mk.textContent='';
   el.className='show ok char bonus';
   clearTimeout(el._t1);clearTimeout(el._t2);
