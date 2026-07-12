@@ -2453,24 +2453,26 @@ function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMo
 function makeDailyQuestions(){
   const ejPool=EJ.filter(e=>!isPersonName2(e,'ej'));
   const jePool=JE.filter(e=>!isPersonName2(e,'je'));
-  const combined=[...ejPool.map((_,i)=>({type:'ej',idx:i})),...jePool.map((_,i)=>({type:'je',idx:i}))];
-  const shuffled=combined.sort(()=>Math.random()-.5);
-  const chosen=shuffled.slice(0,10);
+  // 和英は2割（10問中2問）に固定、残り8問は英和
+  const ejItems=ejPool.map((_,i)=>({type:'ej',idx:EJ.indexOf(ejPool[i])})).sort(()=>Math.random()-.5);
+  const jeItems=jePool.map((_,i)=>({type:'je',idx:JE.indexOf(jePool[i])})).sort(()=>Math.random()-.5);
+  const chosen=[...ejItems.slice(0,8),...jeItems.slice(0,2)].sort(()=>Math.random()-.5);
   return chosen.map(q=>{
-    const arr=q.type==='ej'?EJ:JE;
-    const correct=arr[q.idx];
-    const pool=(q.type==='ej'?ejPool:jePool).filter((_,i)=>i!==q.idx);
+    // q.idx は EJ/JE 本体配列のインデックス（描画も arr[q.correct]/arr[ci] で本体を参照）
+    const fullArr=q.type==='ej'?EJ:JE;
+    const correct=fullArr[q.idx];
+    const pool=q.type==='ej'?ejPool:jePool;
     const wrongs=[];const used=new Set([q.idx]);let t=0;
     const dLbl=dailyChoiceLbl(correct,q.type);const dLen=dLbl.length;const dFirst=dLbl[0]||'';
     const dEnFirst=(correct.en||'').split(/[,\/]/)[0].trim().toLowerCase();
     while(wrongs.length<3&&t++<600){
-      const ri=Math.floor(Math.random()*pool.length);
-      const orig=q.type==='ej'?ejPool.indexOf(pool[ri]):jePool.indexOf(pool[ri]);
-      if(!used.has(orig)&&hasGoodLbl2(pool[ri],q.type)){
-        const lbl=dailyChoiceLbl(pool[ri],q.type);
+      const cand=pool[Math.floor(Math.random()*pool.length)];
+      const orig=fullArr.indexOf(cand);
+      if(orig>=0&&!used.has(orig)&&hasGoodLbl2(cand,q.type)){
+        const lbl=dailyChoiceLbl(cand,q.type);
         if(lbl.trim().length<2) continue;
         // JEモード: 正解と英語先頭語が同じ項目は選択肢に出さない
-        if(q.type==='je'&&dEnFirst.length>=2){const eF=(pool[ri].en||'').split(/[,\/]/)[0].trim().toLowerCase();if(eF===dEnFirst) continue;}
+        if(q.type==='je'&&dEnFirst.length>=2){const eF=(cand.en||'').split(/[,\/]/)[0].trim().toLowerCase();if(eF===dEnFirst) continue;}
         if(t<350){
           const lenOk=dLen>0&&Math.min(dLen,lbl.length)/Math.max(dLen,lbl.length)>0.45;
           const firstOk=dFirst&&lbl[0]===dFirst;
