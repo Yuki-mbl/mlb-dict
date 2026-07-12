@@ -176,13 +176,15 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   text-shadow:0 0 40px rgba(0,0,0,.15)}
 #quiz-flash.ng #quiz-flash-mark{color:var(--c-ng-mark)}
 #quiz-flash.ok #quiz-flash-mark{color:var(--c-ok-mark)}
-/* 今日の10問ボーナス「＋N点」大きく表示 */
-#quiz-flash-bonus{display:none;position:absolute;top:26%;left:0;right:0;text-align:center;
-  font-family:var(--ff-d);font-weight:900;font-size:68px;letter-spacing:-1px;
-  color:#fff;-webkit-text-stroke:4px var(--c-border);paint-order:stroke fill;
-  text-shadow:0 6px 0 rgba(0,0,0,.18);pointer-events:none}
-#quiz-flash.bonus #quiz-flash-bonus{display:block;animation:bonus-pop .55s cubic-bezier(.34,1.56,.64,1) both}
-@keyframes bonus-pop{0%{transform:scale(.2) rotate(-8deg);opacity:0}60%{transform:scale(1.15) rotate(4deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
+/* 今日の10問ボーナス「＋N点」大きく表示（濃い色プレートでどの背景でもはっきり読める） */
+#quiz-flash-bonus{display:none;position:absolute;top:18%;left:0;right:0;margin:0 auto;
+  width:max-content;max-width:88%;white-space:nowrap;text-align:center;
+  font-family:var(--ff-d);font-weight:900;font-size:clamp(52px,17vw,92px);line-height:1;
+  letter-spacing:-1px;padding:12px 34px;border:3.5px solid var(--c-border);
+  border-radius:var(--r-pill);box-shadow:0 8px 0 rgba(0,0,0,.28);
+  transform-origin:center;pointer-events:none}
+#quiz-flash.bonus #quiz-flash-bonus{display:block;animation:bonus-pop .6s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes bonus-pop{0%{transform:scale(.2) rotate(-8deg);opacity:0}55%{transform:scale(1.18) rotate(4deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
 /* 正解時（.char付き）: キャラが下から大きく飛び出す（マークは非表示） */
 #quiz-flash-char{display:none;position:absolute;bottom:0;left:0;right:0;margin:0 auto;
   height:52vh;max-height:440px;width:auto;transform-origin:center bottom;
@@ -2322,7 +2324,11 @@ function dailyBonusFlash(points){
   const el=$('quiz-flash');if(!el) return;
   const ci=$('quiz-flash-char'); if(ci) ci.src=homeRunPose();
   const bn=$('quiz-flash-bonus');
-  if(bn){ bn.textContent='＋'+points+'点'; bn.style.color=points>=5?'#ffcf33':'#e8e8ee'; }
+  if(bn){
+    bn.textContent='＋'+points+'点';
+    if(points>=5){ bn.style.background='#ffd23f'; bn.style.color='#1e1e2e'; } // 全問正解=金プレート＋濃紺文字
+    else { bn.style.background='#ff5a4e'; bn.style.color='#fff'; }            // 6〜9問=コーラルプレート＋白文字
+  }
   const mk=$('quiz-flash-mark'); if(mk) mk.textContent='';
   el.className='show ok char bonus';
   clearTimeout(el._t1);clearTimeout(el._t2);
