@@ -2440,16 +2440,25 @@ function pick(btn,ok,correct){
   if(card&&correct){
     const isEJ=qMode==='ej';
     const head=isEJ?correct.en:correct.ja;
-    const sub=isEJ&&correct.cat==='abbr'&&correct.ja?correct.ja:'';
-    const defText=isEJ
-      ?(correct.cat==='abbr'?correct.def:correct.ja)
-      :(correct.en+'\n\n'+(correct.def||'')).trim();
-    card.innerHTML=
-      `<div class="ddc-en">${isEJ?'英和':'和英'}</div>`+
-      `<div class="ddc-head">${esc(head)}</div>`+
-      (sub?`<div class="ddc-sub">${defToHtml(sub,isEJ?'ej':'je')}</div>`:'')+
-      (defText?`<div class="ddc-def">${defToHtml(defText,isEJ?'ej':'je')}</div>`:'');
-    card.style.display='';
+    const enriched=isEJ&&(correct.short||correct.long);
+    if(enriched){
+      // 拡充済みは画像パターンで表示（cf.等の生テキストや結合ミスを出さない）
+      card.innerHTML=`<div class="ddc-en">英和</div><div class="ddc-head">${esc(head)}</div>`+
+        `<div class="ddc-def">${enrichHtml(correct)}</div>`;
+      card.style.display='';
+      bindRelJumps(card);
+    } else {
+      const sub=isEJ&&correct.cat==='abbr'&&correct.ja?correct.ja:'';
+      const defText=isEJ
+        ?(correct.cat==='abbr'?correct.def:correct.ja)
+        :(correct.en+'\n\n'+(correct.def||'')).trim();
+      card.innerHTML=
+        `<div class="ddc-en">${isEJ?'英和':'和英'}</div>`+
+        `<div class="ddc-head">${esc(head)}</div>`+
+        (sub?`<div class="ddc-sub">${defToHtml(sub,isEJ?'ej':'je')}</div>`:'')+
+        (defText?`<div class="ddc-def">${defToHtml(defText,isEJ?'ej':'je')}</div>`:'');
+      card.style.display='';
+    }
   }
   // 3アウトでクイズ終了 → THREE OUT! を表示して目次へ
   if(!ok&&quizOuts>=3){
@@ -2662,16 +2671,24 @@ function dailyPick(btn,ok,q,correct,chosenIdx){
   if(entry){
     const isEJ=q.type==='ej';
     const head=isEJ?entry.en:entry.ja;
-    const sub=isEJ&&entry.cat==='abbr'&&entry.ja?entry.ja:'';
-    const defText=isEJ
-      ?(entry.cat==='abbr'?entry.def:entry.ja)
-      :(entry.en+'\n\n'+(entry.def||'')).trim();
-    card.innerHTML=
-      `<div class="ddc-en">${isEJ?'英和':'和英'}</div>`+
-      `<div class="ddc-head">${esc(head)}</div>`+
-      (sub?`<div class="ddc-sub">${defToHtml(sub,isEJ?'ej':'je')}</div>`:'')+
-      (defText?`<div class="ddc-def">${defToHtml(defText,isEJ?'ej':'je')}</div>`:'');
-    card.style.display='';
+    const enriched=isEJ&&(entry.short||entry.long);
+    if(enriched){
+      card.innerHTML=`<div class="ddc-en">英和</div><div class="ddc-head">${esc(head)}</div>`+
+        `<div class="ddc-def">${enrichHtml(entry)}</div>`;
+      card.style.display='';
+      bindRelJumps(card);
+    } else {
+      const sub=isEJ&&entry.cat==='abbr'&&entry.ja?entry.ja:'';
+      const defText=isEJ
+        ?(entry.cat==='abbr'?entry.def:entry.ja)
+        :(entry.en+'\n\n'+(entry.def||'')).trim();
+      card.innerHTML=
+        `<div class="ddc-en">${isEJ?'英和':'和英'}</div>`+
+        `<div class="ddc-head">${esc(head)}</div>`+
+        (sub?`<div class="ddc-sub">${defToHtml(sub,isEJ?'ej':'je')}</div>`:'')+
+        (defText?`<div class="ddc-def">${defToHtml(defText,isEJ?'ej':'je')}</div>`:'');
+      card.style.display='';
+    }
   }
 }
 function dailyNextQ(){
