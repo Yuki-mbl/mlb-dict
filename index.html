@@ -1568,7 +1568,8 @@ function scoreEntries(data,mode,q){
 }
 function makeEntryItem(entry,mode,showBadge){
   const head=mode==='ej'?entry.en:entry.ja;
-  const sub =mode==='ej'?entry.ja:(entry.en+(entry.def?' — '+entry.def:''));
+  // 拡充済み(short)があれば一覧の説明も短文を使う（cf.等の生テキストを出さない）
+  const sub =mode==='ej'?(entry.short||entry.ja):(entry.en+(entry.def?' — '+entry.def:''));
   const favd=isFav(entry);
   const item=document.createElement('div');
   item.className='entry-item';
