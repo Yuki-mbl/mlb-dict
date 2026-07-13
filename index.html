@@ -335,6 +335,38 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   transform:translate(-50%,-84%);z-index:8;pointer-events:none;
   filter:drop-shadow(0 3px 5px rgba(0,0,0,.28));
   transition:left .42s linear, top .42s linear}
+/* ── スイングタイミング演出 ── */
+.swing-ui{position:absolute;inset:0;z-index:12;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;
+  background:rgba(20,26,46,.42);backdrop-filter:blur(1px)}
+.swing-pitch{font-family:var(--ff-d);font-weight:900;font-size:13px;color:#fff;
+  background:var(--c-primary);border:2px solid var(--c-border);border-radius:var(--r-pill);
+  padding:2px 12px;box-shadow:var(--shadow-s)}
+.swing-track{position:relative;width:78%;height:20px;border-radius:var(--r-pill);
+  background:rgba(255,255,255,.85);border:2px solid var(--c-border);overflow:hidden;
+  box-shadow:var(--shadow-s)}
+.swing-zone{position:absolute;top:0;bottom:0}
+.swing-zone-good{background:#bfe3ff}
+.swing-zone-great{background:#ffe08a}
+.swing-zone-perfect{background:#ff8f6b}
+.swing-marker{position:absolute;top:-3px;bottom:-3px;width:4px;left:0;margin-left:-2px;
+  background:var(--c-ink);border-radius:2px;box-shadow:0 0 0 1px #fff}
+.swing-btn{font-family:var(--ff-d);font-weight:900;font-size:16px;color:#fff;
+  background:var(--c-coral);border:3px solid var(--c-border);border-radius:var(--r-pill);
+  padding:6px 26px;box-shadow:var(--shadow-m);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.swing-btn:active{transform:translate(2px,2px);box-shadow:none}
+.swing-btn:disabled{opacity:.55}
+.swing-result{font-family:var(--ff-d);font-weight:900;font-size:17px;color:#fff;
+  text-shadow:0 2px 4px rgba(0,0,0,.5);min-height:20px}
+.swing-result.hit{color:#fff36b}
+.swing-result.out{color:#ffb3a8}
+/* 設定: スイング操作トグル */
+.swing-toggle{flex-shrink:0;padding:8px 18px;border:var(--bw) solid var(--c-border);
+  border-radius:var(--r-pill);background:var(--c-accent);box-shadow:var(--shadow-s);
+  font-family:var(--ff-t);font-size:14px;font-weight:800;color:var(--c-ink);cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:all .12s}
+.swing-toggle:active{transform:translate(2px,2px);box-shadow:none}
+.swing-toggle.auto{background:var(--c-muted2);color:#fff}
 /* ── アウトカウント・得点（フィールド上のバッジ） ── */
 .diamond-hud{position:absolute;top:8px;z-index:6;
   font-family:var(--ff-d);font-weight:900;font-size:13px;
@@ -848,6 +880,17 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
           <img class="dchar dchar-runner" id="dchar-3" src="images/盗塁待ち.png" alt="" style="display:none">
           <div class="diamond-hud diamond-hud-out"><span class="quiz-outs" id="quiz-outs">OUT ○○○</span></div>
           <div class="diamond-hud diamond-hud-run">得点 <span id="quiz-runs">0</span></div>
+          <div class="swing-ui" id="swing-ui" style="display:none">
+            <div class="swing-pitch" id="swing-pitch">Lv1 直球</div>
+            <div class="swing-track">
+              <div class="swing-zone swing-zone-good" id="sz-good"></div>
+              <div class="swing-zone swing-zone-great" id="sz-great"></div>
+              <div class="swing-zone swing-zone-perfect" id="sz-perfect"></div>
+              <div class="swing-marker" id="swing-marker"></div>
+            </div>
+            <button class="swing-btn" id="swing-btn" onclick="doSwing()">打て！</button>
+            <div class="swing-result" id="swing-result"></div>
+          </div>
         </div>
       </div>
       <div class="quiz-card">
@@ -967,6 +1010,17 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
             <button class="reset-confirm-cancel" onclick="cancelResetQuiz()">キャンセル</button>
             <button class="reset-confirm-ok" onclick="resetQuizScore()">リセットする</button>
           </div>
+        </div>
+      </div>
+
+      <div class="settings-group-label">クイズ</div>
+      <div class="settings-section">
+        <div class="settings-row">
+          <div class="entry-text">
+            <div class="settings-row-label">スイング操作</div>
+            <div class="settings-row-sub">手動＝正解後にタイミングよく打つ挑戦モード／オート＝自動でヒット</div>
+          </div>
+          <button class="swing-toggle" id="swing-toggle" onclick="toggleSwingAuto()">手動</button>
         </div>
       </div>
 
@@ -1712,6 +1766,7 @@ document.addEventListener('DOMContentLoaded', () => {
       renderAbbrList();
     });
   }
+  if(typeof syncSwingToggle==='function') syncSwingToggle();
 });
 
 // ── Modal (bottom sheet) ──────────────────────────────────────────────────────
@@ -2061,6 +2116,7 @@ function toggleMFav(){
 // クイズ状態: 連続正解数・アウト数・塁の走者[1塁,2塁,3塁]・得点
 let quizStreak=0, quizOuts=0, bases=[false,false,false];
 let runsTotal=parseInt(localStorage.getItem('mlb_runs')||'0',10)||0; // 累計得点
+let swingAuto=localStorage.getItem('mlb_swing_auto')==='1'; // スイング操作: true=オート
 function vibrate(p){try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}}
 // ── 難易度（進む塁数 1=単打 / 2=二塁打 / 3=三塁打）──
 // 主要語の手調整（自動判定を上書き）。enの小文字・括弧除去で照合
@@ -2098,8 +2154,13 @@ function startQuizPlay(){
   $('quiz-menu').style.display='none';
   $('quiz-play').style.display='';
   quizStreak=0;quizOuts=0;quizAsked=0;quizGameCorrect=0;
+  resetSwing();
   updateOuts();clearBases();updateRuns();
   cq=null;nextQ();
+}
+function resetSwing(){
+  try{ sw.active=false; cancelAnimationFrame(sw.raf); }catch(e){}
+  const ui=$('swing-ui'); if(ui) ui.style.display='none';
 }
 // 累計得点の表示更新
 function updateRuns(){
@@ -2118,6 +2179,7 @@ function addRuns(n){
 }
 function quizToMenu(){
   lastQuizSection='menu';
+  resetSwing();
   const play=$('quiz-play'),menu=$('quiz-menu');
   if(play) play.style.display='none';
   if(menu) menu.style.display='';
@@ -2434,19 +2496,17 @@ function pick(btn,ok,correct){
   const st=qs[qMode];st.n++;if(ok) st.ok++;
   updateScores();
   setChar('quiz-char-img',ok?'joy':'def',ok);
+  let doSwingPhase=false;
   if(ok){
     quizStreak++;
-    quizGameCorrect++;   // この試合の正解数（制限時間短縮の基準）
-    const hit=(cq&&cq.hit)?cq.hit:1;   // 難易度＝進む塁数（1/2/3）
-    // ヒットの塁数だけ進塁。走者がダイヤ上を実際に走り、本塁を踏んだら得点
-    const r=advanceRunners(hit);
-    addRuns(r.runs);
-    if(r.runs>0){
-      // ホームイン（得点）したらキャラが下から飛び出す＋大きく振動
-      showFlash(true,true);
-      vibrate([120,60,220]);
+    quizGameCorrect++;   // この試合の正解数（＝球のレベル・制限時間短縮の基準）
+    const hit=(cq&&cq.hit)?cq.hit:1;   // 難易度＝甘い球（狙える最大の当たり）
+    if(swingAuto){
+      // オート: 従来どおり難易度で自動進塁
+      applyHit(hit);
     } else {
-      vibrate(35);
+      // 手動: タイミングよく打つ挑戦フェーズへ
+      doSwingPhase=true;
     }
   } else {
     quizStreak=0;
@@ -2468,7 +2528,6 @@ function pick(btn,ok,correct){
     if(ci>=0) addToReview(qMode,ci);
   }
   document.querySelectorAll('.choice').forEach(b=>b.disabled=true);
-  $('next-btn').disabled=false;
   // 辞書カード表示
   const card=$('quiz-def-card');
   if(card&&correct){
@@ -2494,11 +2553,130 @@ function pick(btn,ok,correct){
       card.style.display='';
     }
   }
-  // 3アウトでクイズ終了 → THREE OUT! を表示して目次へ
-  if(!ok&&quizOuts>=3){
+  if(doSwingPhase){
+    // 打撃フェーズ中は「次の問題」を止め、結果確定後に finishTurn
+    $('next-btn').disabled=true;
+    const hit=(cq&&cq.hit)?cq.hit:1;
+    startSwing(hit);
+  } else {
+    finishTurn();
+  }
+}
+// ヒット結果を反映（value塁進む。0=アウト）
+function applyHit(value){
+  if(value<=0){
+    quizStreak=0; quizOuts++; updateOuts(); showOutFx();
+    return;
+  }
+  const r=advanceRunners(value);
+  addRuns(r.runs);
+  if(r.runs>0){ showFlash(true,true); vibrate([120,60,220]); }
+  else vibrate(35);
+}
+// ターン終了処理（次へ有効化・3アウト判定）
+function finishTurn(){
+  $('next-btn').disabled=false;
+  if(quizOuts>=3){
     $('next-btn').disabled=true;
     setTimeout(threeOut,900);
   }
+}
+function showOutFx(){
+  vibrate(200);
+  const el=$('quiz-outs');
+  if(el){el.classList.remove('run-bump');void el.offsetWidth;el.classList.add('run-bump');}
+}
+// ── スイングタイミング（打撃）ミニゲーム ──
+// 連続正解数に応じて球のレベルが上がる（0-4:やさしい, 5-9, 10-19, 20-39, 40+:最難関）
+// cfg: spd=マーカー速度(%/frame), perfect/great/good=中央からの半幅(%), brk=変化球度(0-1)
+const SWING_TIERS=[
+  {spd:0.95, perfect:8,  great:16, good:27, brk:0,   label:'Lv1 スローボール'},
+  {spd:1.35, perfect:6.5,great:13, good:22, brk:0,   label:'Lv2 ストレート'},
+  {spd:1.85, perfect:5.5,great:11, good:18, brk:0.35,label:'Lv3 変化球'},
+  {spd:2.4,  perfect:4.5,great:9,  good:15, brk:0.55,label:'Lv4 剛速球＋変化球'},
+  {spd:3.0,  perfect:3.6,great:7,  good:12, brk:0.75,label:'Lv5 最速＋多彩'},
+];
+function pitchTier(){
+  const c=quizGameCorrect;
+  if(c<=5) return 0; if(c<=10) return 1; if(c<=20) return 2; if(c<=40) return 3; return 4;
+}
+let sw={active:false,pos:0,dir:1,raf:0,cfg:null,hit:1,foulUsed:false,pW:0,gW:0,dW:0};
+function startSwing(hit){
+  sw.hit=hit; sw.foulUsed=false;
+  beginPitch();
+}
+function beginPitch(){
+  const cfg=SWING_TIERS[pitchTier()];
+  sw.cfg=cfg; sw.pos=0; sw.dir=1; sw.active=true;
+  // 難問ほどジャスト／グレート判定を広く（＝甘い球）
+  sw.pW=cfg.perfect+(sw.hit-1)*2.2;
+  sw.gW=cfg.great  +(sw.hit-1)*3.0;
+  sw.dW=cfg.good;
+  setZone('sz-perfect',sw.pW); setZone('sz-great',sw.gW); setZone('sz-good',sw.dW);
+  const pl=$('swing-pitch'); if(pl) pl.textContent=cfg.label;
+  const rs=$('swing-result'); if(rs){rs.textContent=''; rs.className='swing-result';}
+  const bt=$('swing-btn'); if(bt) bt.disabled=false;
+  const ui=$('swing-ui'); if(ui) ui.style.display='';
+  loopSwing();
+}
+function setZone(id,half){
+  const e=$(id); if(!e) return;
+  e.style.left=(50-half)+'%'; e.style.width=(2*half)+'%';
+}
+function loopSwing(){
+  if(!sw.active) return;
+  let step=sw.cfg.spd;
+  if(sw.cfg.brk) step=sw.cfg.spd*(1+sw.cfg.brk*Math.sin(sw.pos/100*Math.PI)); // 変化球＝中央付近で加速
+  sw.pos+=sw.dir*step;
+  if(sw.pos>=100){sw.pos=100;sw.dir=-1;} else if(sw.pos<=0){sw.pos=0;sw.dir=1;}
+  const m=$('swing-marker'); if(m) m.style.left=sw.pos+'%';
+  sw.raf=requestAnimationFrame(loopSwing);
+}
+function doSwing(){
+  if(!sw.active) return;
+  sw.active=false; cancelAnimationFrame(sw.raf);
+  const bt=$('swing-btn'); if(bt) bt.disabled=true;
+  const err=Math.abs(sw.pos-50);
+  let res;
+  if(err<=sw.pW)      res={val:4, label:'ジャスト！ホームラン！'};
+  else if(err<=sw.gW) res={val:(sw.hit>=3?3:2), label:(sw.hit>=3?'グレート！三塁打！':'グレート！二塁打！')};
+  else if(err<=sw.dW) res={val:1, label:'ナイスミート！ヒット！'};
+  else {
+    // 外し: ファウル打ち直し判定（10問目まで・30%・1打席1回）
+    const foulBand=sw.dW+9;
+    const canFoul=(quizGameCorrect<=10)&&(!sw.foulUsed)&&(err<=foulBand)&&(Math.random()<0.30);
+    if(canFoul){
+      sw.foulUsed=true;
+      showSwingResult('ファウル！打ち直し',null);
+      vibrate(60);
+      setTimeout(beginPitch,950);
+      return;
+    }
+    res={val:0, label:(err<=foulBand?'凡フライ…アウト':'空振り…アウト'), out:true};
+  }
+  showSwingResult(res.label, !res.out);
+  const wait=res.out?950:750;
+  setTimeout(()=>{
+    const ui=$('swing-ui'); if(ui) ui.style.display='none';
+    applyHit(res.val);   // val<=0 は applyHit 内でアウト処理
+    finishTurn();
+  }, wait);
+}
+function showSwingResult(text,isHit){
+  const rs=$('swing-result'); if(!rs) return;
+  rs.textContent=text;
+  rs.className='swing-result'+(isHit===true?' hit':(isHit===false?' out':''));
+}
+// 設定: スイング操作トグル
+function toggleSwingAuto(){
+  swingAuto=!swingAuto;
+  localStorage.setItem('mlb_swing_auto',swingAuto?'1':'0');
+  syncSwingToggle();
+}
+function syncSwingToggle(){
+  const b=$('swing-toggle'); if(!b) return;
+  b.textContent=swingAuto?'オート':'手動';
+  b.classList.toggle('auto',swingAuto);
 }
 
 function updateScores(){
