@@ -326,9 +326,10 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .quiz-char img.dchar-home{left:50%;top:80%;height:34%}
 /* 塁上ランナー: 足が塁に乗るよう下端寄りにアンカー */
 .quiz-char img.dchar-runner{height:24%;transform:translate(-50%,-84%)}
-#dchar-1{left:82%;top:48%}
-#dchar-2{left:50%;top:15%}
-#dchar-3{left:18%;top:48%}
+/* 盗塁待ち＝各塁から次の塁方向へ1歩リードした位置に置く */
+#dchar-1{left:74%;top:44%}  /* 一塁→二塁方向へリード */
+#dchar-2{left:43%;top:20%}  /* 二塁→三塁方向へリード */
+#dchar-3{left:26%;top:53%}  /* 三塁→本塁方向へリード */
 /* 塁間を実際に走る走者（塁パスに沿って移動） */
 .quiz-char img.dchar-mover{position:absolute;height:24%;width:auto;
   transform:translate(-50%,-84%);z-index:8;pointer-events:none;
