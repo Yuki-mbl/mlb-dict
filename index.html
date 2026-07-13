@@ -2394,6 +2394,14 @@ function choiceLbl(entry){
     // defがない場合はjaから抽出（"= WORD の略。" を除去して最初の文）
     return (entry.ja||'').replace(/^=\s*\S+\s+の略[。]?\s*/,'').split(/[。\n]/)[0].trim().substring(0,40);
   }
+  // 拡充済みエントリは short（簡潔な答え）を選択肢に使う
+  if(entry.short && entry.short.trim()){
+    let s=entry.short.trim();
+    // 「(… は和製/和用法/和略 …)」等の注記カッコを除去
+    s=s.replace(/\s*[（(][^）)]*(和製|和用法|和略|和)[^）)]*[）)]/g,'').trim();
+    if(s.length>60) s=s.substring(0,60)+'…';
+    if(s) return s;
+  }
   const raw=(qMode==='ej'?entry.ja:entry.en)||'';
   let s=raw;
   // 先頭の「= word1 word2 の略（記号/称/語）。」形式（複数語略語）を除去してから残りを処理
