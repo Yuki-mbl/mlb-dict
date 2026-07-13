@@ -329,6 +329,11 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 #dchar-1{left:82%;top:48%}
 #dchar-2{left:50%;top:15%}
 #dchar-3{left:18%;top:48%}
+/* 塁間を実際に走る走者（塁パスに沿って移動） */
+.quiz-char img.dchar-mover{position:absolute;height:24%;width:auto;
+  transform:translate(-50%,-84%);z-index:8;pointer-events:none;
+  filter:drop-shadow(0 3px 5px rgba(0,0,0,.28));
+  transition:left .42s linear, top .42s linear}
 /* ── アウトカウント・得点（フィールド上のバッジ） ── */
 .diamond-hud{position:absolute;top:8px;z-index:6;
   font-family:var(--ff-d);font-weight:900;font-size:13px;
@@ -351,14 +356,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .menu-runs-row{text-align:center;font-family:var(--ff-d);font-weight:900;font-size:15px;
   color:var(--c-primary);padding:6px 0 2px;border-top:1px solid var(--c-hairline);margin-top:4px}
 .menu-runs-row #menu-runs{color:var(--c-coral);font-size:20px}
-/* ── 走者が横切る演出 ── */
 .quiz-card{position:relative}
-#run-char{position:absolute;top:-6px;height:96px;width:auto;left:-110px;display:none;z-index:30;pointer-events:none}
-#run-char.run{display:block}
-#run-char.run-lr{animation:run-lr 1.1s linear forwards}
-#run-char.run-rl{animation:run-rl 1.1s linear forwards}
-@keyframes run-lr{from{left:-110px}to{left:100%}}
-@keyframes run-rl{from{left:100%}to{left:-110px}}
 /* ── THREE OUT 演出 ── */
 #three-out{position:fixed;inset:0;z-index:900;display:none;align-items:center;justify-content:center;
   background:rgba(30,30,46,.55);pointer-events:none;opacity:1;transition:opacity .7s ease}
@@ -852,7 +850,6 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
         </div>
       </div>
       <div class="quiz-card">
-        <img id="run-char" src="images/右向き.png" alt="">
         <div class="pitch-clock"><div class="pitch-clock-fill" id="pitch-clock-fill"></div></div>
         <div class="quiz-q">
           <div class="quiz-q-lbl" id="qq-lbl">問題</div>
@@ -2137,38 +2134,63 @@ function clearBases(){
 function renderBases(){
   [1,2,3].forEach(n=>{const e=$('dchar-'+n);if(e)e.style.display=bases[n-1]?'':'none';});
 }
-// ヒット（value塁進む）: 塁上の走者＋打者を進める。{runs, dirs}を返す
-// dirs=動いた走者ごとの走る向き（リード走者→打者の順）。到達1塁='r'(左→右)、それ以外='l'(右→左)
+// 塁座標（diamond-wrap内の%）: 0=ホーム,1=一塁,2=二塁,3=三塁
+const BASE_POS={0:[50,80],1:[82,48],2:[50,15],3:[18,48]};
+const SEG_MS=420, RUN_STAGGER=280; // 1区間の所要時間・走者ごとの出発ずらし
+// 区間の向き（出発塁で決まる）: ホーム/三塁発＝右向き, 一塁/二塁発＝左向き
+function segFacing(from){ return (from===0||from===3)?CHAR_IMG.runR:CHAR_IMG.runL; }
+function prefersReduced(){
+  try{ return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+  catch(e){ return false; }
+}
+// ヒット（value塁進む）: 塁上の走者＋打者を、ダイヤ上を実際に走らせて進める。{runs}を返す
 function advanceRunners(value){
-  let runs=0;
-  const np=[false,false,false];
-  const dirs=[];
-  // リード走者（3塁側）から順に
-  for(let i=2;i>=0;i--){
-    if(!bases[i]) continue;
-    const pos=(i+1)+value; // 現在塁(1-3)+進塁
-    if(pos>=4){ runs++; dirs.push('l'); }         // 生還
-    else { np[pos-1]=true; dirs.push(pos===1?'r':'l'); }
+  // 進塁プラン（リード走者＝3塁側から順に、最後に打者）
+  const journeys=[];
+  for(let i=2;i>=0;i--){ if(bases[i]) journeys.push({start:i+1, end:i+1+value}); }
+  journeys.push({start:0, end:value}); // 打者はホーム発
+  // 新しい塁状態と得点
+  const nb=[false,false,false]; let runs=0;
+  journeys.forEach(j=>{ if(j.end>=4) runs++; else nb[j.end-1]=true; });
+  bases=nb;
+  // モーション抑制設定なら瞬間反映
+  if(prefersReduced()){ renderBases(); return {runs}; }
+  // アニメ中は静的走者を隠し、到着時に表示
+  [1,2,3].forEach(n=>{const e=$('dchar-'+n); if(e) e.style.display='none';});
+  journeys.forEach((j,idx)=>{
+    const mv=createMover(j.start);
+    const pathEnd=Math.min(j.end,4); // 本塁(4)で打ち止め＝生還
+    setTimeout(()=>stepMover(mv, j.start, pathEnd), idx*RUN_STAGGER + 40);
+  });
+  // 最終状態を反映（保険）
+  const maxSeg=Math.max.apply(null, journeys.map(j=>Math.min(j.end,4)-j.start));
+  setTimeout(renderBases, (journeys.length-1)*RUN_STAGGER + maxSeg*SEG_MS + 220);
+  return {runs};
+}
+// 走者エレメントを start塁 に生成
+function createMover(start){
+  const wrap=document.querySelector('#quiz-char .diamond-wrap');
+  if(!wrap) return null;
+  const mv=document.createElement('img');
+  mv.className='dchar dchar-mover';
+  const p=BASE_POS[start%4];
+  mv.src=segFacing(start);
+  mv.style.left=p[0]+'%'; mv.style.top=p[1]+'%';
+  wrap.appendChild(mv);
+  return mv;
+}
+// 走者を seg塁 から end塁 まで1区間ずつ塁パスに沿って進める
+function stepMover(mv, seg, end){
+  if(!mv) return;
+  if(seg>=end){
+    mv.remove();
+    if(end<4){ const st=$('dchar-'+end); if(st) st.style.display=''; } // 到着（生還=4は表示しない）
+    return;
   }
-  // 打者（最後）
-  if(value>=4){ runs++; dirs.push('l'); } else { np[value-1]=true; dirs.push(value===1?'r':'l'); }
-  bases=np;
-  renderBases();
-  return {runs, dirs};
-}
-// 複数の走者を順番に走らせる
-function runSequence(dirs){
-  if(!dirs||!dirs.length) return;
-  dirs.forEach((d,i)=>setTimeout(()=>runAcross(d), i*520));
-}
-function runAcross(dir){
-  const img=$('run-char');
-  if(!img) return;
-  img.src=dir==='r'?CHAR_IMG.runR:CHAR_IMG.runL;
-  img.className='';void img.offsetWidth; // アニメ再スタート
-  img.className='run '+(dir==='r'?'run-lr':'run-rl');
-  clearTimeout(img._t);
-  img._t=setTimeout(()=>{img.className='';},1200);
+  const tp=BASE_POS[(seg+1)%4];
+  mv.src=segFacing(seg%4);
+  requestAnimationFrame(()=>{ mv.style.left=tp[0]+'%'; mv.style.top=tp[1]+'%'; });
+  setTimeout(()=>stepMover(mv, seg+1, end), SEG_MS);
 }
 function threeOut(){
   const el=$('three-out');
@@ -2415,9 +2437,8 @@ function pick(btn,ok,correct){
     quizStreak++;
     quizGameCorrect++;   // この試合の正解数（制限時間短縮の基準）
     const hit=(cq&&cq.hit)?cq.hit:1;   // 難易度＝進む塁数（1/2/3）
-    // ヒットの塁数だけ進塁。動いた走者を順番に走らせ、本塁を踏んだら得点
+    // ヒットの塁数だけ進塁。走者がダイヤ上を実際に走り、本塁を踏んだら得点
     const r=advanceRunners(hit);
-    runSequence(r.dirs);
     addRuns(r.runs);
     if(r.runs>0){
       // ホームイン（得点）したらキャラが下から飛び出す＋大きく振動
