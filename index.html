@@ -376,9 +376,9 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   border:2px solid var(--c-border);background:rgba(255,255,255,.92);
   box-shadow:var(--shadow-s)}
 .diamond-hud-out{left:8px;color:var(--c-coral);letter-spacing:2px}
-.diamond-hud-run{right:8px;color:var(--c-primary)}
-.diamond-hud-run #quiz-runs{display:inline-block;color:var(--c-coral);
-  font-size:16px;min-width:1.1em;text-align:center}
+.diamond-hud-run{right:8px;color:var(--c-primary);font-size:12px}
+.diamond-hud-run #quiz-runs,.diamond-hud-run #quiz-runs-today{display:inline-block;color:var(--c-coral);
+  font-size:15px;min-width:1.0em;text-align:center}
 @keyframes run-bump{0%{transform:scale(1)}40%{transform:scale(1.5)}100%{transform:scale(1)}}
 .run-bump{animation:run-bump .45s cubic-bezier(.34,1.56,.64,1)}
 /* 難易度バッジ */
@@ -407,6 +407,25 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   animation:three-out-img-pop .5s cubic-bezier(.34,1.56,.64,1)}
 @keyframes three-out-pop{0%{transform:rotate(-6deg) scale(.3)}70%{transform:rotate(-6deg) scale(1.12)}100%{transform:rotate(-6deg) scale(1)}}
 @keyframes three-out-img-pop{0%{transform:scale(.3)}70%{transform:scale(1.1)}100%{transform:scale(1)}}
+/* ── 広告オーバーレイ（プレースホルダ） ── */
+#ad-overlay{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;
+  background:rgba(20,26,46,.75);padding:24px}
+#ad-overlay.show{display:flex}
+.ad-box{width:100%;max-width:340px;background:var(--c-card);border:3px solid var(--c-border);
+  border-radius:var(--r-lg);box-shadow:var(--shadow-l);padding:14px;text-align:center}
+.ad-tag{display:inline-block;font-family:var(--ff-t);font-size:11px;font-weight:800;color:#fff;
+  background:var(--c-muted2);border-radius:var(--r-pill);padding:2px 12px;margin-bottom:10px}
+.ad-body{background:var(--c-score-bg);border:2px dashed var(--c-border);border-radius:var(--r-md);
+  padding:26px 12px;margin-bottom:12px}
+.ad-body img{width:84px;height:auto;margin-bottom:8px}
+.ad-msg{font-family:var(--ff-d);font-weight:900;font-size:18px;color:var(--c-ink)}
+.ad-note{font-size:11.5px;color:var(--c-muted2);margin-top:4px}
+.ad-close{display:block;width:100%;padding:11px 0;border:2px solid var(--c-border);border-radius:var(--r-pill);
+  background:var(--c-accent);font-family:var(--ff-d);font-weight:900;font-size:15px;color:var(--c-ink);
+  cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ad-close:disabled{opacity:.5}
+.ad-premium{display:block;width:100%;margin-top:8px;padding:8px 0;border:none;background:none;
+  font-family:var(--ff-t);font-size:12.5px;font-weight:700;color:var(--c-primary);cursor:pointer;text-decoration:underline}
 /* ── 辞書検索バー横の略語ボタン ── */
 .search-row{display:flex;align-items:center;gap:8px}
 .search-row .search-wrap{flex:1;min-width:0}
@@ -922,7 +941,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
           <img class="dchar dchar-runner" id="dchar-2" src="images/盗塁待ち.png" alt="" style="display:none">
           <img class="dchar dchar-runner" id="dchar-3" src="images/盗塁待ち.png" alt="" style="display:none">
           <div class="diamond-hud diamond-hud-out"><span class="quiz-outs" id="quiz-outs">OUT ○○○</span></div>
-          <div class="diamond-hud diamond-hud-run">得点 <span id="quiz-runs">0</span></div>
+          <div class="diamond-hud diamond-hud-run">本日 <span id="quiz-runs-today">0</span>／通算 <span id="quiz-runs">0</span></div>
           <div class="swing-ui" id="swing-ui" style="display:none">
             <div class="swing-pitch" id="swing-pitch">Lv1 直球</div>
             <div class="swing-track">
@@ -952,6 +971,20 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 
     <!-- スリーアウト演出 -->
     <div id="three-out"><div class="three-out-inner"><span class="three-out-txt">THREE OUT!</span><img class="three-out-img" src="images/うなだれ.png" alt=""></div></div>
+  </div>
+
+  <!-- ── 広告（プレースホルダ／ネイティブで実広告に差し替え） ── -->
+  <div id="ad-overlay">
+    <div class="ad-box">
+      <div class="ad-tag">広告</div>
+      <div class="ad-body" id="ad-body">
+        <img src="images/デフォ.png" alt="">
+        <div class="ad-msg">広告スペース</div>
+        <div class="ad-note">実際の広告はアプリ版で表示されます</div>
+      </div>
+      <button class="ad-close" id="ad-close" onclick="closeAd()" disabled>とじる（<span id="ad-count">5</span>）</button>
+      <button class="ad-premium" onclick="goTab('settings');closeAd()">広告を消す（プレミアム）</button>
+    </div>
   </div>
 
   <!-- ── 今日の10問 ── -->
@@ -1066,6 +1099,21 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
           </div>
           <button class="swing-toggle" id="swing-toggle" onclick="toggleSwingAuto()">手動</button>
         </div>
+      </div>
+
+      <div class="settings-group-label">プレミアム</div>
+      <div class="settings-section">
+        <div class="settings-row">
+          <div class="entry-text">
+            <div class="settings-row-label">プレミアム（月額200円）</div>
+            <div class="settings-row-sub">広告なし・回数無制限。<span id="premium-status">未登録（無料）</span></div>
+          </div>
+          <span id="premium-actions"></span>
+        </div>
+        <button class="settings-link" onclick="restorePremium()">
+          <svg class="sl-ic" viewBox="0 0 24 24" style="color:var(--c-primary)"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+          <span class="sl-txt">購入を復元</span><span class="sl-chev">›</span>
+        </button>
       </div>
 
       <div class="settings-group-label">通知</div>
@@ -2019,6 +2067,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   if(typeof syncSwingToggle==='function') syncSwingToggle();
   if(typeof syncNotifToggle==='function') syncNotifToggle();
+  if(typeof syncPremium==='function') syncPremium();
 });
 
 // ── Modal (bottom sheet) ──────────────────────────────────────────────────────
@@ -2415,19 +2464,30 @@ function resetSwing(){
   const ui=$('swing-ui'); if(ui) ui.style.display='none';
 }
 // 累計得点の表示更新
+// 本日の得点（日付が変わると自動リセット）
+function _todayRuns(){
+  try{ return JSON.parse(localStorage.getItem('mlb_runs_today'))||{}; }catch(e){ return {}; }
+}
+let runsToday=(function(){ const c=_todayRuns(); return (c.date===todayStr())?(c.n||0):0; })();
 function updateRuns(){
-  const a=$('quiz-runs'),b=$('menu-runs'),c=$('daily-runs');
+  const c=_todayRuns();
+  runsToday=(c.date===todayStr())?(c.n||0):0;
+  const a=$('quiz-runs'),b=$('menu-runs'),cc=$('daily-runs'),d=$('quiz-runs-today');
   if(a) a.textContent=runsTotal;
   if(b) b.textContent=runsTotal;
-  if(c) c.textContent=runsTotal;
+  if(cc) cc.textContent=runsTotal;
+  if(d) d.textContent=runsToday;
 }
 function addRuns(n){
   if(n<=0) return;
   runsTotal+=n;
   localStorage.setItem('mlb_runs',String(runsTotal));
+  // 本日分
+  const t=todayStr(), c=_todayRuns();
+  runsToday=((c.date===t)?(c.n||0):0)+n;
+  localStorage.setItem('mlb_runs_today',JSON.stringify({date:t,n:runsToday}));
   updateRuns();
-  const el=$('quiz-runs');
-  if(el){el.classList.remove('run-bump');void el.offsetWidth;el.classList.add('run-bump');}
+  ['quiz-runs','quiz-runs-today'].forEach(id=>{const el=$(id);if(el){el.classList.remove('run-bump');void el.offsetWidth;el.classList.add('run-bump');}});
 }
 function quizToMenu(){
   lastQuizSection='menu';
@@ -2511,13 +2571,78 @@ function threeOut(){
   const el=$('three-out');
   vibrate(250);
   if(el){el.classList.remove('fade');el.classList.add('show');}
-  // しばらく表示 → フェードアウトと同時に目次へ戻す
+  // しばらく表示 → フェードアウト → 広告（非プレミアム）→ 目次
   setTimeout(()=>{
     if(el) el.classList.add('fade');
     quizStreak=0;quizOuts=0;updateOuts();clearBases();
     quizToMenu();
+    // 3アウト終了後は広告を挟む（プレミアムはスキップ）
+    showAd();
   },1600);
   setTimeout(()=>{if(el) el.classList.remove('show','fade');},2350);
+}
+// ── プレミアム＆広告 ─────────────────────────────────────────────────────────
+// プレミアム（月額200円）: 広告非表示＆制限なし。実際の課金はApp Store連携で設定する。
+function isPremium(){ return localStorage.getItem('mlb_premium')==='1'; }
+// AdMob等のネイティブ広告プラグイン（あれば使用）
+function capAdMob(){
+  try{ return window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob; }
+  catch(e){ return null; }
+}
+let _adCb=null,_adTimer=null;
+// 広告を表示し、閉じたら cb を呼ぶ。プレミアムは即 cb。
+function showAd(cb){
+  if(isPremium()){ if(cb) cb(); return; }
+  const admob=capAdMob();
+  if(admob && admob.prepareInterstitial && admob.showInterstitial){
+    // 実広告（ネイティブ）: 表示→完了で cb
+    Promise.resolve()
+      .then(()=>admob.prepareInterstitial({adId: (window.MLB_AD_INTERSTITIAL||'')}))
+      .then(()=>admob.showInterstitial())
+      .then(()=>{ if(cb) cb(); })
+      .catch(()=>{ showAdPlaceholder(cb); });
+    return;
+  }
+  showAdPlaceholder(cb);
+}
+// Web／プラグイン未導入時のプレースホルダ広告（5秒後に閉じられる）
+function showAdPlaceholder(cb){
+  _adCb=cb||null;
+  const ov=$('ad-overlay'); if(!ov){ if(cb)cb(); return; }
+  ov.classList.add('show');
+  const btn=$('ad-close'), cnt=$('ad-count');
+  let n=5; if(cnt) cnt.textContent=n; if(btn) btn.disabled=true;
+  clearInterval(_adTimer);
+  _adTimer=setInterval(()=>{
+    n--; if(cnt) cnt.textContent=n;
+    if(n<=0){ clearInterval(_adTimer); if(btn){btn.disabled=false; btn.innerHTML='とじる';} }
+  },1000);
+}
+function closeAd(){
+  clearInterval(_adTimer);
+  const ov=$('ad-overlay'); if(ov) ov.classList.remove('show');
+  const cb=_adCb; _adCb=null; if(cb) cb();
+}
+// プレミアム購入（プレースホルダ）。ネイティブではStoreKit/課金プラグインに差し替える。
+function buyPremium(){
+  const iap=(window.Capacitor&&window.Capacitor.Plugins&&(window.Capacitor.Plugins.Purchases||window.Capacitor.Plugins.InAppPurchase));
+  if(iap){ alert('課金処理を開始します（ストア連携）'); return; } // ネイティブで実装
+  // 開発／テスト用: 実課金が未連携のため、確認のうえ有効化（リリース時はStoreKitに置換）
+  if(confirm('【テスト】プレミアムを有効にしますか？\n※実際の課金はApp Store連携後に有効になります')){
+    localStorage.setItem('mlb_premium','1'); syncPremium();
+  }
+}
+function cancelPremium(){
+  if(confirm('プレミアムを解除しますか？（テスト用）')){ localStorage.removeItem('mlb_premium'); syncPremium(); }
+}
+function restorePremium(){ alert('購入の復元はアプリ版（ストア連携後）でご利用いただけます。'); }
+function syncPremium(){
+  const st=$('premium-status'), row=$('premium-actions');
+  const on=isPremium();
+  if(st) st.textContent=on?'プレミアム会員（広告なし・制限なし）':'未登録（無料）';
+  if(row) row.innerHTML=on
+    ? '<button class="swing-toggle auto" onclick="cancelPremium()">解除（テスト）</button>'
+    : '<button class="swing-toggle" onclick="buyPremium()">登録する（月額200円）</button>';
 }
 function isPersonName(e){
   if(e.cat==='abbr') return false; // 略語エントリは除外しない
@@ -3212,6 +3337,8 @@ function showDailyResult(){
   $('daily-prog-fill').style.width='100%';
   $('daily-prog-lbl').textContent='10 / 10';
   renderCalendar();
+  // 今日の10問が終わったら広告（プレミアムはスキップ）
+  setTimeout(()=>showAd(), 1200);
 }
 function renderCalendar(){
   const done=new Set(JSON.parse(localStorage.getItem('mlb_daily_done')||'[]'));
