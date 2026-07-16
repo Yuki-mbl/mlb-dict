@@ -1763,6 +1763,8 @@ async function renderStandings(){
 let lastQuizSection='menu';
 // 下部ナビ「クイズ」: 直前のクイズ系サブ画面へ戻る
 function goQuizNav(){
+  // すでに復習／今日の10問を開いている時に「クイズ」を押したら、クイズ本体（目次）へ移動
+  if(tab==='review'||tab==='daily'){ lastQuizSection='menu'; goTab('quiz'); return; }
   if(lastQuizSection==='daily') goTab('daily');
   else if(lastQuizSection==='review') goTab('review');
   else goTab('quiz');
