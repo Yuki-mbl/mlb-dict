@@ -1334,7 +1334,14 @@ function renderHome(){
   _wordOfDay=pickWordOfDay();
   if(_wordOfDay){
     if($('home-word-term')) $('home-word-term').textContent=_wordOfDay.en;
-    if($('home-word-sub')) $('home-word-sub').textContent=(_wordOfDay.ja||'').replace(/\s*cf\..*$/i,'').replace(/\n/g,' ').substring(0,60);
+    if($('home-word-sub')){
+      // 拡充済みは short（簡潔な訳）を表示。無ければ生データを整形
+      let sub=(_wordOfDay.short||'').trim();
+      if(!sub) sub=(_wordOfDay.ja||'').replace(/\s*cf\..*$/i,'').replace(/\s*e\.g\..*$/i,'').replace(/\n/g,' ');
+      sub=sub.replace(/[。、\s]+$/,'').trim();
+      if(sub.length>60) sub=sub.substring(0,60)+'…';
+      $('home-word-sub').textContent=sub;
+    }
   }
   // 今日の豆知識
   if($('home-trivia')&&TRIVIA.length) $('home-trivia').textContent=TRIVIA[daySeed()%TRIVIA.length];
