@@ -49,6 +49,13 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .tab-panel{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0}
 .tab-panel.active{display:flex}
 
+/* ── バナー広告 ── */
+#ad-banner{display:none;flex-shrink:0;align-items:center;justify-content:center;gap:8px;
+  height:52px;background:var(--c-score-bg);border-top:1px dashed var(--c-border);z-index:99}
+#ad-banner.show{display:flex}
+.ad-banner-tag{font-family:var(--ff-t);font-size:10px;font-weight:800;color:#fff;
+  background:var(--c-muted2);border-radius:var(--r-pill);padding:1px 8px}
+.ad-banner-txt{font-family:var(--ff-t);font-size:12px;color:var(--c-muted2)}
 /* ── Bottom nav ── */
 #bnav{display:flex;background:var(--c-nav-bg);border-top:1px solid var(--c-hairline);
   flex-shrink:0;z-index:100;padding-bottom:var(--safe-b);
@@ -1163,6 +1170,9 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
     </div>
   </div>
 
+  <!-- ── バナー広告（辞書・略語・お気に入り・今日の10問・復習に表示。プレミアムは非表示） ── -->
+  <div id="ad-banner"><span class="ad-banner-tag">広告</span><span class="ad-banner-txt">バナー広告スペース（アプリ版で表示）</span></div>
+
   <!-- ── ボトムナビ ── -->
   <nav id="bnav">
     <button class="bnav-btn active" id="bnav-home" onclick="goTab('home')" style="--ic:#ff5a4e">
@@ -1378,6 +1388,13 @@ function goTab(t){
   if(t==='daily'){ lastQuizSection='daily'; initDaily(); }
   if(t==='review'){ lastQuizSection='review'; renderReviewList(); }
   if(t==='settings') updateScores();
+  updateBanner();
+}
+// バナー広告の表示制御（辞書・略語・お気に入り・今日の10問・復習のみ／プレミアムは非表示）
+function updateBanner(){
+  const b=$('ad-banner'); if(!b) return;
+  const show=(typeof isPremium==='function'&&!isPremium())&&['dict','abbr','daily','review'].indexOf(tab)>=0;
+  b.classList.toggle('show',show);
 }
 // ── ホーム ──────────────────────────────────────────────────────────────────
 const RANKS=[
@@ -2450,7 +2467,29 @@ function difficultyOf(e){
   if(key.length>=14) return 2; // 非常に長い1語のみ二塁打
   return 1;
 }
+// 無料ユーザーの1日のプレイ回数制限
+const FREE_DAILY_PLAYS=2;
+function _playsToday(){ try{ return JSON.parse(localStorage.getItem('mlb_plays_today'))||{}; }catch(e){ return {}; } }
+function playsLeft(){
+  if(isPremium()) return Infinity;
+  const c=_playsToday(); const n=(c.date===todayStr())?(c.n||0):0;
+  return Math.max(0,FREE_DAILY_PLAYS-n);
+}
+function recordPlay(){
+  if(isPremium()) return;
+  const t=todayStr(), c=_playsToday();
+  const n=((c.date===t)?(c.n||0):0)+1;
+  localStorage.setItem('mlb_plays_today',JSON.stringify({date:t,n}));
+}
 function startQuizPlay(){
+  // 無料は1日2回まで。超えたらプレミアム案内
+  if(playsLeft()<=0){
+    if(confirm('本日の無料プレイ（'+FREE_DAILY_PLAYS+'回）を使い切りました。\nプレミアム（月額200円）なら回数無制限・広告なしで遊べます。\n設定を開きますか？')){
+      goTab('settings');
+    }
+    return;
+  }
+  recordPlay();
   lastQuizSection='play';
   $('quiz-menu').style.display='none';
   $('quiz-play').style.display='';
@@ -2644,6 +2683,7 @@ function syncPremium(){
   if(row) row.innerHTML=on
     ? '<button class="swing-toggle auto" onclick="cancelPremium()">解除（テスト）</button>'
     : '<button class="swing-toggle" onclick="buyPremium()">登録する（月額200円）</button>';
+  if(typeof updateBanner==='function') updateBanner();
 }
 function isPersonName(e){
   if(e.cat==='abbr') return false; // 略語エントリは除外しない
