@@ -812,7 +812,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       </div>
 
       <div class="home-actions">
-        <button class="home-act home-act-quiz" onclick="goTab('quiz')"><img src="images/バッター.png" alt="">クイズ</button>
+        <button class="home-act home-act-quiz" onclick="homeStartQuiz()"><img src="images/バッター.png" alt="">クイズ</button>
         <button class="home-act home-act-daily" onclick="goTab('daily')"><img src="images/ピッチャー.png" alt="">今日の10問</button>
       </div>
     </div>
@@ -1689,6 +1689,8 @@ function goQuizNav(){
 }
 // 目次へ戻る（今日の10問・復習の「← 目次」用）
 function quizMenu(){ lastQuizSection='menu'; goTab('quiz'); }
+// ホームの「クイズ」から目次を飛ばして直接プレイ開始
+function homeStartQuiz(){ goTab('quiz'); startQuizPlay(); }
 // 進行中のクイズ画面を再表示（状態はリセットしない）
 function quizShowPlay(){
   const play=$('quiz-play'),menu=$('quiz-menu');
