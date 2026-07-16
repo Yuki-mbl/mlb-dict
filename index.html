@@ -680,6 +680,17 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .home-act img{height:56px;width:auto}
 .home-act-quiz{background:var(--c-accent)}
 .home-act-daily{background:var(--c-orange)}
+/* ── 日本人選手・この日のMLB史 ── */
+.home-jp-body{font-size:14px;color:var(--c-muted)}
+.jp-row{display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px dashed var(--c-hairline)}
+.jp-row:last-child{border-bottom:none}
+.jp-name{flex-shrink:0;font-family:var(--ff-t);font-weight:800;color:var(--c-ink);font-size:14px;min-width:5.2em}
+.jp-line{flex:1;color:var(--c-ink);opacity:.9;font-size:13.5px;line-height:1.45;overflow-wrap:anywhere}
+.jp-line .jp-date{color:var(--c-muted2);font-size:12px;margin-right:5px}
+.jp-line .jp-good{color:var(--c-coral);font-weight:800}
+.jp-note{font-size:12px;color:var(--c-muted2);padding:2px 0}
+.home-otd-body{font-size:14px;color:var(--c-ink);line-height:1.55;opacity:.92}
+.home-otd-body .otd-year{font-family:var(--ff-d);font-weight:900;color:var(--c-primary);margin-right:6px}
 /* ── 今日の試合・順位表 ── */
 .home-games-hd{display:flex;align-items:center;justify-content:space-between}
 .standings-btn{padding:4px 12px;border:2px solid var(--c-border);border-radius:var(--r-pill);
@@ -749,6 +760,11 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
         </div>
       </div>
 
+      <div class="home-card home-jp-card">
+        <div class="home-card-hd">🇯🇵 今日の日本人選手</div>
+        <div id="home-jp" class="home-jp-body">読み込み中…</div>
+      </div>
+
       <button class="home-card home-word" id="home-word" onclick="openWordOfDay()">
         <div class="home-card-hd">📖 今日の一語</div>
         <div class="home-word-term" id="home-word-term">—</div>
@@ -758,6 +774,11 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       <div class="home-card home-trivia">
         <div class="home-card-hd">💡 今日の豆知識</div>
         <div class="home-trivia-body" id="home-trivia">—</div>
+      </div>
+
+      <div class="home-card home-otd-card">
+        <div class="home-card-hd">📅 この日のMLB史</div>
+        <div id="home-otd" class="home-otd-body">—</div>
       </div>
 
       <div class="home-card home-games-card">
@@ -1021,6 +1042,17 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
             <div class="settings-row-sub">手動＝正解後にタイミングよく打つ挑戦モード／オート＝自動でヒット</div>
           </div>
           <button class="swing-toggle" id="swing-toggle" onclick="toggleSwingAuto()">手動</button>
+        </div>
+      </div>
+
+      <div class="settings-group-label">通知</div>
+      <div class="settings-section">
+        <div class="settings-row">
+          <div class="entry-text">
+            <div class="settings-row-label">デイリー通知</div>
+            <div class="settings-row-sub">毎朝8時ごろ「今日の10問」をお知らせ（アプリ版のみ）</div>
+          </div>
+          <button class="swing-toggle" id="notif-toggle" onclick="toggleDailyNotif()">オフ</button>
         </div>
       </div>
 
@@ -1345,6 +1377,10 @@ function renderHome(){
   }
   // 今日の豆知識
   if($('home-trivia')&&TRIVIA.length) $('home-trivia').textContent=TRIVIA[daySeed()%TRIVIA.length];
+  // この日のMLB史
+  renderOnThisDay();
+  // 今日の日本人選手（ネット必要）
+  loadJpPlayers();
   // 今日の試合（ネット必要）
   loadGames();
 }
@@ -1412,6 +1448,158 @@ async function loadGames(){
     }).join('');
   }catch(e){
     el.innerHTML='<div style="padding:6px 0">オフラインのため表示できません</div>';
+  }
+}
+// ── 今日の日本人選手 ─────────────────────────────────────────────────────────
+const JP_PLAYERS=[
+  {id:660271,ja:'大谷翔平'},{id:808967,ja:'山本由伸'},{id:808963,ja:'佐々木朗希'},
+  {id:673548,ja:'鈴木誠也'},{id:684007,ja:'今永昇太'},{id:807799,ja:'吉田正尚'},
+  {id:673540,ja:'千賀滉大'},{id:579328,ja:'菊池雄星'},{id:673513,ja:'松井裕樹'},
+];
+function fmtHitLine(st){
+  const ab=st.atBats||0,h=st.hits||0,hr=st.homeRuns||0,rbi=st.rbi||0,sb=st.stolenBases||0,bb=st.baseOnBalls||0;
+  let s=ab+'打数'+h+'安打';
+  const ex=[];
+  if(hr) ex.push('<span class="jp-good">'+hr+'本塁打</span>');
+  if(rbi) ex.push(rbi+'打点');
+  if(sb) ex.push('<span class="jp-good">'+sb+'盗塁</span>');
+  if(!hr&&!rbi&&bb) ex.push(bb+'四球');
+  return s+(ex.length?' '+ex.join(' '):'');
+}
+function fmtPitchLine(st){
+  const ip=st.inningsPitched||'0',er=(st.earnedRuns!=null?st.earnedRuns:'-'),so=st.strikeOuts||0;
+  let s=ip+'回 '+er+'自責 '+so+'奪三振';
+  if(st.wins) s+=' <span class="jp-good">勝利</span>';
+  else if(st.saves) s+=' <span class="jp-good">セーブ</span>';
+  else if(st.losses) s+=' 敗戦';
+  return s;
+}
+function mdOf(dstr){ const m=/^\d+-(\d+)-(\d+)$/.exec(dstr||''); return m?(parseInt(m[1],10)+'/'+parseInt(m[2],10)):''; }
+async function loadJpPlayers(){
+  const el=$('home-jp'); if(!el) return;
+  try{
+    const ids=JP_PLAYERS.map(p=>p.id).join(',');
+    const yr=etDateStr().slice(0,4);
+    const url='https://statsapi.mlb.com/api/v1/people?personIds='+ids+
+      '&hydrate=stats(group=%5Bhitting,pitching%5D,type=%5BgameLog%5D,season='+yr+')';
+    const d=await cachedJson(url,'mlb_jp_'+yr,20);
+    const today=etDateStr();
+    const byId={}; (d.people||[]).forEach(p=>byId[p.id]=p);
+    const rows=[];
+    JP_PLAYERS.forEach(pl=>{
+      const p=byId[pl.id]; if(!p) return;
+      // 打撃・投球それぞれの最新スプリットを集め、最も新しい試合を選ぶ
+      let best=null;
+      (p.stats||[]).forEach(s=>{
+        const grp=(s.group||{}).displayName;
+        const sp=(s.splits||[]);
+        if(!sp.length) return;
+        const last=sp[sp.length-1];
+        if(!best || (last.date||'')>(best.date||'')) best={grp,date:last.date,stat:last.stat||{}};
+      });
+      if(!best) return;
+      const line=(best.grp==='pitching')?fmtPitchLine(best.stat):fmtHitLine(best.stat);
+      rows.push({ja:pl.ja,date:best.date,line,today:best.date===today});
+    });
+    if(!rows.length){ el.innerHTML='<div class="jp-note">データを取得できませんでした</div>'; return; }
+    const played=rows.filter(r=>r.today);
+    let show, note='';
+    if(played.length){ show=played; }
+    else{
+      // 本日出場なし → 直近の試合を新しい順に最大3人
+      show=rows.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,3);
+      note='<div class="jp-note">本日は試合がありません（直近の成績）</div>';
+    }
+    el.innerHTML=note+show.map(r=>
+      '<div class="jp-row"><span class="jp-name">'+esc(r.ja)+'</span>'+
+      '<span class="jp-line"><span class="jp-date">'+esc(mdOf(r.date))+'</span>'+r.line+'</span></div>'
+    ).join('');
+  }catch(e){
+    el.innerHTML='<div class="jp-note">オフラインのため表示できません</div>';
+  }
+}
+// ── この日のMLB史（On This Day） ─────────────────────────────────────────────
+const ON_THIS_DAY={
+  '04-08':[[1974,'ハンク・アーロンが通算715号本塁打を放ち、ベーブ・ルースの記録を抜いた。']],
+  '04-15':[[1947,'ジャッキー・ロビンソンがMLBデビュー。人種の壁を破り、背番号42は全球団の永久欠番となっている。']],
+  '05-01':[[1991,'ノーラン・ライアンが史上初の7度目のノーヒットノーランを達成。同じ日にリッキー・ヘンダーソンが通算盗塁の歴代最多記録を更新した。']],
+  '05-02':[[1995,'野茂英雄がドジャースでMLBデビュー。「トルネード投法」で大旋風を巻き起こした。']],
+  '05-06':[[1998,'カブスの新人カーリー・ウッドが1試合20奪三振の大記録を達成した。']],
+  '08-07':[[2007,'バリー・ボンズが通算756号本塁打を放ち、ハンク・アーロンを抜いて歴代最多となった。']],
+  '09-06':[[1995,'カル・リプケンJr.が2131試合連続出場を達成し、ルー・ゲーリッグの記録を更新した。']],
+  '09-08':[[1998,'マーク・マグワイアがシーズン62号本塁打を放ち、ロジャー・マリスの61本を抜いた。']],
+  '09-19':[[2024,'大谷翔平が史上初の「1シーズン50本塁打・50盗塁」を達成した。']],
+  '09-28':[[1941,'テッド・ウィリアムズがシーズン打率.406を記録。以来80年以上、4割打者は現れていない。']],
+  '10-01':[[1961,'ロジャー・マリスがシーズン61号本塁打でベーブ・ルースの60本を抜いた。'],[2004,'イチローがシーズン262安打の新記録を樹立し、ジョージ・シスラーの257本を84年ぶりに更新した。']],
+};
+const OTD_FALLBACK=[
+  'サイ・ヤングの通算511勝は、今後破られないとされる不滅の記録。',
+  'ベーブ・ルースは投手として通算94勝を挙げた、元祖二刀流だった。',
+  'カル・リプケンJr.の連続試合出場2632は世界記録。',
+  'ジャッキー・ロビンソンの背番号42は全30球団で永久欠番。',
+  'ボストンのフェンウェイ・パークは1912年開場、現存最古のMLB球場。',
+  'シカゴのリグレー・フィールドは1914年開場、ツタのフェンスで有名。',
+  'リッキー・ヘンダーソンの通算1406盗塁は歴代最多の大記録。',
+  'ピート・ローズの通算4256安打はMLB歴代最多。',
+  'ノーラン・ライアンは通算7回のノーヒットノーランと5714奪三振の記録を持つ。',
+  'サッチェル・ペイジはニグロリーグの伝説で、42歳でMLBデビューした。',
+];
+function renderOnThisDay(){
+  const el=$('home-otd'); if(!el) return;
+  const d=new Date();
+  const key=String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  const ev=ON_THIS_DAY[key];
+  if(ev&&ev.length){
+    el.innerHTML=ev.map(e=>'<div><span class="otd-year">'+e[0]+'年</span>'+esc(e[1])+'</div>').join('');
+  }else{
+    el.innerHTML=esc(OTD_FALLBACK[daySeed()%OTD_FALLBACK.length]);
+  }
+}
+// ── デイリー通知（Capacitor Local Notifications） ────────────────────────────
+let dailyNotif=localStorage.getItem('mlb_daily_notif')==='1';
+function capLN(){
+  try{ return window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications; }
+  catch(e){ return null; }
+}
+const NOTIF_ID=4210;
+async function scheduleDailyNotif(){
+  const ln=capLN(); if(!ln) return false;
+  try{
+    const perm=await ln.requestPermissions();
+    if(perm && perm.display && perm.display!=='granted') return false;
+    await ln.cancel({notifications:[{id:NOTIF_ID}]});
+    await ln.schedule({notifications:[{
+      id:NOTIF_ID,
+      title:'⚾ 今日の10問',
+      body:'今日のMLB用語クイズにチャレンジしよう！',
+      schedule:{ on:{ hour:8, minute:0 }, repeats:true, allowWhileIdle:true }
+    }]});
+    return true;
+  }catch(e){ return false; }
+}
+async function cancelDailyNotif(){
+  const ln=capLN(); if(!ln) return;
+  try{ await ln.cancel({notifications:[{id:NOTIF_ID}]}); }catch(e){}
+}
+function syncNotifToggle(){
+  const b=$('notif-toggle'); if(!b) return;
+  b.textContent=dailyNotif?'オン':'オフ';
+  b.classList.toggle('auto',!dailyNotif); // オフ時にグレー表示
+}
+async function toggleDailyNotif(){
+  dailyNotif=!dailyNotif;
+  localStorage.setItem('mlb_daily_notif',dailyNotif?'1':'0');
+  syncNotifToggle();
+  if(dailyNotif){
+    const ok=await scheduleDailyNotif();
+    if(!ok && !capLN()){
+      alert('デイリー通知はアプリ版でご利用いただけます。（Web版では通知を予約できません）');
+    }else if(!ok){
+      alert('通知の許可が必要です。端末の設定から通知を許可してください。');
+      dailyNotif=false; localStorage.setItem('mlb_daily_notif','0'); syncNotifToggle();
+    }
+  }else{
+    cancelDailyNotif();
   }
 }
 async function renderStandings(){
@@ -1774,6 +1962,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   if(typeof syncSwingToggle==='function') syncSwingToggle();
+  if(typeof syncNotifToggle==='function') syncNotifToggle();
 });
 
 // ── Modal (bottom sheet) ──────────────────────────────────────────────────────
