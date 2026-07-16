@@ -3445,6 +3445,8 @@ function dailyPick(btn,ok,q,correct,chosenIdx){
   if(!ok){
     addToReview(q.type,q.idx);
   }
+  // 効果音（正解／不正解）
+  if(ok) sfxSelectOK(); else sfxWrong();
   // 10問目の正解はクイズのホームインと同じ飛び出す演出
   const isLast=dailyCurIdx===9;
   if(ok&&isLast){ showFlash(true,true); vibrate([120,60,220]); }
