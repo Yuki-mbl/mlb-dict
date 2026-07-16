@@ -2610,12 +2610,13 @@ function showAdPlaceholder(cb){
   _adCb=cb||null;
   const ov=$('ad-overlay'); if(!ov){ if(cb)cb(); return; }
   ov.classList.add('show');
-  const btn=$('ad-close'), cnt=$('ad-count');
-  let n=5; if(cnt) cnt.textContent=n; if(btn) btn.disabled=true;
+  const btn=$('ad-close');
+  let n=5;
+  if(btn){ btn.disabled=true; btn.innerHTML='とじる（<span id="ad-count">'+n+'</span>）'; }
   clearInterval(_adTimer);
   _adTimer=setInterval(()=>{
-    n--; if(cnt) cnt.textContent=n;
-    if(n<=0){ clearInterval(_adTimer); if(btn){btn.disabled=false; btn.innerHTML='とじる';} }
+    n--; const cnt=$('ad-count'); if(cnt) cnt.textContent=n;
+    if(n<=0){ clearInterval(_adTimer); if(btn){btn.disabled=false; btn.textContent='とじる';} }
   },1000);
 }
 function closeAd(){
