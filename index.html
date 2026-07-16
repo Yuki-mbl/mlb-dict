@@ -2104,6 +2104,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if(typeof syncNotifToggle==='function') syncNotifToggle();
   if(typeof syncPremium==='function') syncPremium();
   if(typeof syncSfxToggle==='function') syncSfxToggle();
+  if(typeof loadSample==='function'){ loadSample('bat','sounds/bat.mp3'); loadSample('cheer','sounds/cheer.mp3'); }
 });
 
 // ── Modal (bottom sheet) ──────────────────────────────────────────────────────
@@ -2465,6 +2466,14 @@ function actx(){
   }catch(e){ _actx=null; }
   return _actx;
 }
+// 実音源（mp3）: あれば優先再生、無ければ合成音にフォールバック
+const _samp={};
+function loadSample(key,src){ try{ const a=new Audio(src); a.preload='auto'; _samp[key]=a; }catch(e){} }
+function playSample(key,vol){
+  const a=_samp[key]; if(!a) return false;
+  try{ const n=a.cloneNode(true); n.volume=(vol==null?1:vol); const p=n.play(); if(p&&p.catch)p.catch(()=>{}); return true; }
+  catch(e){ return false; }
+}
 function _tone(freq,t0,dur,type,gain,glideTo){
   const c=actx(); if(!c) return;
   const o=c.createOscillator(), g=c.createGain();
@@ -2489,8 +2498,14 @@ function _noise(t0,dur,gain,freq,type,Q){
   src.connect(f).connect(g).connect(c.destination);
   src.start(t0); src.stop(t0+dur+0.02);
 }
-// カキーン（金属バットの快音）: 鋭い衝撃＋非整数倍音の金属リング
+// カキーン: 実音源(bat.mp3)を優先、無ければ合成音
 function sfxCrack(big){
+  if(!_sfxOn) return;
+  if(playSample('bat', big?1:0.85)) return;
+  _synthCrack(big);
+}
+// 合成版カキーン（フォールバック）: 鋭い衝撃＋非整数倍音の金属リング
+function _synthCrack(big){
   const c=actx(); if(!c||!_sfxOn) return; const t=c.currentTime;
   // 1) 「カッ」＝高域ノイズの極短バースト（打撃の立ち上がり）
   _noise(t,0.012,big?0.6:0.45,5200,'highpass',0.7);
@@ -2524,10 +2539,17 @@ function sfxOut(){
   const c=actx(); if(!c||!_sfxOn) return; const t=c.currentTime;
   _tone(320,t,0.4,'sawtooth',0.18,120);
 }
-// 得点（低め・やわらかい上昇音。高音を避ける）
+// 歓声: 実音源(cheer.mp3)を優先、無ければ合成音
 function sfxCheer(){
-  const c=actx(); if(!c||!_sfxOn) return; const t=c.currentTime;
+  if(!_sfxOn) return;
+  if(playSample('cheer',1)) return;
+  const c=actx(); if(!c) return; const t=c.currentTime;
   [330,392,523].forEach((f,i)=>_tone(f,t+i*0.11,0.24,'sine',0.16)); // E4→G4→C5
+}
+// ホームラン: カキーンのあとに歓声を足す
+function sfxHomerun(){
+  sfxCrack(true);
+  setTimeout(sfxCheer,360); // 少し後に歓声（フル再生で長めに鳴る）
 }
 // 正解の小気味よいピコッ
 function sfxSelectOK(){
@@ -2546,7 +2568,7 @@ function sfxThreeOut(){
 }
 // 打球結果（塁数）に応じた打撃音
 function sfxForVal(v){
-  if(v>=4) sfxCrack(true);
+  if(v>=4) sfxHomerun();          // カキーン＋歓声
   else if(v>=2) sfxCrack(false);
   else if(v>=1) sfxPock();
   else sfxWhiff();
@@ -3129,7 +3151,8 @@ function applyHit(value){
   }
   const r=advanceRunners(value);
   addRuns(r.runs);
-  if(r.runs>0){ showFlash(true,true); vibrate([120,60,220]); setTimeout(sfxCheer,120); }
+  // ホームラン(value>=4)は sfxHomerun 側で歓声を鳴らすので、ここでは非HRの得点時のみ歓声
+  if(r.runs>0){ showFlash(true,true); vibrate([120,60,220]); if(value<4) setTimeout(sfxCheer,120); }
   else vibrate(35);
 }
 // ターン終了処理（次へ有効化・3アウト判定）
