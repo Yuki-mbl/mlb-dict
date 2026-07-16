@@ -117,6 +117,10 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .sub-tab-fav svg{width:23px;height:23px;fill:#ff6f9c;stroke:none;display:block}
 .sub-tab-fav.active{background:#ff9cbb}
 .sub-tab-fav.active svg{fill:#fff}
+/* お気に入り表示中の「辞書に戻る」バー */
+.fav-back-bar{display:flex;align-items:center;gap:10px;padding:8px 14px;
+  background:var(--c-canvas);border-bottom:1px solid var(--c-hairline)}
+.fav-back-title{font-family:var(--ff-d);font-weight:900;font-size:15px;color:var(--c-ink)}
 
 /* ── Dict body ── */
 .dict-body{flex:1;display:flex;overflow:hidden;position:relative;min-height:0}
@@ -869,6 +873,10 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       <button class="sub-tab active" id="dict-tab-ej" onclick="setDictMode('ej')">英和 (EN→JA)</button>
       <button class="sub-tab" id="dict-tab-je" onclick="setDictMode('je')">和英 (JA→EN)</button>
       <button class="sub-tab sub-tab-fav" id="dict-tab-fav" onclick="toggleDictFav()" aria-label="お気に入り"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></button>
+    </div>
+    <div id="fav-back-bar" class="fav-back-bar" style="display:none">
+      <button class="back-btn" onclick="exitDictFav()">← 辞書に戻る</button>
+      <span class="fav-back-title">お気に入り</span>
     </div>
     <div class="dict-body">
       <div class="entry-list" id="dict-list"></div>
@@ -1769,6 +1777,7 @@ function updateDictTabs(){
   $('dict-tab-ej').classList.toggle('active',!dictFav&&dictMode==='ej');
   $('dict-tab-je').classList.toggle('active',!dictFav&&dictMode==='je');
   const f=$('dict-tab-fav'); if(f) f.classList.toggle('active',dictFav);
+  const bb=$('fav-back-bar'); if(bb) bb.style.display=dictFav?'':'none';
 }
 function setDictMode(m){
   dictFav=false;
