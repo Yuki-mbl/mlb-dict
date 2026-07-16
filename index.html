@@ -1114,6 +1114,13 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
           </div>
           <button class="swing-toggle" id="swing-toggle" onclick="toggleSwingAuto()">手動</button>
         </div>
+        <div class="settings-row">
+          <div class="entry-text">
+            <div class="settings-row-label">効果音</div>
+            <div class="settings-row-sub">ヒットの「カキーン」などの野球効果音</div>
+          </div>
+          <button class="swing-toggle" id="sfx-toggle" onclick="toggleSfx()">オン</button>
+        </div>
       </div>
 
       <div class="settings-group-label">プレミアム</div>
@@ -2094,6 +2101,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if(typeof syncSwingToggle==='function') syncSwingToggle();
   if(typeof syncNotifToggle==='function') syncNotifToggle();
   if(typeof syncPremium==='function') syncPremium();
+  if(typeof syncSfxToggle==='function') syncSfxToggle();
 });
 
 // ── Modal (bottom sheet) ──────────────────────────────────────────────────────
@@ -2445,6 +2453,99 @@ let quizStreak=0, quizOuts=0, bases=[false,false,false];
 let runsTotal=parseInt(localStorage.getItem('mlb_runs')||'0',10)||0; // 累計得点
 let swingAuto=localStorage.getItem('mlb_swing_auto')==='1'; // スイング操作: true=オート
 function vibrate(p){try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}}
+// ── 効果音（Web Audioで合成。音声ファイル不要） ──────────────────────────────
+let _sfxOn=localStorage.getItem('mlb_sfx')!=='0'; // 既定ON
+let _actx=null;
+function actx(){
+  try{
+    if(!_actx) _actx=new (window.AudioContext||window.webkitAudioContext)();
+    if(_actx.state==='suspended') _actx.resume();
+  }catch(e){ _actx=null; }
+  return _actx;
+}
+function _tone(freq,t0,dur,type,gain,glideTo){
+  const c=actx(); if(!c) return;
+  const o=c.createOscillator(), g=c.createGain();
+  o.type=type||'sine'; o.frequency.setValueAtTime(freq,t0);
+  if(glideTo) o.frequency.exponentialRampToValueAtTime(Math.max(20,glideTo),t0+dur);
+  g.gain.setValueAtTime(0.0001,t0);
+  g.gain.exponentialRampToValueAtTime(gain||0.2,t0+0.006);
+  g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  o.connect(g).connect(c.destination);
+  o.start(t0); o.stop(t0+dur+0.03);
+}
+function _noise(t0,dur,gain,freq,type,Q){
+  const c=actx(); if(!c) return;
+  const n=Math.max(1,Math.floor(c.sampleRate*dur));
+  const buf=c.createBuffer(1,n,c.sampleRate); const d=buf.getChannelData(0);
+  for(let i=0;i<n;i++) d[i]=Math.random()*2-1;
+  const src=c.createBufferSource(); src.buffer=buf;
+  const f=c.createBiquadFilter(); f.type=type||'bandpass'; f.frequency.value=freq||2000; f.Q.value=Q||1;
+  const g=c.createGain();
+  g.gain.setValueAtTime(gain||0.3,t0);
+  g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  src.connect(f).connect(g).connect(c.destination);
+  src.start(t0); src.stop(t0+dur+0.02);
+}
+// カキーン（金属バットの快音）
+function sfxCrack(big){
+  const c=actx(); if(!c||!_sfxOn) return; const t=c.currentTime;
+  _noise(t,0.05,big?0.5:0.38,3800,'bandpass',1.2);               // 「カッ」
+  _tone(big?2100:1750,t,big?0.55:0.34,'triangle',big?0.3:0.22,big?1150:1050); // 「キーン」
+  _tone(big?3200:2600,t,big?0.45:0.28,'sine',big?0.16:0.11);
+}
+// コツン（単打のミート音）
+function sfxPock(){
+  const c=actx(); if(!c||!_sfxOn) return; const t=c.currentTime;
+  _noise(t,0.03,0.32,1300,'bandpass',1); _tone(420,t,0.09,'sine',0.22,190);
+}
+// 空振り（風切り音）
+function sfxWhiff(){
+  const c=actx(); if(!c||!_sfxOn) return; const t=c.currentTime;
+  _noise(t,0.2,0.26,1600,'lowpass',0.7); _tone(500,t,0.2,'sine',0.06,180);
+}
+// アウト（がっかり下降音）
+function sfxOut(){
+  const c=actx(); if(!c||!_sfxOn) return; const t=c.currentTime;
+  _tone(320,t,0.4,'sawtooth',0.18,120);
+}
+// 得点（歓声風・上昇アルペジオ）
+function sfxCheer(){
+  const c=actx(); if(!c||!_sfxOn) return; const t=c.currentTime;
+  [523,659,784,1047].forEach((f,i)=>_tone(f,t+i*0.09,0.18,'triangle',0.16));
+}
+// 正解の小気味よいピコッ
+function sfxSelectOK(){
+  const c=actx(); if(!c||!_sfxOn) return; const t=c.currentTime;
+  _tone(880,t,0.09,'sine',0.14,1320);
+}
+// 不正解のブブー
+function sfxWrong(){
+  const c=actx(); if(!c||!_sfxOn) return; const t=c.currentTime;
+  _tone(200,t,0.28,'square',0.16,150); _tone(150,t+0.02,0.28,'square',0.12,120);
+}
+// スリーアウト（下降トロンボーン）
+function sfxThreeOut(){
+  const c=actx(); if(!c||!_sfxOn) return; const t=c.currentTime;
+  _tone(392,t,0.5,'sawtooth',0.18,196);
+}
+// 打球結果（塁数）に応じた打撃音
+function sfxForVal(v){
+  if(v>=4) sfxCrack(true);
+  else if(v>=2) sfxCrack(false);
+  else if(v>=1) sfxPock();
+  else sfxWhiff();
+}
+function toggleSfx(){
+  _sfxOn=!_sfxOn; localStorage.setItem('mlb_sfx',_sfxOn?'1':'0');
+  syncSfxToggle();
+  if(_sfxOn) sfxSelectOK(); // 確認音
+}
+function syncSfxToggle(){
+  const b=$('sfx-toggle'); if(!b) return;
+  b.textContent=_sfxOn?'オン':'オフ';
+  b.classList.toggle('auto',!_sfxOn);
+}
 // ── 難易度（進む塁数 1=単打 / 2=二塁打 / 3=三塁打）──
 // 主要語の手調整（自動判定を上書き）。enの小文字・括弧除去で照合
 const DIFF_OVERRIDE={
@@ -2617,7 +2718,7 @@ function stepMover(mv, seg, end){
 }
 function threeOut(){
   const el=$('three-out');
-  vibrate(250);
+  vibrate(250); sfxThreeOut();
   if(el){el.classList.remove('fade');el.classList.add('show');}
   // しばらく表示 → フェードアウト → 広告（非プレミアム）→ 目次
   setTimeout(()=>{
@@ -2942,13 +3043,16 @@ function pick(btn,ok,correct){
     const hit=(cq&&cq.hit)?cq.hit:1;   // 難易度＝甘い球（狙える最大の当たり）
     if(swingAuto){
       // オート: 従来どおり難易度で自動進塁
+      sfxForVal(hit);
       applyHit(hit);
     } else {
       // 手動: タイミングよく打つ挑戦フェーズへ
+      sfxSelectOK();
       doSwingPhase=true;
     }
   } else {
     quizStreak=0;
+    sfxWrong();
     quizOuts++;
     updateOuts();
     showFlash(false);
@@ -3009,7 +3113,7 @@ function applyHit(value){
   }
   const r=advanceRunners(value);
   addRuns(r.runs);
-  if(r.runs>0){ showFlash(true,true); vibrate([120,60,220]); }
+  if(r.runs>0){ showFlash(true,true); vibrate([120,60,220]); setTimeout(sfxCheer,120); }
   else vibrate(35);
 }
 // ターン終了処理（次へ有効化・3アウト判定）
@@ -3093,12 +3197,13 @@ function doSwing(){
     if(canFoul){
       sw.foulUsed=true;
       showSwingResult('ファウル！打ち直し',null);
-      vibrate(60);
+      sfxPock(); vibrate(60);
       setTimeout(beginPitch,950);
       return;
     }
     res={val:0, label:(err<=foulBand?'凡フライ…アウト':'空振り…アウト'), out:true};
   }
+  sfxForVal(res.val); // カキーン／コツン／空振り
   showSwingResult(res.label, !res.out);
   const wait=res.out?950:750;
   setTimeout(()=>{
