@@ -2399,6 +2399,8 @@ function choiceLbl(entry){
     let s=entry.short.trim();
     // 「(… は和製/和用法/和略 …)」等の注記カッコを除去
     s=s.replace(/\s*[（(][^）)]*(和製|和用法|和略|和)[^）)]*[）)]/g,'').trim();
+    // 末尾の句点「。」を除去
+    s=s.replace(/[。、\s]+$/,'').trim();
     if(s.length>60) s=s.substring(0,60)+'…';
     if(s) return s;
   }
