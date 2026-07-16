@@ -1382,9 +1382,9 @@ function gameStateJa(g){
     return {cls:'live',txt:'試合中'};
   }
   if(s==='Final') return {cls:'final',txt:'終了'};
-  // 開始時刻（日本時間で表示）
+  // 開始時刻（日本時間で表示。米国の夜＝日本の翌朝になるため日付も付ける）
   try{
-    const t=new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit'}).format(new Date(g.gameDate));
+    const t=new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(g.gameDate));
     return {cls:'pre',txt:'日本時間 '+t+' 開始'};
   }catch(e){ return {cls:'pre',txt:'予定'}; }
 }
