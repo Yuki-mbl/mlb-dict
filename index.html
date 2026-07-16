@@ -681,6 +681,13 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .home-act-quiz{background:var(--c-accent)}
 .home-act-daily{background:var(--c-orange)}
 /* ── 日本人選手・この日のMLB史 ── */
+.home-jp-cover{display:flex;flex-direction:column;align-items:center;gap:3px;width:100%;
+  padding:14px 10px;border:2px dashed var(--c-border);border-radius:var(--r-md);
+  background:var(--c-score-bg);cursor:pointer;-webkit-tap-highlight-color:transparent;
+  transition:all .12s}
+.home-jp-cover:active{transform:translate(2px,2px)}
+.jp-cover-lock{font-family:var(--ff-t);font-weight:800;font-size:15px;color:var(--c-ink)}
+.jp-cover-note{font-size:11.5px;color:var(--c-muted2)}
 .home-jp-body{font-size:14px;color:var(--c-muted)}
 .jp-row{display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px dashed var(--c-hairline)}
 .jp-row:last-child{border-bottom:none}
@@ -762,7 +769,11 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 
       <div class="home-card home-jp-card">
         <div class="home-card-hd">🇯🇵 今日の日本人選手</div>
-        <div id="home-jp" class="home-jp-body">読み込み中…</div>
+        <button type="button" class="home-jp-cover" id="home-jp-cover" onclick="revealJpPlayers()">
+          <span class="jp-cover-lock">👀 タップして結果を表示</span>
+          <span class="jp-cover-note">ネタバレ注意（試合結果が表示されます）</span>
+        </button>
+        <div id="home-jp" class="home-jp-body" style="display:none">読み込み中…</div>
       </div>
 
       <button class="home-card home-word" id="home-word" onclick="openWordOfDay()">
@@ -1379,8 +1390,8 @@ function renderHome(){
   if($('home-trivia')&&TRIVIA.length) $('home-trivia').textContent=TRIVIA[daySeed()%TRIVIA.length];
   // この日のMLB史
   renderOnThisDay();
-  // 今日の日本人選手（ネット必要）
-  loadJpPlayers();
+  // 今日の日本人選手（ネタバレ防止でタップ表示。一度開けばセッション中は継続）
+  if(jpRevealed){ revealJpPlayers(); } else { hideJpPlayers(); }
   // 今日の試合（ネット必要）
   loadGames();
 }
@@ -1475,6 +1486,20 @@ function fmtPitchLine(st){
   return s;
 }
 function mdOf(dstr){ const m=/^\d+-(\d+)-(\d+)$/.exec(dstr||''); return m?(parseInt(m[1],10)+'/'+parseInt(m[2],10)):''; }
+// ネタバレ防止: タップするまで結果を隠す（セッション中は一度開けば継続）
+let jpRevealed=false;
+function hideJpPlayers(){
+  const cov=$('home-jp-cover'), body=$('home-jp');
+  if(cov) cov.style.display='';
+  if(body) body.style.display='none';
+}
+function revealJpPlayers(){
+  jpRevealed=true;
+  const cov=$('home-jp-cover'), body=$('home-jp');
+  if(cov) cov.style.display='none';
+  if(body){ body.style.display=''; }
+  loadJpPlayers();
+}
 async function loadJpPlayers(){
   const el=$('home-jp'); if(!el) return;
   try{
