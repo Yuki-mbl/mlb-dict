@@ -401,7 +401,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 /* 目次の累計得点 */
 .menu-runs-row{text-align:center;font-family:var(--ff-d);font-weight:900;font-size:15px;
   color:var(--c-primary);padding:6px 0 2px;border-top:1px solid var(--c-hairline);margin-top:4px}
-.menu-runs-row #menu-runs{color:var(--c-coral);font-size:20px}
+.menu-runs-row #menu-runs,.menu-runs-row #menu-runs-today{color:var(--c-coral);font-size:20px}
 .quiz-card{position:relative}
 /* ── THREE OUT 演出 ── */
 #three-out{position:fixed;inset:0;z-index:900;display:none;align-items:center;justify-content:center;
@@ -928,7 +928,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
             </div>
           </div>
         </div>
-        <div class="menu-runs-row">⚾ 累計得点 <span id="menu-runs">0</span> 点</div>
+        <div class="menu-runs-row">⚾ 本日 <span id="menu-runs-today">0</span> 点 ／ 累計 <span id="menu-runs">0</span> 点</div>
       </div>
       <button class="qmenu-card qmenu-quiz" onclick="startQuizPlay()">
         <img src="images/バッター.png" alt="">
@@ -2621,11 +2621,12 @@ let runsToday=(function(){ const c=_todayRuns(); return (c.date===todayStr())?(c
 function updateRuns(){
   const c=_todayRuns();
   runsToday=(c.date===todayStr())?(c.n||0):0;
-  const a=$('quiz-runs'),b=$('menu-runs'),cc=$('daily-runs'),d=$('quiz-runs-today');
+  const a=$('quiz-runs'),b=$('menu-runs'),cc=$('daily-runs'),d=$('quiz-runs-today'),e=$('menu-runs-today');
   if(a) a.textContent=runsTotal;
   if(b) b.textContent=runsTotal;
   if(cc) cc.textContent=runsTotal;
   if(d) d.textContent=runsToday;
+  if(e) e.textContent=runsToday;
 }
 function addRuns(n){
   if(n<=0) return;
