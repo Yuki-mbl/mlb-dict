@@ -2509,10 +2509,10 @@ function sfxOut(){
   const c=actx(); if(!c||!_sfxOn) return; const t=c.currentTime;
   _tone(320,t,0.4,'sawtooth',0.18,120);
 }
-// 得点（歓声風・上昇アルペジオ）
+// 得点（低め・やわらかい上昇音。高音を避ける）
 function sfxCheer(){
   const c=actx(); if(!c||!_sfxOn) return; const t=c.currentTime;
-  [523,659,784,1047].forEach((f,i)=>_tone(f,t+i*0.09,0.18,'triangle',0.16));
+  [330,392,523].forEach((f,i)=>_tone(f,t+i*0.11,0.24,'sine',0.16)); // E4→G4→C5
 }
 // 正解の小気味よいピコッ
 function sfxSelectOK(){
