@@ -713,6 +713,11 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   background:var(--c-score-bg);font-family:var(--ff-t);font-size:12px;font-weight:800;
   color:var(--c-muted);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .12s;white-space:nowrap}
 .game-reveal:active{transform:translate(2px,2px)}
+.games-reveal-all{display:block;width:100%;margin-top:10px;padding:9px 0;
+  border:2px solid var(--c-border);border-radius:var(--r-pill);background:var(--c-accent);
+  box-shadow:var(--shadow-s);font-family:var(--ff-t);font-size:13px;font-weight:800;
+  color:var(--c-ink);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .12s}
+.games-reveal-all:active{transform:translate(2px,2px);box-shadow:none}
 .game-team{flex:1;display:flex;align-items:center;gap:6px;min-width:0;
   font-weight:700;color:var(--c-ink);font-size:13.5px}
 .game-team.away{justify-content:flex-end}
@@ -1444,15 +1449,18 @@ function teamLogo(t){
 }
 // ネタバレ防止: 結果を表示した試合（セッション中のみ保持。アプリ再起動で再び非表示）
 const gameRevealed=new Set();
+let _lastGames=[];
 function revealGame(pk){ gameRevealed.add(pk); loadGames(); }
+function revealAllGames(){ _lastGames.forEach(g=>gameRevealed.add(g.gamePk)); loadGames(); }
 async function loadGames(){
   const el=$('home-games');
   if(!el) return;
   try{
     const d=await cachedJson('https://statsapi.mlb.com/api/v1/schedule?sportId=1&hydrate=linescore&date='+etDateStr(),'mlb_games2',5);
     const games=(d.dates&&d.dates[0]&&d.dates[0].games)||[];
+    _lastGames=games;
     if(!games.length){ el.innerHTML='<div style="padding:6px 0">今日は試合がありません</div>'; return; }
-    el.innerHTML=games.map(g=>{
+    const rowsHtml=games.map(g=>{
       const st=gameStateJa(g);
       const a=g.teams.away, h=g.teams.home;
       const score=(st.cls==='pre')?'vs':(a.score??'-')+' - '+(h.score??'-');
@@ -1472,6 +1480,9 @@ async function loadGames(){
         <span class="game-team"><span class="game-team-name">${esc(teamJa(h.team))}</span>${teamLogo(h.team)}</span>
       </div>`;
     }).join('');
+    // 未表示の結果があれば「すべて表示」ボタン
+    const anyHidden=games.some(g=>{const s=gameStateJa(g).cls; return (s==='live'||s==='final')&&!gameRevealed.has(g.gamePk);});
+    el.innerHTML=rowsHtml+(anyHidden?`<button type="button" class="games-reveal-all" onclick="revealAllGames()">👀 すべての結果を表示</button>`:'');
   }catch(e){
     el.innerHTML='<div style="padding:6px 0">オフラインのため表示できません</div>';
   }
