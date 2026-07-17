@@ -974,7 +974,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       </button>
       <button class="qmenu-card qmenu-versus" onclick="startVersus()">
         <img src="images/ガッツ.png" alt="">
-        <span class="qmenu-txt"><span class="qmenu-name">対戦モード</span><span class="qmenu-sub">9回勝負！</span></span>
+        <span class="qmenu-txt"><span class="qmenu-name">対戦モード</span><span class="qmenu-sub">9回勝負！1日1回無料</span></span>
       </button>
       <button class="qmenu-card qmenu-daily" onclick="goTab('daily')">
         <img src="images/ピッチャー.png" alt="">
@@ -3254,12 +3254,21 @@ function genOppName(){
   for(let i=0;i<25;i++){ const c=genNickname(''); if(c&&c!==my) return c; }
   return 'ライバル';
 }
+function _versusToday(){ try{ return JSON.parse(localStorage.getItem('mlb_versus_today'))||{}; }catch(e){ return {}; } }
 function startVersus(){
-  if(playsLeft()<=0){
-    if(confirm('本日の無料プレイ（'+FREE_DAILY_PLAYS+'回）を使い切りました。\nプレミアム（月額200円）なら回数無制限。設定を開きますか？')){ goTab('settings'); }
+  // 対戦は1日1回無料。2回目以降は広告を挟む（プレミアムは広告なし）
+  const t=todayStr(), c=_versusToday();
+  const n=(c.date===t)?(c.n||0):0;
+  if(n>=1 && !isPremium()){
+    showAd(()=>_beginVersus());
     return;
   }
-  recordPlay();
+  _beginVersus();
+}
+function _beginVersus(){
+  const t=todayStr(), c=_versusToday();
+  const n=((c.date===t)?(c.n||0):0)+1;
+  localStorage.setItem('mlb_versus_today',JSON.stringify({date:t,n}));
   const lvl=oppLevelForUser(), wr=VS_WINRATE[lvl]||0.6;
   vs={ name:genOppName(), level:lvl, winRate:wr, userHome:Math.random()<0.5,
        inning:1, userLine:[], cpuLine:[], userScore:0, cpuScore:0, inningRuns:0,
