@@ -763,6 +763,36 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .home-word-sub{font-size:14px;color:var(--c-ink);opacity:.8;line-height:1.5;margin-top:4px;
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .home-trivia-body{font-size:15px;line-height:1.6;color:var(--c-ink)}
+.home-stats-card{display:flex;align-items:center;gap:16px;padding:16px 18px;
+  border:var(--bw) solid var(--c-border);border-radius:var(--r-lg);box-shadow:var(--shadow-m);
+  cursor:pointer;text-align:left;background:#ffe9b0;transition:all .12s;-webkit-tap-highlight-color:transparent}
+.home-stats-card:active{transform:translate(3px,3px);box-shadow:none}
+.home-stats-card img{height:64px;width:64px;object-fit:contain;flex-shrink:0}
+/* 成績・ランキング画面 */
+#tab-stats{overflow-y:auto}
+.stats-hdr2{padding:16px 14px 8px;background:var(--c-canvas);border-bottom:1px solid var(--c-hairline)}
+.stats-hdr2 h1{font-family:var(--ff-d);font-size:26px;font-weight:900}
+.stats-scroll{padding:14px;display:flex;flex-direction:column;gap:14px}
+.stats-card2{background:var(--c-card);border:2px solid var(--c-border);border-radius:var(--r-lg);
+  box-shadow:var(--shadow-s);padding:14px}
+.stats-card-ttl{font-family:var(--ff-d);font-weight:900;font-size:16px;color:var(--c-ink);margin-bottom:10px}
+.rank-you{font-family:var(--ff-d);font-weight:900;font-size:18px;color:var(--c-coral);text-align:center;margin-bottom:10px}
+.rank-board{display:flex;flex-direction:column;gap:2px}
+.rank-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:var(--r-md);
+  font-family:var(--ff-t);font-size:14px}
+.rank-row:nth-child(odd){background:var(--c-score-bg)}
+.rank-row.me{background:var(--c-accent);font-weight:800}
+.rank-pos{width:2.2em;text-align:center;font-family:var(--ff-d);font-weight:900;color:var(--c-muted)}
+.rank-row.me .rank-pos{color:var(--c-coral)}
+.rank-nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank-sc{font-family:var(--ff-d);font-weight:900;color:var(--c-ink)}
+.rank-note{font-size:11px;color:var(--c-muted2);text-align:center;margin-top:8px}
+.rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rec-item{background:var(--c-score-bg);border-radius:var(--r-md);padding:12px 6px;text-align:center}
+.rec-n{font-family:var(--ff-d);font-weight:900;font-size:22px;color:var(--c-coral)}
+.rec-l{font-family:var(--ff-t);font-size:12px;color:var(--c-muted);margin-top:2px}
+.rec-rank-row{margin-top:10px;font-family:var(--ff-t);font-size:13px;color:var(--c-ink);text-align:center}
+.rec-rank-row b{color:var(--c-primary);font-family:var(--ff-d)}
 .home-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .home-act{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px;
   border:var(--bw) solid var(--c-border);box-shadow:var(--shadow-m);border-radius:var(--r-lg);
@@ -901,9 +931,32 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
         <div class="home-games-note">米国日付の本日の試合／開始時刻は日本時間／結果は「👀 結果」をタップで表示（ネタバレ防止）</div>
       </div>
 
-      <div class="home-actions">
-        <button class="home-act home-act-quiz" onclick="homeStartQuiz()"><img src="images/バッター.png" alt="">クイズ</button>
-        <button class="home-act home-act-daily" onclick="goTab('daily')"><img src="images/ピッチャー.png" alt="">今日の10問</button>
+      <button class="home-card home-stats-card" onclick="goTab('stats')">
+        <img src="images/王冠.png" alt="">
+        <span class="qmenu-txt"><span class="qmenu-name">成績・ランキング</span><span class="qmenu-sub">本日の順位・得点・対戦成績を見る</span></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── 成績・ランキング ── -->
+  <div id="tab-stats" class="tab-panel">
+    <div class="subpage-hdr stats-hdr2"><button class="back-btn" onclick="goTab('home')">← ホーム</button><h1>成績</h1></div>
+    <div class="stats-scroll">
+      <div class="stats-card2">
+        <div class="stats-card-ttl">🏆 本日のランキング</div>
+        <div class="rank-you" id="rank-you">—</div>
+        <div class="rank-board" id="rank-board"></div>
+        <div class="rank-note">本日の得点で順位が決まります（毎日リセット）</div>
+      </div>
+      <div class="stats-card2">
+        <div class="stats-card-ttl">📊 マイレコード</div>
+        <div class="rec-grid">
+          <div class="rec-item"><div class="rec-n" id="rec-today">0</div><div class="rec-l">本日の得点</div></div>
+          <div class="rec-item"><div class="rec-n" id="rec-total">0</div><div class="rec-l">累計得点</div></div>
+          <div class="rec-item"><div class="rec-n" id="rec-vs">0-0</div><div class="rec-l">対戦成績</div></div>
+          <div class="rec-item"><div class="rec-n" id="rec-streak">0</div><div class="rec-l">連続ログイン</div></div>
+        </div>
+        <div class="rec-rank-row">称号：<b id="rec-rank-name">ルーキー</b> <span id="rec-rank-next"></span></div>
       </div>
     </div>
   </div>
@@ -1477,7 +1530,7 @@ function goTab(t){
   document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
   $('tab-'+t).classList.add('active');
   // ナビに無いタブは親タブをハイライト（略語→辞書、今日/復習→クイズ）
-  const _navMap={abbr:'dict',daily:'quiz',review:'quiz',standings:'home'};
+  const _navMap={abbr:'dict',daily:'quiz',review:'quiz',standings:'home',stats:'home'};
   const _nb=$('bnav-'+(_navMap[t]||t));
   if(_nb) _nb.classList.add('active');
   tab=t;
@@ -1499,6 +1552,7 @@ function goTab(t){
   }
   if(t==='home') renderHome();
   if(t==='standings') renderStandings();
+  if(t==='stats') renderStats();
   if(t==='abbr') renderAbbrList();
   if(t==='quiz'){ if(lastQuizSection==='play') quizShowPlay(); else quizToMenu(); }
   if(t==='daily'){ lastQuizSection='daily'; initDaily(); }
@@ -1587,6 +1641,46 @@ function renderHome(){
   if(jpRevealed){ revealJpPlayers(); } else { hideJpPlayers(); }
   // 今日の試合（ネット必要）
   loadGames();
+}
+// ── 成績・本日のランキング（ローカル。CPUライバルと本日得点で競う） ──────────────
+// 難易度高め：ライバルの本日得点を高めに設定（上位はかなり難しい）
+function todayRivals(){
+  const key='mlb_rank_'+todayStr();
+  try{ const c=JSON.parse(localStorage.getItem(key)); if(c&&c.length) return c; }catch(e){}
+  const base=[68,56,47,40,33,27,21,15,9]; // 上位ほど高い＝#1は至難
+  const my=(getProfile()&&getProfile().nick)||'';
+  const used={}; used[my]=1;
+  const rivals=base.map(b=>{
+    let nm='ライバル';
+    for(let i=0;i<25;i++){ const c=genNickname(''); if(c&&!used[c]){ nm=c; used[c]=1; break; } }
+    return {name:nm, score:Math.max(1, b+Math.floor(Math.random()*7)-3)};
+  });
+  try{ localStorage.setItem(key,JSON.stringify(rivals)); }catch(e){}
+  return rivals;
+}
+function renderStats(){
+  const rivals=todayRivals();
+  const myNick=(getProfile()&&getProfile().nick)||'あなた';
+  const board=rivals.map(r=>({name:r.name,score:r.score,me:false}));
+  board.push({name:myNick,score:runsToday,me:true});
+  board.sort((a,b)=> b.score-a.score || (a.me?1:-1)); // 同点は自分を下に
+  const myPos=board.findIndex(x=>x.me)+1;
+  const you=$('rank-you'); if(you) you.textContent='あなたは '+myPos+' 位 / '+board.length+'人中';
+  const bd=$('rank-board');
+  if(bd) bd.innerHTML=board.map((x,i)=>
+    '<div class="rank-row'+(x.me?' me':'')+'"><span class="rank-pos">'+(i+1)+'</span>'+
+    '<span class="rank-nm">'+esc(x.name)+(x.me?'（あなた）':'')+'</span>'+
+    '<span class="rank-sc">'+x.score+' 点</span></div>').join('');
+  // マイレコード
+  if($('rec-today')) $('rec-today').textContent=runsToday;
+  if($('rec-total')) $('rec-total').textContent=runsTotal;
+  let rec={w:0,l:0}; try{ rec=JSON.parse(localStorage.getItem('mlb_vs_rec'))||rec; }catch(e){}
+  if($('rec-vs')) $('rec-vs').textContent=rec.w+'-'+rec.l;
+  let streak=0; try{ streak=(JSON.parse(localStorage.getItem('mlb_streak'))||{}).count||0; }catch(e){}
+  if($('rec-streak')) $('rec-streak').textContent=streak;
+  const {r,next}=currentRank(runsTotal);
+  if($('rec-rank-name')) $('rec-rank-name').textContent=r.name;
+  if($('rec-rank-next')) $('rec-rank-next').textContent=next?('（次まであと'+Math.max(0,next.min-runsTotal)+'点）'):'（最高位）';
 }
 // ── MLBライブ（statsapi.mlb.com 公開API） ─────────────────────────────────────
 const TEAM_JA={108:'エンゼルス',109:'Dバックス',110:'オリオールズ',111:'レッドソックス',112:'カブス',113:'レッズ',114:'ガーディアンズ',115:'ロッキーズ',116:'タイガース',117:'アストロズ',118:'ロイヤルズ',119:'ドジャース',120:'ナショナルズ',121:'メッツ',133:'アスレチックス',134:'パイレーツ',135:'パドレス',136:'マリナーズ',137:'ジャイアンツ',138:'カージナルス',139:'レイズ',140:'レンジャーズ',141:'ブルージェイズ',142:'ツインズ',143:'フィリーズ',144:'ブレーブス',145:'ホワイトソックス',146:'マーリンズ',147:'ヤンキース',158:'ブルワーズ'};
@@ -3448,6 +3542,8 @@ function showVersusResult(){
   versusActive=false;
   if(vs.userScore>0) addRuns(vs.userScore);
   if(win) addRuns(10);
+  // 対戦成績を記録
+  try{ let rec=JSON.parse(localStorage.getItem('mlb_vs_rec'))||{w:0,l:0}; if(win)rec.w++; else rec.l++; localStorage.setItem('mlb_vs_rec',JSON.stringify(rec)); }catch(e){}
   const ov=$('versus-board'); if(ov) ov.classList.remove('show');
   const r=$('versus-result');
   if(r){
