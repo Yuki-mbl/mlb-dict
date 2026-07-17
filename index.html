@@ -3164,7 +3164,8 @@ function pick(btn,ok,correct){
     quizGameCorrect++;   // この試合の正解数（＝球のレベル・制限時間短縮の基準）
     const hit=(cq&&cq.hit)?cq.hit:1;   // 難易度＝甘い球（狙える最大の当たり）
     if(swingAuto){
-      // オート: 従来どおり難易度で自動進塁
+      // オート: 従来どおり難易度で自動進塁（走者アニメが見えるよう先頭へ）
+      const _p=$('quiz-play'); if(_p){ try{_p.scrollTo({top:0,behavior:'smooth'});}catch(e){_p.scrollTop=0;} }
       sfxForVal(hit);
       applyHit(hit);
     } else {
@@ -3456,6 +3457,8 @@ function pitchTier(){
 let sw={active:false,pos:0,dir:1,raf:0,cfg:null,hit:1,foulUsed:false,pW:0,gW:0,dW:0,pass:1,center:50};
 function startSwing(hit){
   sw.hit=hit; sw.foulUsed=false;
+  // 小さい画面でもダイヤモンド＋バーが見えるよう先頭までスクロール
+  const p=$('quiz-play'); if(p){ try{ p.scrollTo({top:0,behavior:'smooth'}); }catch(e){ p.scrollTop=0; } }
   beginPitch();
 }
 function beginPitch(){
