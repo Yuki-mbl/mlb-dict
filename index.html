@@ -931,33 +931,6 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
         <div class="home-games-note">米国日付の本日の試合／開始時刻は日本時間／結果は「👀 結果」をタップで表示（ネタバレ防止）</div>
       </div>
 
-      <button class="home-card home-stats-card" onclick="goTab('stats')">
-        <img src="images/王冠.png" alt="">
-        <span class="qmenu-txt"><span class="qmenu-name">成績・ランキング</span><span class="qmenu-sub">本日の順位・得点・対戦成績を見る</span></span>
-      </button>
-    </div>
-  </div>
-
-  <!-- ── 成績・ランキング ── -->
-  <div id="tab-stats" class="tab-panel">
-    <div class="subpage-hdr stats-hdr2"><button class="back-btn" onclick="goTab('home')">← ホーム</button><h1>成績</h1></div>
-    <div class="stats-scroll">
-      <div class="stats-card2">
-        <div class="stats-card-ttl">🏆 本日のランキング</div>
-        <div class="rank-you" id="rank-you">—</div>
-        <div class="rank-board" id="rank-board"></div>
-        <div class="rank-note">本日の得点で順位が決まります（毎日リセット）</div>
-      </div>
-      <div class="stats-card2">
-        <div class="stats-card-ttl">📊 マイレコード</div>
-        <div class="rec-grid">
-          <div class="rec-item"><div class="rec-n" id="rec-today">0</div><div class="rec-l">本日の得点</div></div>
-          <div class="rec-item"><div class="rec-n" id="rec-total">0</div><div class="rec-l">累計得点</div></div>
-          <div class="rec-item"><div class="rec-n" id="rec-vs">0-0</div><div class="rec-l">対戦成績</div></div>
-          <div class="rec-item"><div class="rec-n" id="rec-streak">0</div><div class="rec-l">連続ログイン</div></div>
-        </div>
-        <div class="rec-rank-row">称号：<b id="rec-rank-name">ルーキー</b> <span id="rec-rank-next"></span></div>
-      </div>
     </div>
   </div>
 
@@ -1042,6 +1015,21 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
           </div>
         </div>
         <div class="menu-runs-row">⚾ 本日 <span id="menu-runs-today">0</span> 点 ／ 累計 <span id="menu-runs">0</span> 点</div>
+      </div>
+      <div class="qmenu-howto">
+        <button class="qmenu-howto-ttl" onclick="toggleStats()">🏆 成績・ランキング <span class="howto-chev" id="stats-chev">▼</span></button>
+        <div id="stats-body" style="display:none">
+          <div class="rank-you" id="rank-you">—</div>
+          <div class="rank-board" id="rank-board"></div>
+          <div class="rec-grid">
+            <div class="rec-item"><div class="rec-n" id="rec-today">0</div><div class="rec-l">本日の得点</div></div>
+            <div class="rec-item"><div class="rec-n" id="rec-total">0</div><div class="rec-l">累計得点</div></div>
+            <div class="rec-item"><div class="rec-n" id="rec-vs">0-0</div><div class="rec-l">対戦成績</div></div>
+            <div class="rec-item"><div class="rec-n" id="rec-streak">0</div><div class="rec-l">連続ログイン</div></div>
+          </div>
+          <div class="rec-rank-row">称号：<b id="rec-rank-name">ルーキー</b> <span id="rec-rank-next"></span></div>
+          <div class="rank-note">本日の得点で順位が決まります（毎日リセット）</div>
+        </div>
       </div>
       <div class="qmenu-howto">
         <button class="qmenu-howto-ttl" id="howto-toggle" onclick="toggleHowto()">⚾ 点の入り方 <span class="howto-chev" id="howto-chev">▼</span></button>
@@ -1530,7 +1518,7 @@ function goTab(t){
   document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
   $('tab-'+t).classList.add('active');
   // ナビに無いタブは親タブをハイライト（略語→辞書、今日/復習→クイズ）
-  const _navMap={abbr:'dict',daily:'quiz',review:'quiz',standings:'home',stats:'home'};
+  const _navMap={abbr:'dict',daily:'quiz',review:'quiz',standings:'home'};
   const _nb=$('bnav-'+(_navMap[t]||t));
   if(_nb) _nb.classList.add('active');
   tab=t;
@@ -1552,7 +1540,6 @@ function goTab(t){
   }
   if(t==='home') renderHome();
   if(t==='standings') renderStandings();
-  if(t==='stats') renderStats();
   if(t==='abbr') renderAbbrList();
   if(t==='quiz'){ if(lastQuizSection==='play') quizShowPlay(); else quizToMenu(); }
   if(t==='daily'){ lastQuizSection='daily'; initDaily(); }
@@ -1968,6 +1955,14 @@ function goQuizNav(){
 function quizMenu(){ lastQuizSection='menu'; goTab('quiz'); }
 // ホームの「クイズ」から目次を飛ばして直接プレイ開始
 function homeStartQuiz(){ goTab('quiz'); startQuizPlay(); }
+// 「成績・ランキング」開閉
+function toggleStats(){
+  const b=$('stats-body'), c=$('stats-chev'); if(!b) return;
+  const open=b.style.display==='none';
+  b.style.display=open?'':'none';
+  if(c) c.classList.toggle('open',open);
+  if(open) renderStats();
+}
 // 「点の入り方」開閉
 function toggleHowto(){
   const b=$('howto-body'), c=$('howto-chev'); if(!b) return;
