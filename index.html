@@ -418,6 +418,44 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   animation:three-out-img-pop .5s cubic-bezier(.34,1.56,.64,1)}
 @keyframes three-out-pop{0%{transform:rotate(-6deg) scale(.3)}70%{transform:rotate(-6deg) scale(1.12)}100%{transform:rotate(-6deg) scale(1)}}
 @keyframes three-out-img-pop{0%{transform:scale(.3)}70%{transform:scale(1.1)}100%{transform:scale(1)}}
+/* ── CPU対戦 ── */
+.qmenu-versus{background:#ffe0a8}
+#versus-bar{padding:7px 14px;background:var(--c-score-bg);border-bottom:1px solid var(--c-hairline);
+  font-family:var(--ff-t);font-size:13px;color:var(--c-ink);text-align:center}
+#versus-bar b{color:var(--c-coral);font-family:var(--ff-d);font-size:15px}
+#versus-inning{padding:6px 14px;text-align:center;font-family:var(--ff-d);font-weight:900;
+  font-size:14px;color:var(--c-primary);background:var(--c-canvas)}
+#versus-board{position:fixed;inset:0;z-index:800;display:none;align-items:center;justify-content:center;
+  background:rgba(20,26,46,.6);padding:18px}
+#versus-board.show{display:flex}
+#versus-board-inner{width:100%;max-width:400px;background:var(--c-card);border:3px solid var(--c-border);
+  border-radius:var(--r-lg);box-shadow:var(--shadow-l);padding:16px;text-align:center}
+.vs-board-ttl{font-family:var(--ff-d);font-weight:900;font-size:18px;color:var(--c-ink);margin-bottom:10px}
+.vs-score{width:100%;border-collapse:collapse;font-family:var(--ff-t);font-size:12px;margin-bottom:8px}
+.vs-score th,.vs-score td{border:1px solid var(--c-hairline);padding:3px 0;text-align:center;min-width:18px}
+.vs-score th:first-child{text-align:left;padding-left:4px;white-space:nowrap;font-size:11px}
+.vs-score .vs-hdr th{background:var(--c-score-bg);color:var(--c-muted)}
+.vs-score .vs-r{font-family:var(--ff-d);font-weight:900;color:var(--c-coral);background:var(--c-score-bg)}
+.vs-msg{font-family:var(--ff-t);font-weight:700;font-size:13px;color:var(--c-ink);margin:6px 0 10px}
+.vs-btns{display:flex;flex-direction:column;gap:8px}
+.vs-btn{padding:11px 0;border:2px solid var(--c-border);border-radius:var(--r-pill);
+  background:var(--c-accent);font-family:var(--ff-d);font-weight:900;font-size:15px;color:var(--c-ink);
+  cursor:pointer;-webkit-tap-highlight-color:transparent}
+.vs-btn:active{transform:translate(2px,2px)}
+.vs-btn-sub{background:none;border:none;color:var(--c-muted);font-size:13px;font-weight:700;text-decoration:underline}
+#versus-toast{position:fixed;inset:0;z-index:820;display:none;align-items:center;justify-content:center;
+  background:rgba(20,26,46,.6);white-space:pre-line;text-align:center;
+  font-family:var(--ff-d);font-weight:900;font-size:20px;color:#fff;padding:24px;line-height:1.6}
+#versus-toast.show{display:flex}
+#versus-result{position:fixed;inset:0;z-index:830;display:none;align-items:center;justify-content:center;
+  background:rgba(20,26,46,.7);padding:24px}
+#versus-result.show{display:flex}
+.vs-res-inner{width:100%;max-width:340px;background:var(--c-card);border:3px solid var(--c-border);
+  border-radius:var(--r-lg);box-shadow:var(--shadow-l);padding:22px 18px;text-align:center}
+.vs-res-char{width:120px;height:auto;margin-bottom:8px}
+.vs-res-ttl{font-family:var(--ff-d);font-weight:900;font-size:26px;color:var(--c-ink)}
+.vs-res-score{font-family:var(--ff-d);font-weight:900;font-size:18px;color:var(--c-coral);margin:6px 0}
+.vs-res-bonus{font-family:var(--ff-t);font-weight:800;font-size:14px;color:var(--c-primary);min-height:18px;margin-bottom:12px}
 /* ── 広告オーバーレイ（プレースホルダ） ── */
 #ad-overlay{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;
   background:rgba(20,26,46,.75);padding:24px}
@@ -934,6 +972,10 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
         <img src="images/バッター.png" alt="">
         <span class="qmenu-txt"><span class="qmenu-name">クイズ</span><span class="qmenu-sub">英和・和英ミックス！制限時間あり・3アウトで交代</span></span>
       </button>
+      <button class="qmenu-card qmenu-versus" onclick="startVersus()">
+        <img src="images/ガッツ.png" alt="">
+        <span class="qmenu-txt"><span class="qmenu-name">対戦モード</span><span class="qmenu-sub">CPUと9回勝負！3回まで無料</span></span>
+      </button>
       <button class="qmenu-card qmenu-daily" onclick="goTab('daily')">
         <img src="images/ピッチャー.png" alt="">
         <span class="qmenu-txt"><span class="qmenu-name">今日の10問</span><span class="qmenu-sub">毎日コツコツ10問チャレンジ</span></span>
@@ -947,7 +989,9 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
     <!-- プレイ画面 -->
     <div id="quiz-play" style="display:none">
     <div class="quiz-inner">
-      <div class="subpage-bar"><button class="back-btn" onclick="quizToMenu()">← 目次</button></div>
+      <div class="subpage-bar"><button class="back-btn" onclick="quizBack()">← 目次</button></div>
+      <div id="versus-bar" style="display:none"></div>
+      <div id="versus-inning" style="display:none"></div>
       <div class="quiz-char" id="quiz-char">
         <div class="diamond-wrap">
           <img class="diamond-img" src="images/ベース.png" alt="">
@@ -986,6 +1030,19 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 
     <!-- スリーアウト演出 -->
     <div id="three-out"><div class="three-out-inner"><span class="three-out-txt">THREE OUT!</span><img class="three-out-img" src="images/うなだれ.png" alt=""></div></div>
+
+    <!-- 対戦: イニング結果ボード -->
+    <div id="versus-board"><div id="versus-board-inner"></div></div>
+    <!-- 対戦: 開始トースト -->
+    <div id="versus-toast"></div>
+    <!-- 対戦: 試合結果 -->
+    <div id="versus-result"><div class="vs-res-inner">
+      <img class="vs-res-char" src="images/よろこび.png" alt="">
+      <div class="vs-res-ttl">勝利！</div>
+      <div class="vs-res-score">あなた 0 - 0 相手</div>
+      <div class="vs-res-bonus"></div>
+      <button class="vs-btn" onclick="closeVersusResult()">目次へ戻る</button>
+    </div></div>
   </div>
 
   <!-- ── 広告（プレースホルダ／ネイティブで実広告に差し替え） ── -->
@@ -2668,6 +2725,13 @@ function updateRuns(){
 }
 function addRuns(n){
   if(n<=0) return;
+  // 対戦中は得点を試合側に集計（確定は試合終了時。途中離脱は没収）
+  if(versusActive && vs){
+    vs.inningRuns+=n; vs.userScore+=n;
+    updateVersusBar();
+    ['quiz-runs','quiz-runs-today'].forEach(id=>{const el=$(id);if(el){el.classList.remove('run-bump');void el.offsetWidth;el.classList.add('run-bump');}});
+    return;
+  }
   runsTotal+=n;
   localStorage.setItem('mlb_runs',String(runsTotal));
   // 本日分
@@ -2676,6 +2740,10 @@ function addRuns(n){
   localStorage.setItem('mlb_runs_today',JSON.stringify({date:t,n:runsToday}));
   updateRuns();
   ['quiz-runs','quiz-runs-today'].forEach(id=>{const el=$(id);if(el){el.classList.remove('run-bump');void el.offsetWidth;el.classList.add('run-bump');}});
+}
+function quizBack(){
+  if(versusActive){ versusQuitConfirm(); return; }
+  quizToMenu();
 }
 function quizToMenu(){
   lastQuizSection='menu';
@@ -3157,18 +3225,183 @@ function applyHit(value){
   if(r.runs>0){ showFlash(true,true); vibrate([120,60,220]); if(value<4) setTimeout(sfxCheer,120); }
   else vibrate(35);
 }
-// ターン終了処理（次へ有効化・3アウト判定）
+// ターン終了処理（次へ有効化・アウト判定）
+function outLimit(){ return versusActive?1:3; }
 function finishTurn(){
   $('next-btn').disabled=false;
-  if(quizOuts>=3){
+  if(quizOuts>=outLimit()){
     $('next-btn').disabled=true;
-    setTimeout(threeOut,900);
+    if(versusActive){ setTimeout(versusUserHalfDone,700); }
+    else setTimeout(threeOut,900);
   }
 }
 function showOutFx(){
   vibrate(200);
   const el=$('quiz-outs');
   if(el){el.classList.remove('run-bump');void el.offsetWidth;el.classList.add('run-bump');}
+}
+// ── CPU対戦モード（中間案C：短縮9回・1アウト制） ─────────────────────────────
+let versusActive=false, vs=null;
+const VS_WINRATE={1:0.75,2:0.68,3:0.60,4:0.52,5:0.45};
+function oppLevelForUser(){
+  const runs=(typeof runsTotal==='number')?runsTotal:0;
+  const {r}=currentRank(runs);
+  const idx=RANKS.findIndex(x=>x.name===r.name);
+  return Math.max(1,Math.min(5,idx+1));
+}
+function genOppName(){
+  const my=(getProfile()&&getProfile().nick)||'';
+  for(let i=0;i<25;i++){ const c=genNickname(''); if(c&&c!==my) return c; }
+  return 'ライバル';
+}
+function startVersus(){
+  if(playsLeft()<=0){
+    if(confirm('本日の無料プレイ（'+FREE_DAILY_PLAYS+'回）を使い切りました。\nプレミアム（月額200円）なら回数無制限。設定を開きますか？')){ goTab('settings'); }
+    return;
+  }
+  recordPlay();
+  const lvl=oppLevelForUser(), wr=VS_WINRATE[lvl]||0.6;
+  vs={ name:genOppName(), level:lvl, winRate:wr, userHome:Math.random()<0.5,
+       inning:1, userLine:[], cpuLine:[], userScore:0, cpuScore:0, inningRuns:0,
+       maxInning:3, finished:false, userWins:(Math.random()<wr) };
+  versusActive=true; lastQuizSection='play';
+  quizGameCorrect=0;
+  $('quiz-menu').style.display='none';
+  $('quiz-play').style.display='';
+  $('versus-bar').style.display='';
+  updateVersusBar();
+  versusToast('🆚 対戦相手\n'+vs.name+'（Lv'+vs.level+'）\n'+(vs.userHome?'あなたは後攻':'あなたは先攻'), ()=>versusStartInning());
+}
+function updateVersusBar(){
+  const b=$('versus-bar'); if(!b||!vs) return;
+  b.innerHTML='🆚 '+esc(vs.name)+'（Lv'+vs.level+'）　'+
+    '<b>あなた '+(vs.userScore)+' - '+(vs.cpuScore)+' 相手</b>　'+vs.inning+'回';
+}
+function versusStartInning(){
+  if(!versusActive) return;
+  // 4回以降は毎回広告（プレミアムはスキップ）
+  if(vs.inning>=4){ showAd(()=>_versusUserHalf()); }
+  else _versusUserHalf();
+}
+function _versusUserHalf(){
+  quizOuts=0; quizStreak=0; vs.inningRuns=0;
+  updateOuts(); clearBases(); updateVersusBar();
+  const bn=$('versus-inning'); if(bn){ bn.textContent=vs.inning+'回：あなたの攻撃（1アウトで交代）'; bn.style.display=''; setTimeout(()=>{if(bn)bn.style.display='none';},1400); }
+  cq=null; ans=false; nextQ();
+}
+// 相手（CPU）の1イニング得点をシミュレート
+function simCpuInning(isFinal){
+  if(isFinal){
+    // 最終回はユーザー得点が確定済み → 勝敗を勝率に合わせて確定（逆転サヨナラ演出込み）
+    if(vs.userScore<=0) return Math.max(1, vs.userScore-vs.cpuScore+1); // 0点なら勝てない
+    if(vs.userWins){
+      const need=vs.userScore-vs.cpuScore; // 追いつくのに必要
+      if(need<=0) return 0;
+      return Math.max(0,Math.min(need-1, Math.floor(Math.random()*need))); // 届かない
+    } else {
+      return Math.max(1, vs.userScore-vs.cpuScore+1); // 1点上回って逆転
+    }
+  }
+  // 通常回：接戦になるよう調整
+  const diff=vs.userScore-vs.cpuScore;
+  let p = diff>1?0.85 : (diff<-1?0.2 : 0.5);
+  let runs=0; if(Math.random()<p) runs=1+((Math.random()<0.28)?1:0);
+  if(vs.userWins && vs.cpuScore+runs>=vs.userScore) runs=Math.max(0,vs.userScore-1-vs.cpuScore); // 勝ち予定なら相手を先に行かせない
+  return runs;
+}
+function versusUserHalfDone(){
+  const i=vs.inning-1;
+  vs.userLine[i]=vs.inningRuns; vs.userScore=vs.userLine.reduce((a,b)=>a+(b||0),0);
+  const isFinal=(vs.maxInning===9 && vs.inning===9);
+  const cpu=simCpuInning(isFinal);
+  vs.cpuLine[i]=cpu; vs.cpuScore=vs.cpuLine.reduce((a,b)=>a+(b||0),0);
+  updateVersusBar();
+  renderVersusBoard();
+  $('versus-board').classList.add('show');
+}
+function renderVersusBoard(){
+  const wrap=$('versus-board-inner'); if(!wrap) return;
+  const cells=n=>{ let s=''; for(let k=0;k<9;k++){ const v=(n[k]==null)?'':n[k]; s+='<td>'+v+'</td>'; } return s; };
+  const homeTag=t=>vs.userHome? (t==='user'?'（後）':'（先）') : (t==='user'?'（先）':'（後）');
+  const msg=versusInningMsg();
+  const last=(vs.maxInning===9 && vs.inning===9);
+  const checkpoint=(vs.maxInning===3 && vs.inning===3);
+  let btns;
+  if(last){ btns='<button class="vs-btn" onclick="showVersusResult()">結果を見る ▶</button>'; }
+  else if(checkpoint){
+    btns='<button class="vs-btn" onclick="versusExtend()">9回まで続ける（広告）▶</button>'+
+         '<button class="vs-btn vs-btn-sub" onclick="versusQuitConfirm()">ここでやめる</button>';
+  } else {
+    btns='<button class="vs-btn" onclick="versusNextInning()">次の回 ▶</button>';
+  }
+  wrap.innerHTML=
+    '<div class="vs-board-ttl">'+vs.inning+'回 終了</div>'+
+    '<table class="vs-score"><tr class="vs-hdr"><th></th>'+[1,2,3,4,5,6,7,8,9].map(n=>'<th>'+n+'</th>').join('')+'<th class="vs-r">計</th></tr>'+
+    '<tr><th>相手'+homeTag('cpu')+'</th>'+cells(vs.cpuLine)+'<td class="vs-r">'+vs.cpuScore+'</td></tr>'+
+    '<tr><th>あなた'+homeTag('user')+'</th>'+cells(vs.userLine)+'<td class="vs-r">'+vs.userScore+'</td></tr></table>'+
+    (msg?'<div class="vs-msg">'+msg+'</div>':'')+
+    '<div class="vs-btns">'+btns+'</div>';
+}
+function versusInningMsg(){
+  const i=vs.inning-1;
+  const cpu=vs.cpuLine[i]||0, usr=vs.userLine[i]||0;
+  let m='この回：あなた'+usr+'点／相手'+cpu+'点';
+  if(vs.maxInning===9 && vs.inning===9){
+    // 逆転・サヨナラ判定
+    const beforeU=vs.userScore-usr, beforeC=vs.cpuScore-cpu;
+    const flipped=(Math.sign(beforeU-beforeC)!==Math.sign(vs.userScore-vs.cpuScore))&&(vs.userScore!==vs.cpuScore);
+    const winner=vs.userScore>vs.cpuScore?'user':'cpu';
+    const homeIsWinner=(vs.userHome&&winner==='user')||(!vs.userHome&&winner==='cpu');
+    if(flipped&&homeIsWinner) m+= winner==='user'?'　🎉 逆転サヨナラ勝ち！':'　💥 逆転サヨナラ負け…';
+    else if(flipped) m+= winner==='user'?'　🎉 逆転勝ち！':'　💥 逆転負け…';
+  }
+  return m;
+}
+function versusNextInning(){
+  $('versus-board').classList.remove('show');
+  vs.inning++;
+  versusStartInning();
+}
+function versusExtend(){
+  vs.maxInning=9;
+  $('versus-board').classList.remove('show');
+  vs.inning++;
+  versusStartInning();
+}
+function showVersusResult(){
+  vs.finished=true;
+  const win=vs.userScore>vs.cpuScore;
+  // 得点を確定（試合完走のみ）。勝てば累計＋10点ボーナス
+  versusActive=false;
+  if(vs.userScore>0) addRuns(vs.userScore);
+  if(win) addRuns(10);
+  const ov=$('versus-board'); if(ov) ov.classList.remove('show');
+  const r=$('versus-result');
+  if(r){
+    r.querySelector('.vs-res-ttl').textContent = win?'勝利！ 🎉':'敗戦…';
+    r.querySelector('.vs-res-score').textContent='あなた '+vs.userScore+' - '+vs.cpuScore+' 相手';
+    r.querySelector('.vs-res-char').src = win?CHAR_IMG.joy:CHAR_IMG.sad;
+    r.querySelector('.vs-res-bonus').textContent = win?'累計ボーナス ＋10点！':'';
+    r.classList.add('show');
+  }
+}
+function closeVersusResult(){
+  const r=$('versus-result'); if(r) r.classList.remove('show');
+  vs=null; $('versus-bar').style.display='none';
+  quizToMenu();
+}
+function versusQuitConfirm(){
+  if(confirm('対戦を途中でやめると、この試合の得点は無効（累計・本日ともに加算なし）になります。やめますか？')){
+    versusActive=false; vs=null;
+    $('versus-board').classList.remove('show');
+    $('versus-bar').style.display='none';
+    quizToMenu();
+  }
+}
+function versusToast(text,cb){
+  const t=$('versus-toast'); if(!t){ if(cb)cb(); return; }
+  t.textContent=text; t.classList.add('show');
+  setTimeout(()=>{ t.classList.remove('show'); if(cb)cb(); },1800);
 }
 // ── スイングタイミング（打撃）ミニゲーム ──
 // 連続正解数に応じて球のレベルが上がる（0-4:やさしい, 5-9, 10-19, 20-39, 40+:最難関）
