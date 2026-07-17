@@ -995,8 +995,8 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
             <li>走者が<b>ホームインで得点</b>。不正解や凡打はアウト、<b>3アウトで終了</b>。</li>
           </ul>
           <ul id="howto-auto" style="display:none">
-            <li>正解すると<b>自動で打撃</b>（タイミング操作なし）。</li>
-            <li>打球は<b>問題の難易度で決定</b>：やさしい＝単打／ふつう＝二塁打／<b>難問＝三塁打</b>。</li>
+            <li>正解すると<b>自動で単打</b>（タイミング操作なし）。</li>
+            <li><b>長打・本塁打はねらえません</b>（狙うなら手動）。堅実だが天井は低め。</li>
             <li>走者が<b>ホームインで得点</b>。不正解はアウト、<b>3アウトで終了</b>。</li>
           </ul>
         </div>
@@ -3182,10 +3182,10 @@ function pick(btn,ok,correct){
     quizGameCorrect++;   // この試合の正解数（＝球のレベル・制限時間短縮の基準）
     const hit=(cq&&cq.hit)?cq.hit:1;   // 難易度＝甘い球（狙える最大の当たり）
     if(swingAuto){
-      // オート: 従来どおり難易度で自動進塁（走者アニメが見えるよう先頭へ）
+      // オート: 常に単打（1塁）。長打・本塁打は手動のみ＝オートが有利にならない
       const _p=$('quiz-play'); if(_p){ try{_p.scrollTo({top:0,behavior:'smooth'});}catch(e){_p.scrollTop=0;} }
-      sfxForVal(hit);
-      applyHit(hit);
+      sfxForVal(1);
+      applyHit(1);
     } else {
       // 手動: タイミングよく打つ挑戦フェーズへ
       sfxSelectOK();
