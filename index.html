@@ -974,7 +974,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       </button>
       <button class="qmenu-card qmenu-versus" onclick="startVersus()">
         <img src="images/ガッツ.png" alt="">
-        <span class="qmenu-txt"><span class="qmenu-name">対戦モード</span><span class="qmenu-sub">9回勝負！1日1回無料</span></span>
+        <span class="qmenu-txt"><span class="qmenu-name">対戦モード</span><span class="qmenu-sub">9回勝負！</span></span>
       </button>
       <button class="qmenu-card qmenu-daily" onclick="goTab('daily')">
         <img src="images/ピッチャー.png" alt="">
@@ -1022,7 +1022,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
           <div class="quiz-q-term" id="qq-term">—</div>
         </div>
         <div class="choices" id="choices"></div>
-        <button class="next-btn" id="next-btn" disabled onclick="nextQ()">次の問題 →</button>
+        <button class="next-btn" id="next-btn" disabled onclick="quizNext()">次の問題 →</button>
         <div id="quiz-def-card" style="display:none"></div>
       </div>
     </div>
@@ -2986,7 +2986,7 @@ function renderQ(){
   const qq=$('qq-lbl');
   qq.innerHTML=esc(modeLbl)+badge;
   $('qq-term').textContent=qMode==='ej'?correct.en:correct.ja;
-  $('next-btn').disabled=true;
+  $('next-btn').disabled=true; $('next-btn').textContent='次の問題 →';
   const grid=$('choices');grid.innerHTML='';
   choices.forEach(ch=>{
     const lbl=choiceLbl(ch);
@@ -3230,10 +3230,19 @@ function outLimit(){ return versusActive?1:3; }
 function finishTurn(){
   $('next-btn').disabled=false;
   if(quizOuts>=outLimit()){
-    $('next-btn').disabled=true;
-    if(versusActive){ setTimeout(versusUserHalfDone,700); }
-    else setTimeout(threeOut,900);
+    if(versusActive){
+      // 対戦：アウトでも解説を見られるよう、ボタンを押してからスコア表示
+      const nb=$('next-btn'); if(nb){ nb.disabled=false; nb.textContent='スコアを見る →'; }
+    }else{
+      $('next-btn').disabled=true;
+      setTimeout(threeOut,900);
+    }
   }
+}
+// 「次の問題」ボタン：対戦でアウト後はスコアボードへ、それ以外は次問へ
+function quizNext(){
+  if(versusActive && quizOuts>=outLimit()){ versusUserHalfDone(); return; }
+  nextQ();
 }
 function showOutFx(){
   vibrate(200);
