@@ -773,13 +773,13 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .home-act-quiz{background:var(--c-accent)}
 .home-act-daily{background:var(--c-orange)}
 /* ── 日本人選手・この日のMLB史 ── */
-.home-jp-cover{display:flex;flex-direction:column;align-items:center;gap:3px;width:100%;
-  padding:14px 10px;border:2px dashed var(--c-border);border-radius:var(--r-md);
-  background:var(--c-score-bg);cursor:pointer;-webkit-tap-highlight-color:transparent;
-  transition:all .12s}
-.home-jp-cover:active{transform:translate(2px,2px)}
-.jp-cover-lock{font-family:var(--ff-t);font-weight:800;font-size:15px;color:var(--c-ink)}
-.jp-cover-note{font-size:11.5px;color:var(--c-muted2)}
+.home-jp-cover{display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;
+  padding:15px 12px;border:2px solid var(--c-border);border-radius:var(--r-md);
+  background:var(--c-accent);box-shadow:var(--shadow-s);cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:all .12s}
+.home-jp-cover:active{transform:translate(2px,2px);box-shadow:none}
+.jp-cover-lock{font-family:var(--ff-d);font-weight:900;font-size:15px;color:var(--c-ink)}
+.jp-cover-note{font-size:11.5px;color:var(--c-ink);opacity:.6}
 .home-jp-body{font-size:14px;color:var(--c-muted)}
 .jp-row{display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px dashed var(--c-hairline)}
 .jp-row:last-child{border-bottom:none}
