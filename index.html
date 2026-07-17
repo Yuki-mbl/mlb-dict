@@ -308,6 +308,8 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .qmenu-daily{background:var(--c-orange)}
 .qmenu-review{background:#ffd9d6}
 .qmenu-txt{display:flex;flex-direction:column;gap:3px;min-width:0}
+.qmenu-group-label{font-family:var(--ff-d);font-weight:900;font-size:15px;color:var(--c-muted);
+  margin:6px 2px -4px;letter-spacing:.5px}
 .qmenu-name{font-family:var(--ff-d);font-size:22px;font-weight:900;color:var(--c-ink)}
 .qmenu-sub{font-size:13px;font-weight:600;color:var(--c-ink);opacity:.75;line-height:1.4}
 .qmenu-score{background:var(--c-parchment);border:var(--bw) solid var(--c-border);
@@ -1001,21 +1003,23 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
           </ul>
         </div>
       </div>
-      <button class="qmenu-card qmenu-quiz" onclick="startQuizPlay()">
-        <img src="images/バッター.png" alt="">
-        <span class="qmenu-txt"><span class="qmenu-name">クイズ</span><span class="qmenu-sub">英和・和英ミックス！制限時間あり・3アウトで終了</span></span>
-      </button>
-      <button class="qmenu-card qmenu-versus" onclick="startVersus()">
-        <img src="images/ガッツ.png" alt="">
-        <span class="qmenu-txt"><span class="qmenu-name">対戦モード</span><span class="qmenu-sub">9回勝負！</span></span>
-      </button>
+      <div class="qmenu-group-label">📚 学ぶ</div>
       <button class="qmenu-card qmenu-daily" onclick="goTab('daily')">
         <img src="images/ピッチャー.png" alt="">
         <span class="qmenu-txt"><span class="qmenu-name">今日の10問</span><span class="qmenu-sub">毎日コツコツ10問チャレンジ</span></span>
       </button>
+      <button class="qmenu-card qmenu-quiz" onclick="startQuizPlay()">
+        <img src="images/バッター.png" alt="">
+        <span class="qmenu-txt"><span class="qmenu-name">クイズ</span><span class="qmenu-sub">英和・和英ミックス！自己ベストを伸ばそう</span></span>
+      </button>
       <button class="qmenu-card qmenu-review" onclick="goTab('review')">
         <img src="images/デフォ.png" alt="">
         <span class="qmenu-txt"><span class="qmenu-name">復習</span><span class="qmenu-sub">間違えた問題をおさらい</span></span>
+      </button>
+      <div class="qmenu-group-label">🔥 勝負</div>
+      <button class="qmenu-card qmenu-versus" onclick="startVersus()">
+        <img src="images/ガッツ.png" alt="">
+        <span class="qmenu-txt"><span class="qmenu-name">対戦モード</span><span class="qmenu-sub">CPUと9回勝負！勝てばボーナス</span></span>
       </button>
     </div>
 
