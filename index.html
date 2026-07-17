@@ -786,6 +786,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .rank-row.me .rank-pos{color:var(--c-coral)}
 .rank-nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rank-sc{font-family:var(--ff-d);font-weight:900;color:var(--c-ink)}
+.rank-sep{text-align:center;color:var(--c-muted2);font-weight:900;line-height:1;padding:2px 0}
 .rank-note{font-size:11px;color:var(--c-muted2);text-align:center;margin-top:8px}
 .rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .rec-item{background:var(--c-score-bg);border-radius:var(--r-md);padding:12px 6px;text-align:center}
@@ -1629,35 +1630,53 @@ function renderHome(){
   // 今日の試合（ネット必要）
   loadGames();
 }
-// ── 成績・本日のランキング（ローカル。CPUライバルと本日得点で競う） ──────────────
-// 難易度高め：ライバルの本日得点を高めに設定（上位はかなり難しい）
-function todayRivals(){
-  const key='mlb_rank_'+todayStr();
-  try{ const c=JSON.parse(localStorage.getItem(key)); if(c&&c.length) return c; }catch(e){}
-  const base=[68,56,47,40,33,27,21,15,9]; // 上位ほど高い＝#1は至難
+// ── 成績・本日のランキング（ローカル。大母数の中で本日得点を競う） ────────────────
+// 上位は僅差、下は長い裾野（10点前後で約100位）。母数は日替わりで約140〜180人。
+function todayField(){
+  const key='mlb_field_'+todayStr();
+  try{ const c=JSON.parse(localStorage.getItem(key)); if(c&&c.names&&c.names.length>=12) return c; }catch(e){}
+  const top=68+Math.floor(Math.random()*9);      // 1位 68〜76点
+  const N=140+Math.floor(Math.random()*41);      // 全体 140〜180人
+  const p=2.0;
   const my=(getProfile()&&getProfile().nick)||'';
-  const used={}; used[my]=1;
-  const rivals=base.map(b=>{
-    let nm='ライバル';
-    for(let i=0;i<25;i++){ const c=genNickname(''); if(c&&!used[c]){ nm=c; used[c]=1; break; } }
-    return {name:nm, score:Math.max(1, b+Math.floor(Math.random()*7)-3)};
-  });
-  try{ localStorage.setItem(key,JSON.stringify(rivals)); }catch(e){}
-  return rivals;
+  const used={}; used[my]=1; const names=[];
+  for(let i=0;i<12;i++){ let nm='ライバル'; for(let k=0;k<25;k++){const c=genNickname(''); if(c&&!used[c]){nm=c;used[c]=1;break;}} names.push(nm); }
+  const f={top,N,p,names};
+  try{ localStorage.setItem(key,JSON.stringify(f)); }catch(e){}
+  return f;
+}
+function scoreForRank(rank,f){ return Math.max(1, Math.round(f.top*Math.pow(Math.max(0,1-(rank-1)/f.N), f.p))); }
+function rankForScore(s,f){
+  if(s>=f.top) return 1;
+  if(s<=0) return f.N;
+  const r=1 + f.N*(1 - Math.pow(s/f.top, 1/f.p));
+  return Math.min(f.N, Math.max(1, Math.round(r)));
 }
 function renderStats(){
-  const rivals=todayRivals();
+  const f=todayField();
   const myNick=(getProfile()&&getProfile().nick)||'あなた';
-  const board=rivals.map(r=>({name:r.name,score:r.score,me:false}));
-  board.push({name:myNick,score:runsToday,me:true});
-  board.sort((a,b)=> b.score-a.score || (a.me?1:-1)); // 同点は自分を下に
-  const myPos=board.findIndex(x=>x.me)+1;
-  const you=$('rank-you'); if(you) you.textContent='あなたは '+myPos+' 位 / '+board.length+'人中';
+  const us=runsToday;
+  // トップ12＋自分を合成して、上位の位置を正確に判定
+  const top=[]; for(let r=1;r<=12;r++) top.push({name:f.names[r-1],score:scoreForRank(r,f),me:false});
+  const merged=top.concat([{name:myNick,score:us,me:true}]).sort((a,b)=> b.score-a.score || (a.me?1:-1));
+  const idx=merged.findIndex(x=>x.me);
+  const inTop10=idx<10;
+  const myRank=inTop10 ? idx+1 : Math.max(11, rankForScore(us,f));
+  const you=$('rank-you'); if(you) you.textContent='あなたは '+myRank+' 位 / 全'+f.N+'人中';
   const bd=$('rank-board');
-  if(bd) bd.innerHTML=board.map((x,i)=>
-    '<div class="rank-row'+(x.me?' me':'')+'"><span class="rank-pos">'+(i+1)+'</span>'+
-    '<span class="rank-nm">'+esc(x.name)+(x.me?'（あなた）':'')+'</span>'+
-    '<span class="rank-sc">'+x.score+' 点</span></div>').join('');
+  if(bd){
+    let rows=merged.slice(0,10).map((x,i)=>
+      '<div class="rank-row'+(x.me?' me':'')+'"><span class="rank-pos">'+(i+1)+'</span>'+
+      '<span class="rank-nm">'+esc(x.name)+(x.me?'（あなた）':'')+'</span>'+
+      '<span class="rank-sc">'+x.score+' 点</span></div>').join('');
+    if(!inTop10){
+      rows+='<div class="rank-sep">⋮</div>'+
+        '<div class="rank-row me"><span class="rank-pos">'+myRank+'</span>'+
+        '<span class="rank-nm">'+esc(myNick)+'（あなた）</span>'+
+        '<span class="rank-sc">'+us+' 点</span></div>';
+    }
+    bd.innerHTML=rows;
+  }
   // マイレコード
   if($('rec-today')) $('rec-today').textContent=runsToday;
   if($('rec-total')) $('rec-total').textContent=runsTotal;
