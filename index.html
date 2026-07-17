@@ -3482,8 +3482,8 @@ function updateVersusBar(){
 }
 function versusStartInning(){
   if(!versusActive) return;
-  // 4回以降は毎回広告（プレミアムはスキップ）
-  if(vs.inning>=4){ showAd(()=>_versusUserHalf()); }
+  // 広告は4回に入る時と8回に入る時の2回だけ（プレミアムはスキップ）
+  if(vs.inning===4 || vs.inning===8){ showAd(()=>_versusUserHalf()); }
   else _versusUserHalf();
 }
 function _versusUserHalf(){
