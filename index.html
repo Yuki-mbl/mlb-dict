@@ -329,6 +329,8 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .howto-swing-lbl{font-family:var(--ff-t);font-weight:800;font-size:13px;color:var(--c-ink)}
 .howto-swing-hint{font-family:var(--ff-t);font-weight:700;font-size:12px;color:var(--c-primary);margin:4px 2px 0}
 .qmenu-howto ul{margin:8px 0 0;padding-left:18px}
+.howto-sub-ttl{font-family:var(--ff-d);font-weight:900;font-size:13px;color:var(--c-ink);margin:12px 0 2px;
+  padding-top:9px;border-top:1px dashed var(--c-hairline)}
 .qmenu-howto li{font-family:var(--ff-t);font-size:12.5px;color:var(--c-ink);opacity:.85;line-height:1.6}
 .qmenu-howto b{color:var(--c-coral)}
 /* ── サブページ共通（戻るバー） ── */
@@ -1050,16 +1052,21 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
             <li><b>長打・本塁打はねらえません</b>（狙うなら手動）。堅実だが天井は低め。</li>
             <li>走者が<b>ホームインで得点</b>。不正解はアウト、<b>3アウトで終了</b>。</li>
           </ul>
+          <div class="howto-sub-ttl">📅 今日の10問</div>
+          <ul>
+            <li>毎日<b>10問</b>に挑戦（1日1回）。スイングはなく<b>正解／不正解のみ</b>。</li>
+            <li><b>10問全問正解＝＋5点</b>／<b>6〜9問正解＝＋3点</b>（本日・累計に加算）。</li>
+          </ul>
         </div>
       </div>
       <div class="qmenu-group-label">📚 学ぶ</div>
-      <button class="qmenu-card qmenu-daily" onclick="goTab('daily')">
-        <img src="images/ピッチャー.png" alt="">
-        <span class="qmenu-txt"><span class="qmenu-name">今日の10問</span><span class="qmenu-sub">毎日コツコツ10問チャレンジ</span></span>
-      </button>
       <button class="qmenu-card qmenu-quiz" onclick="startQuizPlay()">
         <img src="images/バッター.png" alt="">
         <span class="qmenu-txt"><span class="qmenu-name">クイズ</span><span class="qmenu-sub">英和・和英ミックス！自己ベストを伸ばそう</span></span>
+      </button>
+      <button class="qmenu-card qmenu-daily" onclick="goTab('daily')">
+        <img src="images/ピッチャー.png" alt="">
+        <span class="qmenu-txt"><span class="qmenu-name">今日の10問</span><span class="qmenu-sub">毎日コツコツ10問チャレンジ</span></span>
       </button>
       <button class="qmenu-card qmenu-review" onclick="goTab('review')">
         <img src="images/デフォ.png" alt="">
