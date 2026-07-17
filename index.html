@@ -2916,8 +2916,18 @@ function addRuns(n){
   ['quiz-runs','quiz-runs-today'].forEach(id=>{const el=$(id);if(el){el.classList.remove('run-bump');void el.offsetWidth;el.classList.add('run-bump');}});
 }
 function quizBack(){
-  if(versusActive){ versusQuitConfirm(); return; }
+  if(versusActive){
+    // 延長（4〜8回）中の放棄は没収／3回まで（未延長）は得点を加算して終了
+    if(vs && vs.maxInning===9){ versusQuitConfirm(); }
+    else { versusStopEarly(); }
+    return;
+  }
   quizToMenu();
+}
+function versusStopEarly(){
+  if(confirm('ここで試合を終えますか？（ここまでの得点は加算されます）')){
+    showVersusResult(false);
+  }
 }
 function quizToMenu(){
   lastQuizSection='menu';
@@ -3524,10 +3534,10 @@ function renderVersusBoard(){
   const last=(vs.maxInning===9 && vs.inning===9);
   const checkpoint=(vs.maxInning===3 && vs.inning===3);
   let btns;
-  if(last){ btns='<button class="vs-btn" onclick="showVersusResult()">結果を見る ▶</button>'; }
+  if(last){ btns='<button class="vs-btn" onclick="showVersusResult(true)">結果を見る ▶</button>'; }
   else if(checkpoint){
     btns='<button class="vs-btn" onclick="versusExtend()">9回まで続ける（広告）▶</button>'+
-         '<button class="vs-btn vs-btn-sub" onclick="versusQuitConfirm()">ここでやめる</button>';
+         '<button class="vs-btn vs-btn-sub" onclick="showVersusResult(false)">ここで終える（得点は加算）</button>';
   } else {
     btns='<button class="vs-btn" onclick="versusNextInning()">次の回 ▶</button>';
   }
@@ -3564,22 +3574,23 @@ function versusExtend(){
   vs.inning++;
   versusStartInning();
 }
-function showVersusResult(){
+// fullGame=true: 9回完走（勝てば+10ボーナス）／false: 3回で終える（得点は加算・ボーナスなし）
+function showVersusResult(fullGame){
   vs.finished=true;
-  const win=vs.userScore>vs.cpuScore;
-  // 得点を確定（試合完走のみ）。勝てば累計＋10点ボーナス
+  const win=vs.userScore>vs.cpuScore, tie=vs.userScore===vs.cpuScore;
+  // 得点はどちらでも加算（3回で終えても有効）。ボーナス+10は9回完走・勝利のみ
   versusActive=false;
   if(vs.userScore>0) addRuns(vs.userScore);
-  if(win) addRuns(10);
-  // 対戦成績を記録
-  try{ let rec=JSON.parse(localStorage.getItem('mlb_vs_rec'))||{w:0,l:0}; if(win)rec.w++; else rec.l++; localStorage.setItem('mlb_vs_rec',JSON.stringify(rec)); }catch(e){}
+  if(fullGame && win) addRuns(10);
+  // 対戦成績は9回完走のみ記録
+  if(fullGame){ try{ let rec=JSON.parse(localStorage.getItem('mlb_vs_rec'))||{w:0,l:0}; if(win)rec.w++; else rec.l++; localStorage.setItem('mlb_vs_rec',JSON.stringify(rec)); }catch(e){} }
   const ov=$('versus-board'); if(ov) ov.classList.remove('show');
   const r=$('versus-result');
   if(r){
-    r.querySelector('.vs-res-ttl').textContent = win?'勝利！ 🎉':'敗戦…';
+    r.querySelector('.vs-res-ttl').textContent = fullGame ? (win?'勝利！ 🎉':(tie?'引き分け':'敗戦…')) : (vs.inning+'回で終了');
     r.querySelector('.vs-res-score').textContent='あなた '+vs.userScore+' - '+vs.cpuScore+' 相手';
-    r.querySelector('.vs-res-char').src = win?CHAR_IMG.joy:CHAR_IMG.sad;
-    r.querySelector('.vs-res-bonus').textContent = win?'累計ボーナス ＋10点！':'';
+    r.querySelector('.vs-res-char').src = (win||tie)?CHAR_IMG.joy:CHAR_IMG.sad;
+    r.querySelector('.vs-res-bonus').textContent = (fullGame&&win)?'累計ボーナス ＋10点！':(vs.userScore>0?'得点 ＋'+vs.userScore+'点を加算':'');
     r.classList.add('show');
   }
 }
