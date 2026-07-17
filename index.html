@@ -3462,11 +3462,11 @@ function versusToast(text,cb){
 // 連続正解数に応じて球のレベルが上がる（0-4:やさしい, 5-9, 10-19, 20-39, 40+:最難関）
 // cfg: spd=マーカー速度(%/frame), perfect/great/good=中央からの半幅(%), brk=変化球度(0-1)
 const SWING_TIERS=[
-  {spd:0.95, perfect:8,  great:16, good:27, brk:0,   label:'Lv1 スローボール'},
-  {spd:1.35, perfect:6.5,great:13, good:22, brk:0,   label:'Lv2 ストレート'},
-  {spd:1.85, perfect:5.5,great:11, good:18, brk:0.35,label:'Lv3 変化球'},
-  {spd:2.4,  perfect:4.5,great:9,  good:15, brk:0.55,label:'Lv4 剛速球＋変化球'},
-  {spd:3.0,  perfect:3.6,great:7,  good:12, brk:0.75,label:'Lv5 最速＋多彩'},
+  {spd:0.85, perfect:8,  great:16, good:27, brk:0,   label:'Lv1 スローボール'},
+  {spd:1.10, perfect:6.5,great:13, good:22, brk:0,   label:'Lv2 ストレート'},
+  {spd:1.45, perfect:5.5,great:11, good:18, brk:0.3, label:'Lv3 変化球'},
+  {spd:1.85, perfect:4.5,great:9,  good:15, brk:0.45,label:'Lv4 剛速球＋変化球'},
+  {spd:2.3,  perfect:3.6,great:7,  good:12, brk:0.6, label:'Lv5 最速＋多彩'},
 ];
 function pitchTier(){
   const c=quizGameCorrect;
