@@ -1547,6 +1547,13 @@ function goTab(t){
     if(_parts && _parts[0]===dictMode && _parts[1])
       requestAnimationFrame(()=>setTimeout(()=>scrollToLetter(_parts[1]),80));
   }
+  else if(t==='dict'){
+    // 通常表示で辞書を開いたとき: 最後に見ていた位置へ復元（先頭に戻さない）
+    const _pos=localStorage.getItem('mlb_pos');
+    const _parts=_pos?_pos.split('|'):null;
+    if(_parts && _parts[0]===dictMode && _parts[1])
+      requestAnimationFrame(()=>setTimeout(()=>scrollToLetter(_parts[1]),80));
+  }
   if(t==='home') renderHome();
   if(t==='standings') renderStandings();
   if(t==='abbr') renderAbbrList();
