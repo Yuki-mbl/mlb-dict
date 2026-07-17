@@ -314,6 +314,13 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   border-radius:var(--r-lg);box-shadow:var(--shadow-s);padding:8px 0 12px}
 .qmenu-score .score-cols{display:flex}
 .qmenu-score .score-col{flex:1;text-align:center}
+/* 点の入り方 */
+.qmenu-howto{background:var(--c-card);border:2px solid var(--c-border);border-radius:var(--r-md);
+  box-shadow:var(--shadow-s);padding:11px 14px}
+.qmenu-howto-ttl{font-family:var(--ff-d);font-weight:900;font-size:14px;color:var(--c-ink);margin-bottom:6px}
+.qmenu-howto ul{margin:0;padding-left:18px}
+.qmenu-howto li{font-family:var(--ff-t);font-size:12.5px;color:var(--c-ink);opacity:.85;line-height:1.6}
+.qmenu-howto b{color:var(--c-coral)}
 /* ── サブページ共通（戻るバー） ── */
 .subpage-bar{display:flex;align-items:center;gap:10px;padding:6px 14px;
   background:var(--c-canvas);border-bottom:1px solid var(--c-hairline);flex-shrink:0}
@@ -967,6 +974,14 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
           </div>
         </div>
         <div class="menu-runs-row">⚾ 本日 <span id="menu-runs-today">0</span> 点 ／ 累計 <span id="menu-runs">0</span> 点</div>
+      </div>
+      <div class="qmenu-howto">
+        <div class="qmenu-howto-ttl">⚾ 点の入り方</div>
+        <ul>
+          <li>正解すると打席へ。バーの<b>赤</b>で止めると長打！（<b>黄</b>＝単打）</li>
+          <li><b>往路</b>＝ホームラン／<b>復路</b>＝二塁打（難問は三塁打）／それ以降＝単打</li>
+          <li>走者が<b>ホームインで得点</b>。不正解や凡打はアウト、<b>3アウトで終了</b>。</li>
+        </ul>
       </div>
       <button class="qmenu-card qmenu-quiz" onclick="startQuizPlay()">
         <img src="images/バッター.png" alt="">
