@@ -974,7 +974,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       </button>
       <button class="qmenu-card qmenu-versus" onclick="startVersus()">
         <img src="images/ガッツ.png" alt="">
-        <span class="qmenu-txt"><span class="qmenu-name">対戦モード</span><span class="qmenu-sub">CPUと9回勝負！3回まで無料</span></span>
+        <span class="qmenu-txt"><span class="qmenu-name">対戦モード</span><span class="qmenu-sub">9回勝負！</span></span>
       </button>
       <button class="qmenu-card qmenu-daily" onclick="goTab('daily')">
         <img src="images/ピッチャー.png" alt="">
@@ -3323,6 +3323,10 @@ function renderVersusBoard(){
   const wrap=$('versus-board-inner'); if(!wrap) return;
   const cells=n=>{ let s=''; for(let k=0;k<9;k++){ const v=(n[k]==null)?'':n[k]; s+='<td>'+v+'</td>'; } return s; };
   const homeTag=t=>vs.userHome? (t==='user'?'（後）':'（先）') : (t==='user'?'（先）':'（後）');
+  // 先攻を上段に
+  const userRow='<tr><th>あなた'+homeTag('user')+'</th>'+cells(vs.userLine)+'<td class="vs-r">'+vs.userScore+'</td></tr>';
+  const cpuRow='<tr><th>相手'+homeTag('cpu')+'</th>'+cells(vs.cpuLine)+'<td class="vs-r">'+vs.cpuScore+'</td></tr>';
+  const rows=vs.userHome ? (cpuRow+userRow) : (userRow+cpuRow); // 先攻が上
   const msg=versusInningMsg();
   const last=(vs.maxInning===9 && vs.inning===9);
   const checkpoint=(vs.maxInning===3 && vs.inning===3);
@@ -3337,8 +3341,7 @@ function renderVersusBoard(){
   wrap.innerHTML=
     '<div class="vs-board-ttl">'+vs.inning+'回 終了</div>'+
     '<table class="vs-score"><tr class="vs-hdr"><th></th>'+[1,2,3,4,5,6,7,8,9].map(n=>'<th>'+n+'</th>').join('')+'<th class="vs-r">計</th></tr>'+
-    '<tr><th>相手'+homeTag('cpu')+'</th>'+cells(vs.cpuLine)+'<td class="vs-r">'+vs.cpuScore+'</td></tr>'+
-    '<tr><th>あなた'+homeTag('user')+'</th>'+cells(vs.userLine)+'<td class="vs-r">'+vs.userScore+'</td></tr></table>'+
+    rows+'</table>'+
     (msg?'<div class="vs-msg">'+msg+'</div>':'')+
     '<div class="vs-btns">'+btns+'</div>';
 }
