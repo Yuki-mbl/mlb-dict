@@ -303,7 +303,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   border:var(--bw) solid var(--c-border);border-radius:var(--r-lg);box-shadow:var(--shadow-m);
   cursor:pointer;text-align:left;transition:all .12s;-webkit-tap-highlight-color:transparent}
 .qmenu-card:active{transform:translate(3px,3px);box-shadow:none}
-.qmenu-card img{height:72px;width:auto;flex-shrink:0}
+.qmenu-card img{height:72px;width:72px;object-fit:contain;flex-shrink:0}
 .qmenu-quiz{background:var(--c-accent)}
 .qmenu-daily{background:var(--c-orange)}
 .qmenu-review{background:#ffd9d6}
@@ -970,7 +970,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       </div>
       <button class="qmenu-card qmenu-quiz" onclick="startQuizPlay()">
         <img src="images/バッター.png" alt="">
-        <span class="qmenu-txt"><span class="qmenu-name">クイズ</span><span class="qmenu-sub">英和・和英ミックス！制限時間あり・3アウトで交代</span></span>
+        <span class="qmenu-txt"><span class="qmenu-name">クイズ</span><span class="qmenu-sub">英和・和英ミックス！制限時間あり・3アウトで終了</span></span>
       </button>
       <button class="qmenu-card qmenu-versus" onclick="startVersus()">
         <img src="images/ガッツ.png" alt="">
