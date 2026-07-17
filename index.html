@@ -824,7 +824,8 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .home-otd-body{font-size:14px;color:var(--c-ink);line-height:1.55;opacity:.92}
 .home-otd-body .otd-year{font-family:var(--ff-d);font-weight:900;color:var(--c-primary);margin-right:6px}
 /* ── 今日の試合・順位表 ── */
-.home-games-hd{display:flex;align-items:center;justify-content:space-between}
+.home-games-hd{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.games-refresh{font-family:var(--ff-t);font-size:10.5px;font-weight:600;color:var(--c-muted2);white-space:nowrap}
 .standings-btn{padding:4px 12px;border:2px solid var(--c-border);border-radius:var(--r-pill);
   background:var(--c-accent);box-shadow:var(--shadow-s);font-family:var(--ff-t);
   font-size:12px;font-weight:800;color:var(--c-ink);cursor:pointer;
@@ -927,7 +928,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       </div>
 
       <div class="home-card home-games-card">
-        <div class="home-card-hd home-games-hd">⚾ 今日の試合
+        <div class="home-card-hd home-games-hd"><span>⚾ 今日の試合 <span class="games-refresh">🔄 約5分ごとに更新</span></span>
           <button class="standings-btn" onclick="goTab('standings')">順位表 →</button>
         </div>
         <div id="home-games" class="home-games-body">読み込み中…</div>
