@@ -618,6 +618,11 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .review-hdr{padding:16px 14px 8px;background:var(--c-canvas);
   border-bottom:1px solid var(--c-hairline);flex-shrink:0;transition:background .25s}
 .review-hdr h1{font-family:var(--ff-d);font-size:26px;font-weight:900;letter-spacing:-0.28px}
+.review-clear-btn{margin-left:auto;flex-shrink:0;padding:7px 14px;border:2px solid var(--c-border);
+  border-radius:var(--r-pill);background:var(--c-coral);box-shadow:var(--shadow-s);
+  font-family:var(--ff-t);font-size:13px;font-weight:800;color:#fff;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:all .12s}
+.review-clear-btn:active{transform:translate(2px,2px);box-shadow:none}
 .review-item{padding:12px 14px;border-bottom:1px solid var(--c-hairline);
   display:flex;align-items:center;gap:10px;cursor:pointer;
   background:var(--c-canvas);transition:background .1s;
@@ -1164,7 +1169,14 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 
   <!-- ── 復習リスト ── -->
   <div id="tab-review" class="tab-panel">
-    <div class="review-hdr subpage-hdr"><button class="back-btn" onclick="quizMenu()">← 目次</button><h1>復習リスト</h1></div>
+    <div class="review-hdr subpage-hdr"><button class="back-btn" onclick="quizMenu()">← 目次</button><h1>復習リスト</h1><button class="review-clear-btn" id="review-clear-btn" onclick="askClearReview()">全削除</button></div>
+    <div class="reset-confirm" id="review-clear-confirm">
+      <span class="reset-confirm-msg">復習リストをすべて削除しますか？</span>
+      <div class="reset-confirm-btns">
+        <button class="reset-confirm-cancel" onclick="cancelClearReview()">いいえ</button>
+        <button class="reset-confirm-ok" onclick="clearReview()">はい</button>
+      </div>
+    </div>
     <div id="review-list"></div>
   </div>
 
@@ -3886,6 +3898,13 @@ function removeFromReview(type,idx){
   let review=JSON.parse(localStorage.getItem('mlb_review')||'[]');
   review=review.filter(r=>!(r.type===type&&r.idx===idx));
   localStorage.setItem('mlb_review',JSON.stringify(review));
+}
+function askClearReview(){ const c=$('review-clear-confirm'); if(c) c.classList.add('show'); }
+function cancelClearReview(){ const c=$('review-clear-confirm'); if(c) c.classList.remove('show'); }
+function clearReview(){
+  localStorage.setItem('mlb_review','[]');
+  const c=$('review-clear-confirm'); if(c) c.classList.remove('show');
+  renderReviewList();
 }
 function renderReviewList(){
   const review=JSON.parse(localStorage.getItem('mlb_review')||'[]');
