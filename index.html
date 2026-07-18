@@ -844,6 +844,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   box-shadow:var(--shadow-s);font-family:var(--ff-t);font-size:13px;font-weight:800;
   color:var(--c-ink);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .12s}
 .games-reveal-all:active{transform:translate(2px,2px);box-shadow:none}
+.games-reveal-all-top{margin-top:0;margin-bottom:8px}
 .game-team{flex:1;display:flex;align-items:center;gap:6px;min-width:0;
   font-weight:700;color:var(--c-ink);font-size:13.5px}
 .game-team.away{justify-content:flex-end}
@@ -931,6 +932,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
         <div class="home-card-hd home-games-hd"><span>⚾ 今日の試合 <span class="games-refresh">🔄 約5分ごとに更新</span></span>
           <button class="standings-btn" onclick="goTab('standings')">順位表 →</button>
         </div>
+        <div id="games-revealall-top"></div>
         <div id="home-games" class="home-games-body">読み込み中…</div>
         <div class="home-games-note">米国日付の本日の試合／開始時刻は日本時間／結果は「👀 結果」をタップで表示（ネタバレ防止）</div>
       </div>
@@ -1779,9 +1781,11 @@ async function loadGames(){
         <span class="game-team"><span class="game-team-name">${esc(teamJa(h.team))}</span>${teamLogo(h.team)}</span>
       </div>`;
     }).join('');
-    // 未表示の結果があれば「すべて表示」ボタン
+    // 未表示の結果があれば「すべて表示」ボタン（上部＋末尾）
     const anyHidden=games.some(g=>{const s=gameStateJa(g).cls; return (s==='live'||s==='final')&&!gameRevealed.has(g.gamePk);});
-    el.innerHTML=rowsHtml+(anyHidden?`<button type="button" class="games-reveal-all" onclick="revealAllGames()">👀 すべての結果を表示</button>`:'');
+    const revealBtn=anyHidden?`<button type="button" class="games-reveal-all" onclick="revealAllGames()">👀 すべての結果を表示</button>`:'';
+    el.innerHTML=rowsHtml+revealBtn;
+    const topWrap=$('games-revealall-top'); if(topWrap) topWrap.innerHTML=anyHidden?`<button type="button" class="games-reveal-all games-reveal-all-top" onclick="revealAllGames()">👀 すべての結果を表示</button>`:'';
   }catch(e){
     el.innerHTML='<div style="padding:6px 0">オフラインのため表示できません</div>';
   }
