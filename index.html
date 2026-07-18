@@ -1648,20 +1648,47 @@ function renderHome(){
 }
 // ── 成績・本日のランキング（ローカル。大母数の中で本日得点を競う） ────────────────
 // 上位は僅差、下は長い裾野（10点前後で約100位）。母数は日替わりで約140〜180人。
+// ── 生活パターン（1日の点数の伸び方）─────────────────────────────
+// w = 各時間帯(0〜23時)に稼ぐ相対ポイント。cumFrac で「今の時刻までの達成率(0〜1)」に変換。
+const PERSONAS={
+  steady:  {w:[10,8,4,1,1,1,1,3,3,2,2,2,6,4,3,6,4,3,7,5,4,7,5,6]}, // まんべんなく＋深夜と夜に山
+  nightowl:{w:[9,7,5,2,1,1,1,1,1,1,1,1,2,2,2,2,2,3,4,4,5,7,10,12]},// 深夜〜未明と夜更けに一気に
+  commuter:{w:[1,1,1,1,1,1,2,8,9,5,2,2,3,2,2,2,3,6,9,8,5,3,2,1]}, // 通勤時間帯(朝夕)にドカッと
+  meal:    {w:[1,1,1,1,1,1,2,6,5,2,2,3,8,7,3,2,2,3,5,9,8,4,2,1]}, // ご飯の時間(朝昼晩)だけ
+  evening: {w:[1,1,1,1,1,1,1,2,2,2,2,2,3,3,3,4,5,6,8,9,8,7,5,3]}, // 夜型・帰宅後に伸びる
+  morning: {w:[2,1,1,1,1,2,4,8,7,6,5,4,4,3,3,3,3,3,3,3,2,2,2,2]}, // 朝活タイプ
+  weekend: {w:[6,5,3,1,1,1,2,4,5,5,6,6,7,6,5,6,6,6,7,7,6,6,5,5], wkScale:0.28}, // 週末だけすさまじい(平日は控えめ)
+};
+const PERSONA_ORDER=['steady','nightowl','commuter','weekend','meal','evening','morning','nightowl','commuter','meal','evening','weekend'];
+function cumFrac(w,h){ let tot=0; for(const x of w) tot+=x; if(tot<=0) return 0; let acc=0; const full=Math.floor(h); for(let i=0;i<full&&i<24;i++) acc+=w[i]; if(full<24) acc+=(w[full]||0)*(h-full); return Math.min(1,acc/tot); }
+function nowHour(){ const d=new Date(); return d.getHours()+d.getMinutes()/60; }
 function todayField(){
   const key='mlb_field_'+todayStr();
-  try{ const c=JSON.parse(localStorage.getItem(key)); if(c&&c.names&&c.names.length>=12) return c; }catch(e){}
-  const top=68+Math.floor(Math.random()*9);      // 1位 68〜76点
+  try{ const c=JSON.parse(localStorage.getItem(key)); if(c&&c.names&&c.names.length>=12&&c.personas) return c; }catch(e){}
+  const top=116+Math.floor(Math.random()*13);    // 1位の「1日の最終」116〜128点（23:59頃に到達）
   const N=140+Math.floor(Math.random()*41);      // 全体 140〜180人
   const p=2.0;
+  const wknd=(function(){const g=new Date().getDay(); return g===0||g===6;})();
   const my=(getProfile()&&getProfile().nick)||'';
   const used={}; used[my]=1; const names=[];
   for(let i=0;i<12;i++){ let nm='ライバル'; for(let k=0;k<25;k++){const c=genNickname(''); if(c&&!used[c]){nm=c;used[c]=1;break;}} names.push(nm); }
-  const f={top,N,p,names};
+  // 生活パターンをシャッフルして割り当て（日中は順位が入れ替わって見える）
+  const personas=PERSONA_ORDER.slice(); for(let i=personas.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[personas[i],personas[j]]=[personas[j],personas[i]];}
+  const f={top,N,p,names,personas,wknd};
   try{ localStorage.setItem(key,JSON.stringify(f)); }catch(e){}
   return f;
 }
-function scoreForRank(rank,f){ return Math.max(1, Math.round(f.top*Math.pow(Math.max(0,1-(rank-1)/f.N), f.p))); }
+// ランクr(1位=最強)の「1日の最終スコア」
+function finalForRank(rank,f){ return Math.max(1, Math.round(f.top*Math.pow(Math.max(0,1-(rank-1)/f.N), f.p))); }
+// 今この瞬間のスコア = 最終 × その人の生活パターンの達成率
+function liveScoreForRank(rank,f,h){
+  const base=finalForRank(rank,f);
+  const P=PERSONAS[f.personas[rank-1]]||PERSONAS.steady;
+  let sc=base*cumFrac(P.w,h);
+  if(P.wkScale && !f.wknd) sc*=P.wkScale; // 週末型は平日は伸びない
+  return Math.max(0,Math.round(sc));
+}
+function scoreForRank(rank,f){ return finalForRank(rank,f); }
 function rankForScore(s,f){
   if(s>=f.top) return 1;
   if(s<=0) return f.N;
@@ -1672,12 +1699,16 @@ function renderStats(){
   const f=todayField();
   const myNick=(getProfile()&&getProfile().nick)||'あなた';
   const us=runsToday;
-  // トップ12＋自分を合成して、上位の位置を正確に判定
-  const top=[]; for(let r=1;r<=12;r++) top.push({name:f.names[r-1],score:scoreForRank(r,f),me:false});
+  const h=nowHour();
+  // 現時点のライバルのスコア（時刻＋生活パターンで変動）＋自分を合成
+  const top=[]; for(let r=1;r<=12;r++) top.push({name:f.names[r-1],score:liveScoreForRank(r,f,h),me:false});
   const merged=top.concat([{name:myNick,score:us,me:true}]).sort((a,b)=> b.score-a.score || (a.me?1:-1));
   const idx=merged.findIndex(x=>x.me);
   const inTop10=idx<10;
-  const myRank=inTop10 ? idx+1 : Math.max(11, rankForScore(us,f));
+  // トップ圏外の順位は「今の時刻の全体レベル」で概算（早朝は少点でも上位に入れる）
+  const avgP=(cumFrac(PERSONAS.steady.w,h)+cumFrac(PERSONAS.commuter.w,h)+cumFrac(PERSONAS.evening.w,h)+cumFrac(PERSONAS.meal.w,h))/4;
+  const curTop=Math.max(1,f.top*avgP);
+  const myRank=inTop10 ? idx+1 : Math.max(11, rankForScore(us,{top:curTop,N:f.N,p:f.p}));
   const you=$('rank-you'); if(you) you.textContent='あなたは '+myRank+' 位 / 全'+f.N+'人中';
   const bd=$('rank-board');
   if(bd){
