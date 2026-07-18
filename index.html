@@ -366,9 +366,9 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   filter:drop-shadow(0 3px 5px rgba(0,0,0,.28));
   transition:left .42s linear, top .42s linear}
 /* ── スイングタイミング演出 ── */
-.swing-ui{position:absolute;inset:0;z-index:12;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:8px;
-  background:rgba(20,26,46,.42);backdrop-filter:blur(1px)}
+.swing-ui{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
+  margin:10px 14px 0;padding:12px;border:2px solid var(--c-border);border-radius:var(--r-lg);
+  background:#c9ecff;box-shadow:var(--shadow-s)}
 .swing-pitch{font-family:var(--ff-d);font-weight:900;font-size:13px;color:#fff;
   background:var(--c-primary);border:2px solid var(--c-border);border-radius:var(--r-pill);
   padding:2px 12px;box-shadow:var(--shadow-s)}
@@ -381,17 +381,16 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .swing-zone-perfect{background:#ff8f6b}
 .swing-marker{position:absolute;top:-3px;bottom:-3px;width:4px;left:0;margin-left:-2px;
   background:var(--c-ink);border-radius:2px;box-shadow:0 0 0 1px #fff}
-.swing-guide{font-family:var(--ff-t);font-weight:700;font-size:11px;color:#fff;
-  text-shadow:0 1px 3px rgba(0,0,0,.6);letter-spacing:.2px}
+.swing-guide{font-family:var(--ff-t);font-weight:700;font-size:11px;color:var(--c-ink);
+  opacity:.75;letter-spacing:.2px}
 .swing-btn{font-family:var(--ff-d);font-weight:900;font-size:16px;color:#fff;
   background:var(--c-coral);border:3px solid var(--c-border);border-radius:var(--r-pill);
   padding:6px 26px;box-shadow:var(--shadow-m);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .swing-btn:active{transform:translate(2px,2px);box-shadow:none}
 .swing-btn:disabled{opacity:.55}
-.swing-result{font-family:var(--ff-d);font-weight:900;font-size:17px;color:#fff;
-  text-shadow:0 2px 4px rgba(0,0,0,.5);min-height:20px}
-.swing-result.hit{color:#fff36b}
-.swing-result.out{color:#ffb3a8}
+.swing-result{font-family:var(--ff-d);font-weight:900;font-size:17px;color:var(--c-ink);min-height:20px}
+.swing-result.hit{color:var(--c-coral)}
+.swing-result.out{color:var(--c-muted)}
 /* 設定: スイング操作トグル */
 .swing-toggle{flex-shrink:0;padding:8px 18px;border:var(--bw) solid var(--c-border);
   border-radius:var(--r-pill);background:var(--c-accent);box-shadow:var(--shadow-s);
@@ -1097,19 +1096,19 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
           <img class="dchar dchar-runner" id="dchar-3" src="images/盗塁待ち.png" alt="" style="display:none">
           <div class="diamond-hud diamond-hud-out"><span class="quiz-outs" id="quiz-outs">OUT ○○○</span></div>
           <div class="diamond-hud diamond-hud-run">本日 <span id="quiz-runs-today">0</span>／通算 <span id="quiz-runs">0</span></div>
-          <div class="swing-ui" id="swing-ui" style="display:none">
-            <div class="swing-pitch" id="swing-pitch">Lv1 直球</div>
-            <div class="swing-track">
-              <div class="swing-zone swing-zone-good" id="sz-good"></div>
-              <div class="swing-zone swing-zone-great" id="sz-great"></div>
-              <div class="swing-zone swing-zone-perfect" id="sz-perfect"></div>
-              <div class="swing-marker" id="swing-marker"></div>
-            </div>
-            <div class="swing-guide" id="swing-guide"></div>
-            <button class="swing-btn" id="swing-btn" onclick="doSwing()">打て！</button>
-            <div class="swing-result" id="swing-result"></div>
-          </div>
         </div>
+      </div>
+      <div class="swing-ui" id="swing-ui" style="display:none">
+        <div class="swing-pitch" id="swing-pitch">Lv1 直球</div>
+        <div class="swing-track">
+          <div class="swing-zone swing-zone-good" id="sz-good"></div>
+          <div class="swing-zone swing-zone-great" id="sz-great"></div>
+          <div class="swing-zone swing-zone-perfect" id="sz-perfect"></div>
+          <div class="swing-marker" id="swing-marker"></div>
+        </div>
+        <div class="swing-guide" id="swing-guide"></div>
+        <button class="swing-btn" id="swing-btn" onclick="doSwing()">打て！</button>
+        <div class="swing-result" id="swing-result"></div>
       </div>
       <div class="quiz-card">
         <div class="pitch-clock"><div class="pitch-clock-fill" id="pitch-clock-fill"></div></div>
@@ -3633,9 +3632,9 @@ function pitchTier(){
 let sw={active:false,pos:0,dir:1,raf:0,cfg:null,hit:1,foulUsed:false,pW:0,gW:0,dW:0,pass:1,center:50};
 function startSwing(hit){
   sw.hit=hit; sw.foulUsed=false;
-  // 小さい画面でもダイヤモンド＋バーが見えるよう先頭までスクロール
-  const p=$('quiz-play'); if(p){ try{ p.scrollTo({top:0,behavior:'smooth'}); }catch(e){ p.scrollTop=0; } }
   beginPitch();
+  // スイングバーが画面に見えるようスクロール（小さい画面対策）
+  const ui=$('swing-ui'); if(ui){ try{ ui.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){ const p=$('quiz-play'); if(p) p.scrollTop=0; } }
 }
 function beginPitch(){
   const cfg=SWING_TIERS[pitchTier()];
