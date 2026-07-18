@@ -1651,15 +1651,16 @@ function renderHome(){
 // ── 生活パターン（1日の点数の伸び方）─────────────────────────────
 // w = 各時間帯(0〜23時)に稼ぐ相対ポイント。cumFrac で「今の時刻までの達成率(0〜1)」に変換。
 const PERSONAS={
-  steady:  {w:[10,8,4,1,1,1,1,3,3,2,2,2,6,4,3,6,4,3,7,5,4,7,5,6]}, // まんべんなく＋深夜と夜に山
-  nightowl:{w:[9,7,5,2,1,1,1,1,1,1,1,1,2,2,2,2,2,3,4,4,5,7,10,12]},// 深夜〜未明と夜更けに一気に
-  commuter:{w:[1,1,1,1,1,1,2,8,9,5,2,2,3,2,2,2,3,6,9,8,5,3,2,1]}, // 通勤時間帯(朝夕)にドカッと
-  meal:    {w:[1,1,1,1,1,1,2,6,5,2,2,3,8,7,3,2,2,3,5,9,8,4,2,1]}, // ご飯の時間(朝昼晩)だけ
-  evening: {w:[1,1,1,1,1,1,1,2,2,2,2,2,3,3,3,4,5,6,8,9,8,7,5,3]}, // 夜型・帰宅後に伸びる
-  morning: {w:[2,1,1,1,1,2,4,8,7,6,5,4,4,3,3,3,3,3,3,3,2,2,2,2]}, // 朝活タイプ
-  weekend: {w:[6,5,3,1,1,1,2,4,5,5,6,6,7,6,5,6,6,6,7,7,6,6,5,5], wkScale:0.28}, // 週末だけすさまじい(平日は控えめ)
+  steady:  {w:[13,11,6,1,1,1,1,3,3,2,2,2,6,4,3,6,4,3,7,5,4,7,5,6]}, // 深夜まで起きてて一気に、以降まんべんなく
+  nightowl:{w:[16,14,9,3,1,1,1,1,1,1,1,1,1,1,1,2,2,3,4,5,6,9,13,16]},// 深夜〜未明と夜更けにドカッと
+  latenite:{w:[9,20,10,2,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,3,3,5,7,9]},  // 1〜2時に爆発するタイプ
+  commuter:{w:[2,2,1,1,1,1,2,8,9,5,2,2,3,2,2,2,3,6,9,8,5,3,2,1]}, // 通勤時間帯(朝夕)にドカッと
+  meal:    {w:[2,2,1,1,1,1,2,6,5,2,2,3,8,7,3,2,2,3,5,9,8,4,2,1]}, // ご飯の時間(朝昼晩)だけ
+  evening: {w:[3,2,1,1,1,1,1,2,2,2,2,2,3,3,3,4,5,6,8,9,8,7,5,3]}, // 夜型・帰宅後に伸びる
+  morning: {w:[3,2,1,1,1,2,4,8,7,6,5,4,4,3,3,3,3,3,3,3,2,2,2,2]}, // 朝活タイプ
+  weekend: {w:[7,6,4,1,1,1,2,4,5,5,6,6,7,6,5,6,6,6,7,7,6,6,5,5], wkScale:0.28}, // 週末だけすさまじい(平日は控えめ)
 };
-const PERSONA_ORDER=['steady','nightowl','commuter','weekend','meal','evening','morning','nightowl','commuter','meal','evening','weekend'];
+const PERSONA_ORDER=['steady','nightowl','latenite','commuter','weekend','meal','evening','nightowl','morning','latenite','commuter','meal'];
 function cumFrac(w,h){ let tot=0; for(const x of w) tot+=x; if(tot<=0) return 0; let acc=0; const full=Math.floor(h); for(let i=0;i<full&&i<24;i++) acc+=w[i]; if(full<24) acc+=(w[full]||0)*(h-full); return Math.min(1,acc/tot); }
 function nowHour(){ const d=new Date(); return d.getHours()+d.getMinutes()/60; }
 function todayField(){
@@ -1700,13 +1701,18 @@ function renderStats(){
   const myNick=(getProfile()&&getProfile().nick)||'あなた';
   const us=runsToday;
   const h=nowHour();
-  // 現時点のライバルのスコア（時刻＋生活パターンで変動）＋自分を合成
+  // 今の時刻の全体の進み具合（早朝は低い→少点でも上位に入れる）
+  const avgP=(cumFrac(PERSONAS.steady.w,h)+cumFrac(PERSONAS.commuter.w,h)+cumFrac(PERSONAS.evening.w,h)+cumFrac(PERSONAS.meal.w,h))/4;
+  // 現時点のライバルのスコア（時刻＋生活パターンで変動）
   const top=[]; for(let r=1;r<=12;r++) top.push({name:f.names[r-1],score:liveScoreForRank(r,f,h),me:false});
+  // 終盤（夜〜終了間際）はユーザーを最高2位までに。途中は1位もOK
+  if(avgP>=0.8 && us>0){
+    const lead=top.reduce((a,b)=>b.score>a.score?b:a, top[0]);
+    if(us>=lead.score) lead.score=us+1+Math.floor(Math.random()*3);
+  }
   const merged=top.concat([{name:myNick,score:us,me:true}]).sort((a,b)=> b.score-a.score || (a.me?1:-1));
   const idx=merged.findIndex(x=>x.me);
   const inTop10=idx<10;
-  // トップ圏外の順位は「今の時刻の全体レベル」で概算（早朝は少点でも上位に入れる）
-  const avgP=(cumFrac(PERSONAS.steady.w,h)+cumFrac(PERSONAS.commuter.w,h)+cumFrac(PERSONAS.evening.w,h)+cumFrac(PERSONAS.meal.w,h))/4;
   const curTop=Math.max(1,f.top*avgP);
   const myRank=inTop10 ? idx+1 : Math.max(11, rankForScore(us,{top:curTop,N:f.N,p:f.p}));
   const you=$('rank-you'); if(you) you.textContent='あなたは '+myRank+' 位 / 全'+f.N+'人中';
