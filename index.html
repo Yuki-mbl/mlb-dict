@@ -3528,10 +3528,10 @@ function versusUserHalfDone(){
 function renderVersusBoard(){
   const wrap=$('versus-board-inner'); if(!wrap) return;
   const cells=n=>{ let s=''; for(let k=0;k<9;k++){ const v=(n[k]==null)?'':n[k]; s+='<td>'+v+'</td>'; } return s; };
-  const homeTag=t=>vs.userHome? (t==='user'?'（後）':'（先）') : (t==='user'?'（先）':'（後）');
-  // 先攻を上段に
-  const userRow='<tr><th>あなた'+homeTag('user')+'</th>'+cells(vs.userLine)+'<td class="vs-r">'+vs.userScore+'</td></tr>';
-  const cpuRow='<tr><th>相手'+homeTag('cpu')+'</th>'+cells(vs.cpuLine)+'<td class="vs-r">'+vs.cpuScore+'</td></tr>';
+  const myName=(getProfile()&&getProfile().nick)||'あなた';
+  // 先攻を上段に。あなたの名前は青で強調
+  const userRow='<tr><th style="color:#1d6fd6">'+esc(myName)+'</th>'+cells(vs.userLine)+'<td class="vs-r">'+vs.userScore+'</td></tr>';
+  const cpuRow='<tr><th>'+esc(vs.name)+'</th>'+cells(vs.cpuLine)+'<td class="vs-r">'+vs.cpuScore+'</td></tr>';
   const rows=vs.userHome ? (cpuRow+userRow) : (userRow+cpuRow); // 先攻が上
   const msg=versusInningMsg();
   const last=(vs.maxInning===9 && vs.inning===9);
