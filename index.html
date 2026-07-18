@@ -3618,17 +3618,21 @@ function versusToast(text,cb){
 // ── スイングタイミング（打撃）ミニゲーム ──
 // 連続正解数に応じて球のレベルが上がる（0-4:やさしい, 5-9, 10-19, 20-39, 40+:最難関）
 // cfg: spd=マーカー速度(%/frame), perfect/great/good=中央からの半幅(%), brk=変化球度(0-1)
+// 赤の滞在時間をなだらかに: 310→260→215→175→140→110→80→50ms（変化球は上位のみ控えめ）
 const SWING_TIERS=[
-  {spd:0.85, perfect:8,  great:16, good:27, brk:0,   label:'Lv1 スローボール'},
-  {spd:1.10, perfect:6.5,great:13, good:22, brk:0.25,label:'Lv2 変化球'},
-  {spd:1.45, perfect:5.5,great:11, good:18, brk:0.3, label:'Lv3 変化球'},
-  {spd:1.85, perfect:4.5,great:9,  good:15, brk:0.45,label:'Lv4 剛速球＋変化球'},
-  {spd:1.9,  perfect:4.5,great:9,  good:15, brk:0.6, label:'Lv5 最速＋変化球'},
-  {spd:1.9,  perfect:4.5,great:9,  good:15, brk:1.0, label:'Lv6 魔球（最難関）'},
+  {spd:0.86, perfect:8,  great:16, good:27, brk:0,   label:'Lv1 スローボール'},
+  {spd:0.96, perfect:7.5,great:15, good:25, brk:0,   label:'Lv2 ゆる球'},
+  {spd:1.09, perfect:7,  great:13, good:22, brk:0,   label:'Lv3 ストレート'},
+  {spd:1.24, perfect:6.5,great:12, good:20, brk:0,   label:'Lv4 速球'},
+  {spd:1.43, perfect:6,  great:11, good:18, brk:0,   label:'Lv5 快速球'},
+  {spd:1.51, perfect:5.5,great:10, good:16, brk:0.1, label:'Lv6 剛速球'},
+  {spd:1.74, perfect:5,  great:9,  good:15, brk:0.2, label:'Lv7 変化球'},
+  {spd:2.31, perfect:4.5,great:9,  good:14, brk:0.3, label:'Lv8 魔球（最難関）'},
 ];
 function pitchTier(){
   const c=quizGameCorrect;
-  if(c<=3) return 0; if(c<=7) return 1; if(c<=15) return 2; if(c<=25) return 3; if(c<=35) return 4; return 5;
+  if(c<=3) return 0; if(c<=7) return 1; if(c<=12) return 2; if(c<=18) return 3;
+  if(c<=25) return 4; if(c<=33) return 5; if(c<=42) return 6; return 7;
 }
 let sw={active:false,pos:0,dir:1,raf:0,cfg:null,hit:1,foulUsed:false,pW:0,gW:0,dW:0,pass:1,center:50};
 function startSwing(hit){
