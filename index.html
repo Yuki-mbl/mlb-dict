@@ -934,7 +934,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
         </div>
         <div id="games-revealall-top"></div>
         <div id="home-games" class="home-games-body">読み込み中…</div>
-        <div class="home-games-note">米国日付の本日の試合／開始時刻は日本時間／結果は「👀 結果」をタップで表示（ネタバレ防止）</div>
+        <div class="home-games-note">米国日付の本日の試合／開始時刻は日本時間／結果は「結果」をタップで表示（ネタバレ防止）</div>
       </div>
 
     </div>
@@ -1771,7 +1771,7 @@ async function loadGames(){
       const isResult=(st.cls==='live'||st.cls==='final');
       let mid;
       if(isResult && !gameRevealed.has(g.gamePk)){
-        mid=`${dh}<button type="button" class="game-reveal" onclick="revealGame(${g.gamePk})">👀 結果</button>`;
+        mid=`${dh}<button type="button" class="game-reveal" onclick="revealGame(${g.gamePk})">結果</button>`;
       }else{
         mid=`${dh}<span class="game-score">${esc(String(score))}</span><br><span class="game-state ${st.cls}">${esc(st.txt)}</span>`;
       }
