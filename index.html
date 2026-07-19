@@ -1681,7 +1681,7 @@ function rosterPool(){
 }
 function todayField(){
   const key='mlb_field_'+todayStr();
-  try{ const c=JSON.parse(localStorage.getItem(key)); if(c&&c.names&&c.names.length>=12&&c.finals) return c; }catch(e){}
+  try{ const c=JSON.parse(localStorage.getItem(key)); if(c&&c.names&&c.names.length>=20&&c.finals&&c.finals.length>=20) return c; }catch(e){}
   const wknd=(function(){const g=new Date().getDay(); return g===0||g===6;})();
   const N=140+Math.floor(Math.random()*41);      // 全体 140〜180人
   const p=1.7+Math.random()*0.8;                 // 落ち方の急さ（日替わり 1.7〜2.5）
@@ -1697,9 +1697,9 @@ function todayField(){
   let drop=0.025+Math.random()*0.05;             // 上位の1順位ごとの下げ幅 2.5〜7.5%
   if(dtype==='tight') drop=0.012+Math.random()*0.014; // 接戦の日は差が小さい
   const finals=[];
-  for(let r=0;r<12;r++) finals.push(Math.max(1,Math.round(T*(1-drop*r))));
+  for(let r=0;r<20;r++) finals.push(Math.max(1,Math.round(T*(1-drop*r))));
   if(dtype==='runaway'){ T=Math.round(T*(1.28+Math.random()*0.3)); finals[0]=T; }        // 独走
-  else if(dtype==='duel'){ finals[0]=T; finals[1]=Math.round(T*(0.93+Math.random()*0.05)); for(let r=2;r<12;r++) finals[r]=Math.round(finals[r]*0.6); } // 1・2位だけ高い
+  else if(dtype==='duel'){ finals[0]=T; finals[1]=Math.round(T*(0.93+Math.random()*0.05)); for(let r=2;r<20;r++) finals[r]=Math.round(finals[r]*0.6); } // 1・2位だけ高い
   const top=finals[0];
   const roster=rosterPool();
   const my=(getProfile()&&getProfile().nick)||'';
@@ -1715,10 +1715,10 @@ function todayField(){
   // 上位ランクは常連＋伏兵で埋め、残りは日替わりのランダム名。伏兵は出た日はトップ寄りに
   const topNames=shuf(surg).concat(shuf(regs));
   const names=[];
-  topNames.forEach(n=>{ if(names.length<12 && !used[n]){ used[n]=1; names.push(n); } });
-  while(names.length<12){ let nm='ライバル'; for(let k=0;k<30;k++){const c=genNickname(''); if(c&&!used[c]){nm=c;used[c]=1;break;}} names.push(nm); }
-  // 生活パターンをシャッフルして割り当て（日中は順位が入れ替わって見える）
-  const personas=PERSONA_ORDER.slice(); for(let i=personas.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[personas[i],personas[j]]=[personas[j],personas[i]];}
+  topNames.forEach(n=>{ if(names.length<20 && !used[n]){ used[n]=1; names.push(n); } });
+  while(names.length<20){ let nm='ライバル'; for(let k=0;k<30;k++){const c=genNickname(''); if(c&&!used[c]){nm=c;used[c]=1;break;}} names.push(nm); }
+  // 生活パターンをシャッフルして割り当て（日中は順位が入れ替わって見える）。20人分
+  const personas=[]; while(personas.length<20){ const b=PERSONA_ORDER.slice(); for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];} personas.push(...b); } personas.length=20;
   const f={top,N,p,names,personas,wknd,finals,dtype};
   try{ localStorage.setItem(key,JSON.stringify(f)); }catch(e){}
   return f;
@@ -1748,7 +1748,7 @@ function renderStats(){
   // 今の時刻の全体の進み具合（早朝は低い→少点でも上位に入れる）
   const avgP=(cumFrac(PERSONAS.steady.w,h)+cumFrac(PERSONAS.commuter.w,h)+cumFrac(PERSONAS.evening.w,h)+cumFrac(PERSONAS.meal.w,h))/4;
   // 現時点のライバルのスコア（時刻＋生活パターンで変動）
-  const top=[]; for(let r=1;r<=12;r++) top.push({name:f.names[r-1],score:liveScoreForRank(r,f,h),me:false});
+  const top=[]; for(let r=1;r<=20;r++) top.push({name:f.names[r-1],score:liveScoreForRank(r,f,h),me:false});
   // 終盤（夜〜終了間際）はユーザーを最高2位までに。途中は1位もOK
   // duel（1位2位だけ競る日）は上位2人をユーザーの上にキープ（最高3位）
   if(avgP>=0.8 && us>0){
@@ -1760,17 +1760,17 @@ function renderStats(){
   }
   const merged=top.concat([{name:myNick,score:us,me:true}]).sort((a,b)=> b.score-a.score || (a.me?1:-1));
   const idx=merged.findIndex(x=>x.me);
-  const inTop10=idx<10;
+  const inTop20=idx<20;
   const curTop=Math.max(1,f.top*avgP);
-  const myRank=inTop10 ? idx+1 : Math.max(11, rankForScore(us,{top:curTop,N:f.N,p:f.p}));
+  const myRank=inTop20 ? idx+1 : Math.max(21, rankForScore(us,{top:curTop,N:f.N,p:f.p}));
   const you=$('rank-you'); if(you) you.textContent='あなたは '+myRank+' 位 / 全'+f.N+'人中';
   const bd=$('rank-board');
   if(bd){
-    let rows=merged.slice(0,10).map((x,i)=>
+    let rows=merged.slice(0,20).map((x,i)=>
       '<div class="rank-row'+(x.me?' me':'')+'"><span class="rank-pos">'+(i+1)+'</span>'+
       '<span class="rank-nm">'+esc(x.name)+(x.me?'（あなた）':'')+'</span>'+
       '<span class="rank-sc">'+x.score+' 点</span></div>').join('');
-    if(!inTop10){
+    if(!inTop20){
       rows+='<div class="rank-sep">⋮</div>'+
         '<div class="rank-row me"><span class="rank-pos">'+myRank+'</span>'+
         '<span class="rank-nm">'+esc(myNick)+'（あなた）</span>'+
