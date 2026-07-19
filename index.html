@@ -3568,8 +3568,8 @@ function _beginVersus(){
 }
 function updateVersusBar(){
   const b=$('versus-bar'); if(!b||!vs) return;
-  b.innerHTML='🆚 '+esc(vs.name)+'（Lv'+vs.level+'）　'+
-    '<b>あなた '+(vs.userScore)+' - '+(vs.cpuScore)+' 相手</b>　'+vs.inning+'回';
+  const myNick=(getProfile()&&getProfile().nick)||'あなた';
+  b.innerHTML='🆚 <b><span style="color:#1d6fd6">'+esc(myNick)+'</span> '+(vs.userScore)+' - '+(vs.cpuScore)+' '+esc(vs.name)+'（Lv'+vs.level+'）</b>　'+vs.inning+'回';
 }
 function versusStartInning(){
   if(!versusActive) return;
