@@ -907,6 +907,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
           <div class="home-rank-name" id="home-rank">ルーキー</div>
           <div class="home-mini-l">称号（得点 <span id="home-runs">0</span>）</div>
           <div class="home-rank-bar"><div class="home-rank-fill" id="home-rank-fill"></div></div>
+          <div class="home-mini-l" id="home-rank-next" style="margin-top:4px"></div>
         </div>
       </div>
 
@@ -1641,6 +1642,7 @@ function renderHome(){
     const pct=next?Math.min(100,Math.round((runs-r.min)/(next.min-r.min)*100)):100;
     $('home-rank-fill').style.width=pct+'%';
   }
+  if($('home-rank-next')) $('home-rank-next').textContent=next?('次の称号「'+next.name+'」まであと'+Math.max(0,next.min-runs)+'点'):'最高称号に到達！';
   // 今日の一語
   _wordOfDay=pickWordOfDay();
   if(_wordOfDay){
