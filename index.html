@@ -1663,6 +1663,18 @@ const PERSONAS={
 const PERSONA_ORDER=['steady','nightowl','latenite','commuter','weekend','meal','evening','nightowl','morning','latenite','commuter','meal'];
 function cumFrac(w,h){ let tot=0; for(const x of w) tot+=x; if(tot<=0) return 0; let acc=0; const full=Math.floor(h); for(let i=0;i<full&&i<24;i++) acc+=w[i]; if(full<24) acc+=(w[full]||0)*(h-full); return Math.min(1,acc/tot); }
 function nowHour(){ const d=new Date(); return d.getHours()+d.getMinutes()/60; }
+// 日をまたいで固定の登場人物：常連(いつも上位)＋伏兵(たまに急上昇)。名前は永続。
+function rosterPool(){
+  let r; try{ r=JSON.parse(localStorage.getItem('mlb_roster')); }catch(e){}
+  if(r&&r.regs&&r.regs.length>=4&&r.occs&&r.occs.length>=5) return r;
+  const my=(getProfile()&&getProfile().nick)||''; const used={}; used[my]=1;
+  const pick=()=>{ for(let k=0;k<40;k++){const c=genNickname(''); if(c&&!used[c]){used[c]=1;return c;}} return 'ライバル'; };
+  const regs=[]; for(let i=0;i<4;i++) regs.push(pick());  // 常連4名（毎日2〜4名が上位に）
+  const occs=[]; for(let i=0;i<5;i++) occs.push(pick());  // 伏兵5名（たまに一気に上位へ）
+  const out={regs,occs};
+  try{ localStorage.setItem('mlb_roster',JSON.stringify(out)); }catch(e){}
+  return out;
+}
 function todayField(){
   const key='mlb_field_'+todayStr();
   try{ const c=JSON.parse(localStorage.getItem(key)); if(c&&c.names&&c.names.length>=12&&c.finals) return c; }catch(e){}
@@ -1685,9 +1697,22 @@ function todayField(){
   if(dtype==='runaway'){ T=Math.round(T*(1.28+Math.random()*0.3)); finals[0]=T; }        // 独走
   else if(dtype==='duel'){ finals[0]=T; finals[1]=Math.round(T*(0.93+Math.random()*0.05)); for(let r=2;r<12;r++) finals[r]=Math.round(finals[r]*0.6); } // 1・2位だけ高い
   const top=finals[0];
+  const roster=rosterPool();
   const my=(getProfile()&&getProfile().nick)||'';
-  const used={}; used[my]=1; const names=[];
-  for(let i=0;i<12;i++){ let nm='ライバル'; for(let k=0;k<25;k++){const c=genNickname(''); if(c&&!used[c]){nm=c;used[c]=1;break;}} names.push(nm); }
+  const used={}; used[my]=1;
+  const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+  // 今日出勤する常連（2〜4名。各72%で出勤＝たまにお休みの日も）
+  let regs=shuf(roster.regs).filter(()=>Math.random()<0.72);
+  if(regs.length<2) regs=shuf(roster.regs).slice(0,2+Math.floor(Math.random()*2));
+  if(regs.length>4) regs=regs.slice(0,4);
+  // たまに一気に上位へ来る伏兵（各18%で今日出現、最大2名）
+  let surg=shuf(roster.occs).filter(()=>Math.random()<0.18);
+  if(surg.length>2) surg=surg.slice(0,2);
+  // 上位ランクは常連＋伏兵で埋め、残りは日替わりのランダム名。伏兵は出た日はトップ寄りに
+  const topNames=shuf(surg).concat(shuf(regs));
+  const names=[];
+  topNames.forEach(n=>{ if(names.length<12 && !used[n]){ used[n]=1; names.push(n); } });
+  while(names.length<12){ let nm='ライバル'; for(let k=0;k<30;k++){const c=genNickname(''); if(c&&!used[c]){nm=c;used[c]=1;break;}} names.push(nm); }
   // 生活パターンをシャッフルして割り当て（日中は順位が入れ替わって見える）
   const personas=PERSONA_ORDER.slice(); for(let i=personas.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[personas[i],personas[j]]=[personas[j],personas[i]];}
   const f={top,N,p,names,personas,wknd,finals,dtype};
