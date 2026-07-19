@@ -465,6 +465,14 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   background:rgba(20,26,46,.6);white-space:pre-line;text-align:center;
   font-family:var(--ff-d);font-weight:900;font-size:20px;color:#fff;padding:24px;line-height:1.6}
 #versus-toast.show{display:flex}
+#rankup-toast{position:fixed;left:50%;top:18%;transform:translateX(-50%) translateY(-16px);z-index:900;
+  display:none;opacity:0;transition:opacity .35s,transform .35s;pointer-events:none;max-width:88%;
+  background:linear-gradient(135deg,#ffd34d,#ff9f1c);color:#3a2a00;border:3px solid #fff;
+  box-shadow:0 8px 26px rgba(0,0,0,.32);border-radius:16px;padding:14px 20px;text-align:center;
+  font-family:var(--ff-d);font-weight:900;line-height:1.4}
+#rankup-toast.show{display:block;opacity:1;transform:translateX(-50%) translateY(0)}
+#rankup-toast .ru-sub{font-size:13px;color:#7a5200}
+#rankup-toast .ru-name{font-size:24px;color:#c23b00}
 #versus-result{position:fixed;inset:0;z-index:830;display:none;align-items:center;justify-content:center;
   background:rgba(20,26,46,.7);padding:24px}
 #versus-result.show{display:flex}
@@ -1033,7 +1041,8 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
             <div class="rec-item"><div class="rec-n" id="rec-streak">0</div><div class="rec-l">連続ログイン</div></div>
           </div>
           <div class="rec-rank-row">称号：<b id="rec-rank-name">ルーキー</b> <span id="rec-rank-next"></span></div>
-          <div class="rank-note">本日の得点で順位が決まります（毎日リセット）</div>
+          <div class="home-rank-bar" style="margin:6px 4px 0"><div class="home-rank-fill" id="rec-rank-fill"></div></div>
+          <div class="rank-note">本日の得点でランキング（毎日リセット）／累計得点で称号が上がります</div>
         </div>
       </div>
       <div class="qmenu-howto">
@@ -1130,6 +1139,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
     <div id="versus-board"><div id="versus-board-inner"></div></div>
     <!-- 対戦: 開始トースト -->
     <div id="versus-toast"></div>
+    <div id="rankup-toast"></div>
     <!-- 対戦: 試合結果 -->
     <div id="versus-result"><div class="vs-res-inner">
       <img class="vs-res-char" src="images/よろこび.png" alt="">
@@ -1576,8 +1586,11 @@ function updateBanner(){
 }
 // ── ホーム ──────────────────────────────────────────────────────────────────
 const RANKS=[
-  {min:0,name:'ルーキー'},{min:20,name:'レギュラー'},{min:50,name:'オールスター'},
-  {min:100,name:'ゴールドグラブ'},{min:200,name:'MVP'},{min:400,name:'殿堂入り'}
+  {min:0,name:'ルーキー'},{min:20,name:'ベンチ入り'},{min:50,name:'レギュラー'},
+  {min:100,name:'クリーンナップ'},{min:175,name:'オールスター'},{min:275,name:'ゴールドグラブ'},
+  {min:400,name:'シルバースラッガー'},{min:600,name:'MVP'},{min:850,name:'リーグの顔'},
+  {min:1200,name:'レジェンド'},{min:1700,name:'殿堂入り'},{min:2500,name:'生ける伝説'},
+  {min:4000,name:'野球の神様'}
 ];
 function currentRank(runs){
   let r=RANKS[0],next=null;
@@ -1787,7 +1800,8 @@ function renderStats(){
   if($('rec-streak')) $('rec-streak').textContent=streak;
   const {r,next}=currentRank(runsTotal);
   if($('rec-rank-name')) $('rec-rank-name').textContent=r.name;
-  if($('rec-rank-next')) $('rec-rank-next').textContent=next?('（次まであと'+Math.max(0,next.min-runsTotal)+'点）'):'（最高位）';
+  if($('rec-rank-next')) $('rec-rank-next').textContent=next?('（次の称号「'+next.name+'」まであと'+Math.max(0,next.min-runsTotal)+'点）'):'（最高称号！）';
+  if($('rec-rank-fill')){ const pct=next?Math.min(100,Math.round((runsTotal-r.min)/(next.min-r.min)*100)):100; $('rec-rank-fill').style.width=pct+'%'; }
 }
 // ── MLBライブ（statsapi.mlb.com 公開API） ─────────────────────────────────────
 const TEAM_JA={108:'エンゼルス',109:'Dバックス',110:'オリオールズ',111:'レッドソックス',112:'カブス',113:'レッズ',114:'ガーディアンズ',115:'ロッキーズ',116:'タイガース',117:'アストロズ',118:'ロイヤルズ',119:'ドジャース',120:'ナショナルズ',121:'メッツ',133:'アスレチックス',134:'パイレーツ',135:'パドレス',136:'マリナーズ',137:'ジャイアンツ',138:'カージナルス',139:'レイズ',140:'レンジャーズ',141:'ブルージェイズ',142:'ツインズ',143:'フィリーズ',144:'ブレーブス',145:'ホワイトソックス',146:'マーリンズ',147:'ヤンキース',158:'ブルワーズ'};
@@ -2997,14 +3011,26 @@ function addRuns(n){
     ['quiz-runs','quiz-runs-today'].forEach(id=>{const el=$(id);if(el){el.classList.remove('run-bump');void el.offsetWidth;el.classList.add('run-bump');}});
     return;
   }
+  const prevRankName=currentRank(runsTotal).r.name;
   runsTotal+=n;
   localStorage.setItem('mlb_runs',String(runsTotal));
+  const newRank=currentRank(runsTotal).r;
+  if(newRank.name!==prevRankName) rankUpToast(newRank.name);
   // 本日分
   const t=todayStr(), c=_todayRuns();
   runsToday=((c.date===t)?(c.n||0):0)+n;
   localStorage.setItem('mlb_runs_today',JSON.stringify({date:t,n:runsToday}));
   updateRuns();
   ['quiz-runs','quiz-runs-today'].forEach(id=>{const el=$(id);if(el){el.classList.remove('run-bump');void el.offsetWidth;el.classList.add('run-bump');}});
+}
+let _rankupTimer=null;
+function rankUpToast(name){
+  const t=$('rankup-toast'); if(!t) return;
+  t.innerHTML='<div class="ru-sub">🎉 称号アップ！</div><div class="ru-name">'+esc(name)+'</div><div class="ru-sub">に昇格しました</div>';
+  t.classList.add('show');
+  if(typeof sfxCheer==='function'){ try{ sfxCheer(); }catch(e){} }
+  clearTimeout(_rankupTimer);
+  _rankupTimer=setTimeout(()=>{ t.classList.remove('show'); },2600);
 }
 function quizBack(){
   if(versusActive){
