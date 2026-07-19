@@ -1484,7 +1484,11 @@ function obToStep2(){
   obReroll();
 }
 function obReroll(){
-  _ob.nick=genNickname(_ob.gender);
+  // 常連・伏兵の名前はユーザーが選べないよう除外
+  const roster=rosterPool(); const banned={}; roster.regs.forEach(n=>banned[n]=1); roster.occs.forEach(n=>banned[n]=1);
+  let nk=genNickname(_ob.gender);
+  for(let k=0;k<40 && banned[nk];k++) nk=genNickname(_ob.gender);
+  _ob.nick=nk;
   const el=$('ob-nick'); el.textContent=_ob.nick;
   el.style.animation='none';void el.offsetWidth;el.style.animation='';
 }
