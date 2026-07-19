@@ -2991,6 +2991,9 @@ function addRuns(n){
   if(versusActive && vs){
     vs.inningRuns+=n; vs.userScore+=n;
     updateVersusBar();
+    // 右上HUDは試合中も暫定表示（確定は試合終了時。途中離脱で没収されると元に戻る）
+    const at=$('quiz-runs-today'); if(at) at.textContent=(runsToday+vs.userScore);
+    const ac=$('quiz-runs');       if(ac) ac.textContent=(runsTotal+vs.userScore);
     ['quiz-runs','quiz-runs-today'].forEach(id=>{const el=$(id);if(el){el.classList.remove('run-bump');void el.offsetWidth;el.classList.add('run-bump');}});
     return;
   }
@@ -3692,6 +3695,7 @@ function versusQuitConfirm(){
     versusActive=false; vs=null;
     $('versus-board').classList.remove('show');
     $('versus-bar').style.display='none';
+    updateRuns(); // 暫定表示を確定値に戻す（没収）
     quizToMenu();
   }
 }
