@@ -3340,6 +3340,8 @@ function choiceLbl(entry){
     let s=entry.short.trim();
     // 「(… は和製/和用法/和略 …)」等の注記カッコを除去
     s=s.replace(/\s*[（(][^）)]*(和製|和用法|和略|和)[^）)]*[）)]/g,'').trim();
+    // 英→日では、英字を含む注記カッコ（＝英語併記）を除去して答えバレを防ぐ
+    if(qMode==='ej') s=s.replace(/\s*[（(][^）)]*[A-Za-z][^）)]*[）)]/g,'').trim();
     // 末尾の句点「。」を除去
     s=s.replace(/[。、\s]+$/,'').trim();
     if(s.length>60) s=s.substring(0,60)+'…';
@@ -3373,6 +3375,8 @@ function choiceLbl(entry){
   if(/^(cf\.|e\.g\.)/i.test(s)) s='';
   // 末尾の句点・読点・空白を除去（読点での途中カットはしない＝意味が途切れるため）
   s=s.replace(/[。、\s]+$/,'').trim();
+  // 英→日では、英字を含む注記カッコ（＝英語併記）を除去して答えバレを防ぐ
+  if(qMode==='ej'){ s=s.replace(/\s*[（(][^）)]*[A-Za-z][^）)]*[）)]/g,'').replace(/[。、\s]+$/,'').trim(); }
   // 60文字を超えたら省略（読点区切りの完全な文を保持）
   if(s.length>60) s=s.substring(0,60)+'…';
   // EJモードで日本語が含まれない場合はraw中の日本語部分を抽出して使用
