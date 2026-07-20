@@ -1695,6 +1695,7 @@ const PERSONAS={
   evening: {w:[3,2,1,1,1,1,1,2,2,2,2,2,3,3,3,4,5,6,8,9,8,7,5,3]}, // 夜型・帰宅後に伸びる
   morning: {w:[3,2,1,1,1,2,4,8,7,6,5,4,4,3,3,3,3,3,3,3,2,2,2,2]}, // 朝活タイプ
   weekend: {w:[7,6,4,1,1,1,2,4,5,5,6,6,7,6,5,6,6,6,7,7,6,6,5,5], wkScale:0.28}, // 週末だけすさまじい(平日は控えめ)
+  closer:  {w:[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,2,3,5,9,15,22,26]}, // 日中は沈み、夜12時間際に一気に追い込む
 };
 const PERSONA_ORDER=['steady','nightowl','latenite','commuter','weekend','meal','evening','nightowl','morning','latenite','commuter','meal'];
 function cumFrac(w,h){ let tot=0; for(const x of w) tot+=x; if(tot<=0) return 0; let acc=0; const full=Math.floor(h); for(let i=0;i<full&&i<24;i++) acc+=w[i]; if(full<24) acc+=(w[full]||0)*(h-full); return Math.min(1,acc/tot); }
@@ -1751,7 +1752,13 @@ function todayField(){
   while(names.length<20){ let nm='ライバル'; for(let k=0;k<30;k++){const c=genNickname(''); if(c&&!used[c]){nm=c;used[c]=1;break;}} names.push(nm); }
   // 生活パターンをシャッフルして割り当て（日中は順位が入れ替わって見える）。20人分
   const personas=[]; while(personas.length<20){ const b=PERSONA_ORDER.slice(); for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];} personas.push(...b); } personas.length=20;
-  const f={top,N,p,names,personas,wknd,finals,dtype};
+  // 夜12時間際の追い込みドラマ（日替わり）。closer/late系は最終値に向けて夜に一気に伸びる＝上位の点が終盤に増える
+  const froll=Math.random(); let finish='normal';
+  if(froll<0.22) finish='comeback';       // 日中は下位、夜に一気に上位へ逆転する人が出る日
+  else if(froll<0.42) finish='deadheat';  // 1・2位が最後まで競り合い、夜12時間際に得点を伸ばす日
+  if(finish==='deadheat'){ personas[0]='closer'; personas[1]='nightowl'; }
+  else if(finish==='comeback'){ const slot=2+Math.floor(Math.random()*5); personas[slot]='closer'; } // 3〜7位の枠に→日中沈み夜に急浮上
+  const f={top,N,p,names,personas,wknd,finals,dtype,finish};
   try{ localStorage.setItem(key,JSON.stringify(f)); }catch(e){}
   pruneOldFields();
   return f;
