@@ -797,6 +797,19 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .rank-sc{font-family:var(--ff-d);font-weight:900;color:var(--c-ink)}
 .rank-sep{text-align:center;color:var(--c-muted2);font-weight:900;line-height:1;padding:2px 0}
 .rank-note{font-size:11px;color:var(--c-muted2);text-align:center;margin-top:8px}
+.rank-hist-btn{width:100%;margin-top:10px;padding:9px 10px;border:2px dashed var(--c-border);
+  border-radius:var(--r-md);background:var(--c-score-bg);color:var(--c-primary);
+  font-family:var(--ff-d);font-weight:900;font-size:13px;cursor:pointer}
+#rank-history{margin-top:8px;display:flex;flex-direction:column;gap:10px}
+.rh-day{border:1.5px solid var(--c-border);border-radius:var(--r-md);padding:9px 11px;background:var(--c-card)}
+.rh-date{font-family:var(--ff-d);font-weight:900;font-size:13px;color:var(--c-ink);margin-bottom:5px}
+.rh-line{font-family:var(--ff-t);font-size:13px;display:flex;gap:8px;padding:2px 0}
+.rh-line .rh-pos{width:2.2em;text-align:center;font-family:var(--ff-d);font-weight:900;color:var(--c-muted)}
+.rh-line .rh-nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rh-line .rh-sc{font-family:var(--ff-d);font-weight:900}
+.rh-line.me{color:var(--c-coral);font-weight:800}
+.rh-me{margin-top:5px;font-family:var(--ff-t);font-size:12px;color:var(--c-primary);font-weight:800}
+.rh-empty{font-size:12px;color:var(--c-muted2);text-align:center;padding:6px 0}
 .rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .rec-item{background:var(--c-score-bg);border-radius:var(--r-md);padding:12px 6px;text-align:center}
 .rec-n{font-family:var(--ff-d);font-weight:900;font-size:22px;color:var(--c-coral)}
@@ -1031,10 +1044,12 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
         <div class="menu-runs-row">⚾ 本日 <span id="menu-runs-today">0</span> 点 ／ 累計 <span id="menu-runs">0</span> 点</div>
       </div>
       <div class="qmenu-howto">
-        <button class="qmenu-howto-ttl" onclick="toggleStats()">🏆 成績・ランキング <span class="howto-chev" id="stats-chev">▼</span></button>
+        <button class="qmenu-howto-ttl" onclick="toggleStats()">🏆 今日の成績ランキング（夜12時リセット） <span class="howto-chev" id="stats-chev">▼</span></button>
         <div id="stats-body" style="display:none">
           <div class="rank-you" id="rank-you">—</div>
           <div class="rank-board" id="rank-board"></div>
+          <button class="rank-hist-btn" onclick="toggleRankHistory()">📅 過去のランキングを見る（1週間） <span id="rank-hist-chev">▼</span></button>
+          <div id="rank-history" style="display:none"></div>
           <div class="rec-grid">
             <div class="rec-item"><div class="rec-n" id="rec-today">0</div><div class="rec-l">本日の得点</div></div>
             <div class="rec-item"><div class="rec-n" id="rec-total">0</div><div class="rec-l">累計得点</div></div>
@@ -1628,6 +1643,7 @@ function pickWordOfDay(){
 function openWordOfDay(){ if(_wordOfDay) openModal(_wordOfDay,'ej'); }
 function renderHome(){
   const d=new Date();
+  try{ todayField(); }catch(e){} // その日のフィールドを確定させ、過去ランキングに残るようにする
   if($('home-date')) $('home-date').textContent=(d.getMonth()+1)+'月'+d.getDate()+'日（'+'日月火水木金土'[d.getDay()]+'）';
   const _pf=getProfile();
   if($('home-player')) $('home-player').textContent=_pf&&_pf.nick?('⚾ '+_pf.nick):'';
@@ -1737,7 +1753,19 @@ function todayField(){
   const personas=[]; while(personas.length<20){ const b=PERSONA_ORDER.slice(); for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];} personas.push(...b); } personas.length=20;
   const f={top,N,p,names,personas,wknd,finals,dtype};
   try{ localStorage.setItem(key,JSON.stringify(f)); }catch(e){}
+  pruneOldFields();
   return f;
+}
+// 古い日のフィールドを整理（過去ランキング用に直近8日分だけ保持）
+function pruneOldFields(){
+  try{
+    const keep=8; const cut=new Date(); cut.setDate(cut.getDate()-keep);
+    const cutS=cut.getFullYear()+'-'+String(cut.getMonth()+1).padStart(2,'0')+'-'+String(cut.getDate()).padStart(2,'0');
+    for(let i=localStorage.length-1;i>=0;i--){
+      const k=localStorage.key(i);
+      if(k&&k.indexOf('mlb_field_')===0){ const ds=k.slice('mlb_field_'.length); if(ds<cutS) localStorage.removeItem(k); }
+    }
+  }catch(e){}
 }
 // ランクr(1位=最強)の「1日の最終スコア」
 function finalForRank(rank,f){ if(f.finals&&f.finals[rank-1]!=null) return f.finals[rank-1]; return Math.max(1, Math.round(f.top*Math.pow(Math.max(0,1-(rank-1)/f.N), f.p))); }
@@ -2101,6 +2129,48 @@ function toggleStats(){
   b.style.display=open?'':'none';
   if(c) c.classList.toggle('open',open);
   if(open) renderStats();
+}
+// 過去ランキング開閉
+function toggleRankHistory(){
+  const b=$('rank-history'), c=$('rank-hist-chev'); if(!b) return;
+  const open=b.style.display==='none';
+  b.style.display=open?'':'none';
+  if(c) c.textContent=open?'▲':'▼';
+  if(open) renderRankHistory();
+}
+// 直近1週間（今日を除く）の最終順位を表示。フィールドが保存されている日だけ出す
+function renderRankHistory(){
+  const box=$('rank-history'); if(!box) return;
+  const myNick=(getProfile()&&getProfile().nick)||'あなた';
+  let hist={}; try{ hist=JSON.parse(localStorage.getItem('mlb_rank_hist')||'{}'); }catch(e){}
+  const today=todayStr();
+  const days=[];
+  for(let i=1;i<=7;i++){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    let f=null; try{ f=JSON.parse(localStorage.getItem('mlb_field_'+ds)); }catch(e){}
+    if(f&&f.finals&&f.names) days.push({ds,f,d});
+  }
+  if(!days.length){ box.innerHTML='<div class="rh-empty">まだ過去の記録がありません（明日以降にたまっていきます）</div>'; return; }
+  const wd='日月火水木金土';
+  box.innerHTML=days.map(({ds,f,d})=>{
+    // 最終順位＝finals（23:59時点）。名前は rank 順に対応
+    const rows=f.finals.map((sc,i)=>({name:f.names[i]||'—',score:sc,me:false}));
+    const us=(hist[ds]!=null)?hist[ds]:null;
+    let merged=rows.slice();
+    if(us!=null) merged=merged.concat([{name:myNick,score:us,me:true}]);
+    merged.sort((a,b)=>b.score-a.score||(a.me?1:-1));
+    const myRank=(us!=null)?(merged.findIndex(x=>x.me)+1):null;
+    const top3=merged.slice(0,3).map((x,i)=>
+      '<div class="rh-line'+(x.me?' me':'')+'"><span class="rh-pos">'+(i+1)+'</span>'+
+      '<span class="rh-nm">'+esc(x.name)+(x.me?'（あなた）':'')+'</span>'+
+      '<span class="rh-sc">'+x.score+'点</span></div>').join('');
+    const label=(d.getMonth()+1)+'/'+d.getDate()+'（'+wd[d.getDay()]+'）';
+    const meLine=(us!=null)
+      ? '<div class="rh-me">あなた：'+myRank+'位（'+us+'点）</div>'
+      : '<div class="rh-me">あなた：この日は参加なし</div>';
+    return '<div class="rh-day"><div class="rh-date">'+label+'</div>'+top3+meLine+'</div>';
+  }).join('');
 }
 // 「点の入り方」開閉
 function toggleHowto(){
@@ -3025,6 +3095,16 @@ function updateRuns(){
   if(d) d.textContent=runsToday;
   if(e) e.textContent=runsToday;
   if(f) f.textContent=runsToday;
+  recordRankHist(); // 過去ランキング用に本日の得点を日付付きで保存
+}
+// 日別の本日得点を記録（過去ランキング表示用。直近10日分だけ保持）
+function recordRankHist(){
+  try{
+    const hk='mlb_rank_hist'; let hist=JSON.parse(localStorage.getItem(hk)||'{}');
+    hist[todayStr()]=runsToday;
+    const ks=Object.keys(hist).sort(); while(ks.length>10){ delete hist[ks.shift()]; }
+    localStorage.setItem(hk,JSON.stringify(hist));
+  }catch(e){}
 }
 function addRuns(n){
   if(n<=0) return;
