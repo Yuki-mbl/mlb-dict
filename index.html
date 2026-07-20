@@ -4105,12 +4105,14 @@ function showDailyResult(){
   const today=todayStr();
   let done=JSON.parse(localStorage.getItem('mlb_daily_done')||'[]');
   let bonusMsg='';
+  let flashShown=false;
   if(!done.includes(today)){
     done.push(today);localStorage.setItem('mlb_daily_done',JSON.stringify(done));
     if(bonus>0){
       addRuns(bonus);
       bonusMsg=(correct===10?'全問正解！':'6問以上正解！')+' ＋'+bonus+'点';
       setTimeout(()=>dailyBonusFlash(bonus),400); // 飛び出し画像＋大きな「＋N点」
+      flashShown=true;
     }
   } else if(bonus>0){
     bonusMsg=(correct===10?'全問正解！':'6問以上正解！')+' ＋'+bonus+'点 獲得済み';
@@ -4122,8 +4124,9 @@ function showDailyResult(){
   $('daily-prog-fill').style.width='100%';
   $('daily-prog-lbl').textContent='10 / 10';
   renderCalendar();
-  // 今日の10問が終わったら広告（プレミアムはスキップ）
-  setTimeout(()=>showAd(), 1200);
+  // 今日の10問が終わったら広告（プレミアムはスキップ）。
+  // ボーナス演出（＋N点の飛び出し）が出た時は、それが読み終わってから広告を出す
+  setTimeout(()=>showAd(), flashShown?3300:1200);
 }
 function renderCalendar(){
   const done=new Set(JSON.parse(localStorage.getItem('mlb_daily_done')||'[]'));
