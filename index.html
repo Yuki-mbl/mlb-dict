@@ -3229,9 +3229,6 @@ function nextQ(_depth){
   if(due>=0){
     correct=rq[due].entry;
     rq.splice(due,1);
-  } else if(st.n>0&&st.n%30===0){
-    const fd=pool.filter(isFav);
-    correct=fd.length?fd[Math.floor(Math.random()*fd.length)]:(qMode==='ej'?EJ:JE)[coverDrawIdx(qMode)];
   } else {
     // 全語制覇型: まだ出していない語を優先して出題（一巡でリセット）
     correct=(qMode==='ej'?EJ:JE)[coverDrawIdx(qMode)];
