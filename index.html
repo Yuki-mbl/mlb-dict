@@ -1782,10 +1782,12 @@ function pruneOldFields(){
 // ランクr(1位=最強)の「1日の最終スコア」
 function finalForRank(rank,f){ if(f.finals&&f.finals[rank-1]!=null) return f.finals[rank-1]; return Math.max(1, Math.round(f.top*Math.pow(Math.max(0,1-(rank-1)/f.N), f.p))); }
 // 今この瞬間のスコア = 最終 × その人の生活パターンの達成率
+const DAY_END=24-1/3600; // 23:59:59 で「最終値」に到達させる
 function liveScoreForRank(rank,f,h){
   const base=finalForRank(rank,f);
   const P=PERSONAS[f.personas[rank-1]]||PERSONAS.steady;
-  let sc=base*cumFrac(P.w,h);
+  const hh=Math.min(h,DAY_END)*(24/DAY_END); // 23:59:59 で達成率100%になるよう調整
+  let sc=base*cumFrac(P.w,hh);
   if(P.wkScale && !f.wknd) sc*=P.wkScale; // 週末型は平日は伸びない
   return Math.max(0,Math.round(sc));
 }
