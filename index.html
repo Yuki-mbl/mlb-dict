@@ -3231,9 +3231,10 @@ function nextQ(_depth){
     rq.splice(due,1);
   } else if(st.n>0&&st.n%30===0){
     const fd=pool.filter(isFav);
-    correct=fd.length?fd[Math.floor(Math.random()*fd.length)]:pool[Math.floor(Math.random()*pool.length)];
+    correct=fd.length?fd[Math.floor(Math.random()*fd.length)]:(qMode==='ej'?EJ:JE)[coverDrawIdx(qMode)];
   } else {
-    correct=pool[Math.floor(Math.random()*pool.length)];
+    // 全語制覇型: まだ出していない語を優先して出題（一巡でリセット）
+    correct=(qMode==='ej'?EJ:JE)[coverDrawIdx(qMode)];
   }
   // 正解ラベルが空、またはEJモードで日本語を含まない場合は別の問題を引き直す
   const _cLbl=choiceLbl(correct);
@@ -3894,10 +3895,12 @@ function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMo
 function makeDailyQuestions(){
   const ejPool=EJ.filter(e=>!isPersonName2(e,'ej'));
   const jePool=JE.filter(e=>!isPersonName2(e,'je'));
-  // 和英は2割（10問中2問）に固定、残り8問は英和
-  const ejItems=ejPool.map((_,i)=>({type:'ej',idx:EJ.indexOf(ejPool[i])})).sort(()=>Math.random()-.5);
-  const jeItems=jePool.map((_,i)=>({type:'je',idx:JE.indexOf(jePool[i])})).sort(()=>Math.random()-.5);
-  const chosen=[...ejItems.slice(0,8),...jeItems.slice(0,2)].sort(()=>Math.random()-.5);
+  // 和英は2割（10問中2問）に固定、残り8問は英和。全語制覇型の共有袋から未出題を優先して選ぶ
+  const usedEj=new Set(),usedJe=new Set();const ejSel=[],jeSel=[];let guard=0;
+  while(ejSel.length<8&&guard++<800){const i=coverDrawIdx('ej');if(usedEj.has(i))continue;usedEj.add(i);if(dailyChoiceLbl(EJ[i],'ej').trim().length<2)continue;ejSel.push(i);}
+  guard=0;
+  while(jeSel.length<2&&guard++<800){const i=coverDrawIdx('je');if(usedJe.has(i))continue;usedJe.add(i);if(dailyChoiceLbl(JE[i],'je').trim().length<2)continue;jeSel.push(i);}
+  const chosen=[...ejSel.map(i=>({type:'ej',idx:i})),...jeSel.map(i=>({type:'je',idx:i}))].sort(()=>Math.random()-.5);
   return chosen.map(q=>{
     // q.idx は EJ/JE 本体配列のインデックス（描画も arr[q.correct]/arr[ci] で本体を参照）
     const fullArr=q.type==='ej'?EJ:JE;
@@ -3931,6 +3934,27 @@ function isPersonName2(e,mode){
   const raw=(mode==='ej'?e.ja:e.en)||'';
   const s=raw.replace(/[。参照\s]/g,'');
   return s.length>0&&/^[ァ-ヶーｦ-ﾟ・＝]+$/.test(s);
+}
+// ── 全語制覇型の出題（今日の10問・フリーバッティング・試合で共有）─────────────
+// 出した語を「袋」から消化し、一巡（全語出しきる）したら自動リセット。ej/je別に保持。
+const _COVER_KEY='mlb_cover_bags';
+let _coverBags=null;
+function _coverLoad(){ if(_coverBags) return _coverBags; try{_coverBags=JSON.parse(localStorage.getItem(_COVER_KEY))||{};}catch(e){_coverBags={};} return _coverBags; }
+function _coverSave(){ try{localStorage.setItem(_COVER_KEY,JSON.stringify(_coverBags));}catch(e){} }
+function _coverRefill(mode){
+  _coverLoad();
+  const arr=mode==='ej'?EJ:JE; const idxs=[];
+  for(let i=0;i<arr.length;i++){ if(!isPersonName2(arr[i],mode)) idxs.push(i); }
+  for(let i=idxs.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idxs[i],idxs[j]]=[idxs[j],idxs[i]];}
+  _coverBags[mode]=idxs; _coverBags[mode+'Len']=arr.length; _coverSave();
+}
+// 未出題を優先して1問引く（袋が空＝一巡完了なら詰め直す）。EJ/JE本体のインデックスを返す
+function coverDrawIdx(mode){
+  _coverLoad();
+  const arr=mode==='ej'?EJ:JE;
+  if(!_coverBags[mode]||!_coverBags[mode].length||_coverBags[mode+'Len']!==arr.length) _coverRefill(mode);
+  const idx=_coverBags[mode].pop(); _coverSave();
+  return (idx==null)?Math.floor(Math.random()*arr.length):idx;
 }
 const _jaRe2=/[ぁ-んァ-ヶー一-龯]/;
 function hasGoodLbl2(e,mode){
