@@ -2804,8 +2804,32 @@ function actx(){
 }
 // 実音源（mp3）: あれば優先再生、無ければ合成音にフォールバック
 const _samp={};
-function loadSample(key,src){ try{ const a=new Audio(src); a.preload='auto'; _samp[key]=a; }catch(e){} }
+const _sampBuf={}; // Web Audioへデコード済みのバッファ（タップとほぼ同時に鳴らす）
+function loadSample(key,src){
+  try{ const a=new Audio(src); a.preload='auto'; _samp[key]=a; }catch(e){}
+  // 低遅延再生用にデコードしてバッファ保持（HTML5 Audioのplay()遅延を回避）
+  try{
+    fetch(src).then(r=>r.arrayBuffer()).then(buf=>{
+      const c=actx(); if(!c) return;
+      c.decodeAudioData(buf, ab=>{ _sampBuf[key]=ab; }, ()=>{});
+    }).catch(()=>{});
+  }catch(e){}
+}
 function playSample(key,vol){
+  // 1) Web Audioバッファがあれば即時再生（遅延ほぼゼロ）
+  const ab=_sampBuf[key];
+  if(ab){
+    const c=actx();
+    if(c){
+      try{
+        const src=c.createBufferSource(); src.buffer=ab;
+        const g=c.createGain(); g.gain.value=(vol==null?1:vol);
+        src.connect(g).connect(c.destination); src.start();
+        return true;
+      }catch(e){}
+    }
+  }
+  // 2) フォールバック: HTML5 Audio
   const a=_samp[key]; if(!a) return false;
   try{ const n=a.cloneNode(true); n.volume=(vol==null?1:vol); const p=n.play(); if(p&&p.catch)p.catch(()=>{}); return true; }
   catch(e){ return false; }
