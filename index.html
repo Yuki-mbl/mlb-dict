@@ -1473,7 +1473,6 @@ function saveFavs(){localStorage.setItem('mlb_favs',JSON.stringify([...favs]))}
 function isFav(e){return favs.has(favKey(e))}
 function toggleFav(e){const k=favKey(e);favs.has(k)?favs.delete(k):favs.add(k);saveFavs()}
 // ── サポート系リンク ──
-const SUPPORT_EMAIL='support@fantamstick.jp';   // 問い合わせ先（適宜変更可）
 const REVIEW_URL='';   // App Store公開後にレビューURLを設定
 function openExt(url){ try{ window.open(url,'_blank'); }catch(e){ location.href=url; } }
 function rateApp(){ if(REVIEW_URL) openExt(REVIEW_URL); else alert('公開後にApp Storeで評価いただけます。応援ありがとうございます！'); }
