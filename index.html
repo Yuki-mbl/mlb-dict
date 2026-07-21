@@ -846,6 +846,11 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 /* ── 今日の試合・順位表 ── */
 .home-games-hd{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .games-refresh{font-family:var(--ff-t);font-size:10.5px;font-weight:600;color:var(--c-muted2);white-space:nowrap}
+.games-refresh-btn{margin-left:4px;padding:3px 9px;border:1.5px solid var(--c-border);border-radius:var(--r-pill);
+  background:#fff;font-family:var(--ff-t);font-size:11px;font-weight:800;color:var(--c-primary);
+  cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;transition:all .12s}
+.games-refresh-btn:active:not(:disabled){transform:translate(1px,1px)}
+.games-refresh-btn:disabled{opacity:.6;cursor:default}
 .standings-btn{padding:4px 12px;border:2px solid var(--c-border);border-radius:var(--r-pill);
   background:var(--c-accent);box-shadow:var(--shadow-s);font-family:var(--ff-t);
   font-size:12px;font-weight:800;color:var(--c-ink);cursor:pointer;
@@ -953,7 +958,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       </div>
 
       <div class="home-card home-games-card">
-        <div class="home-card-hd home-games-hd"><span>⚾ 今日の試合 <span class="games-refresh">🔄 約5分ごとに更新</span></span>
+        <div class="home-card-hd home-games-hd"><span>⚾ 今日の試合 <button class="games-refresh-btn" id="games-refresh-btn" onclick="refreshGames()">🔄 最新に更新</button></span>
           <button class="standings-btn" onclick="goTab('standings')">順位表 →</button>
         </div>
         <button type="button" class="games-reveal-all games-reveal-all-top" id="yday-btn" onclick="toggleYdayGames()">📅 昨日の結果を見る ▼</button>
@@ -1943,6 +1948,20 @@ async function loadGames(){
   }catch(e){
     el.innerHTML='<div style="padding:6px 0">オフラインのため表示できません</div>';
   }
+}
+// 手動更新：キャッシュを無視して今日の試合を再取得（開いていれば昨日の結果も）
+async function refreshGames(){
+  const btn=$('games-refresh-btn');
+  if(btn){ btn.disabled=true; btn.textContent='更新中…'; }
+  try{ localStorage.removeItem('mlb_games2'); }catch(e){}
+  try{ await loadGames(); }catch(e){}
+  const yb=$('yday-games');
+  if(yb && yb.style.display!=='none'){
+    try{ localStorage.removeItem('mlb_games_recent'); }catch(e){}
+    _ydayLoaded=false;
+    try{ await loadYesterdayGames(); }catch(e){}
+  }
+  if(btn){ btn.disabled=false; btn.textContent='🔄 最新に更新'; }
 }
 // 昨日（米国日付）の結果を開閉。日本では米国の昨日＝直近の完了試合なので結果を直接表示
 let _ydayLoaded=false;
