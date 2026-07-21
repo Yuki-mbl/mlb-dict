@@ -1305,7 +1305,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       <div class="settings-section">
         <div class="settings-row">
           <div class="entry-text">
-            <div class="settings-row-label">プレミアム（月額100円）</div>
+            <div class="settings-row-label">プレミアム（月額200円）</div>
             <div class="settings-row-sub">広告なし・回数無制限。<span id="premium-status">未登録（無料）</span></div>
           </div>
           <span id="premium-actions"></span>
@@ -3096,7 +3096,7 @@ function recordPlay(){
 function startQuizPlay(){
   // 無料は1日2回まで。超えたらプレミアム案内
   if(playsLeft()<=0){
-    if(confirm('本日の無料プレイ（'+FREE_DAILY_PLAYS+'回）を使い切りました。\nプレミアム（月額100円）なら回数無制限・広告なしで遊べます。\n設定を開きますか？')){
+    if(confirm('本日の無料プレイ（'+FREE_DAILY_PLAYS+'回）を使い切りました。\nプレミアム（月額200円）なら回数無制限・広告なしで遊べます。\n設定を開きますか？')){
       goTab('settings');
     }
     return;
@@ -3282,7 +3282,7 @@ function threeOut(){
   setTimeout(()=>{if(el) el.classList.remove('show','fade');},2350);
 }
 // ── プレミアム＆広告 ─────────────────────────────────────────────────────────
-// プレミアム（月額100円）: 広告非表示＆制限なし。実際の課金はApp Store連携で設定する。
+// プレミアム（月額200円）: 広告非表示＆制限なし。実際の課金はApp Store連携で設定する。
 function isPremium(){ return localStorage.getItem('mlb_premium')==='1'; }
 // AdMob等のネイティブ広告プラグイン（あれば使用）
 function capAdMob(){
@@ -3343,7 +3343,7 @@ function syncPremium(){
   if(st) st.textContent=on?'プレミアム会員（広告なし・制限なし）':'未登録（無料）';
   if(row) row.innerHTML=on
     ? '<button class="swing-toggle auto" onclick="cancelPremium()">解除（テスト）</button>'
-    : '<button class="swing-toggle" onclick="buyPremium()">登録する（月額100円）</button>';
+    : '<button class="swing-toggle" onclick="buyPremium()">登録する（月額200円）</button>';
   if(typeof updateBanner==='function') updateBanner();
 }
 function isPersonName(e){
