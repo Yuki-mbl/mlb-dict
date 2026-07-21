@@ -905,7 +905,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       <div class="home-hero">
         <img src="images/よろこび.png" alt="">
         <div class="home-hero-txt">
-          <div class="home-title">メジャーリーグ野球用語<br>英和・和英辞典 ＆ 学習プレイ</div>
+          <div class="home-title">メジャーリーグ野球用語<br>英和・和英辞典 ＆ MLB情報・学習</div>
           <div class="home-date" id="home-date"></div>
           <div class="home-player" id="home-player"></div>
         </div>
@@ -3150,7 +3150,7 @@ function recordPlay(){
 function startQuizPlay(){
   // 無料は1日2回まで。超えたらプレミアム案内
   if(playsLeft()<=0){
-    if(confirm('本日の無料プレイ（'+FREE_DAILY_PLAYS+'回）を使い切りました。\nプレミアム（月額200円）なら回数無制限・広告なしで遊べます。\n設定を開きますか？')){
+    if(confirm('本日の無料回数（'+FREE_DAILY_PLAYS+'回）を使い切りました。\nプレミアム（月額200円）なら回数無制限・広告なしで遊べます。\n設定を開きますか？')){
       goTab('settings');
     }
     return;
