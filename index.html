@@ -853,6 +853,9 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .standings-btn:active{transform:translate(2px,2px);box-shadow:none}
 .home-games-body{font-size:14px;color:var(--c-muted)}
 .home-games-note{font-size:10.5px;color:var(--c-muted2);margin-top:8px;text-align:center;letter-spacing:.3px}
+/* 昨日の結果を枠で囲って「今日の試合」と視覚的に分離 */
+#yday-games:not(:empty){border:2px solid var(--c-border);border-radius:var(--r-md);background:var(--c-score-bg);padding:8px 10px;margin:6px 0 10px}
+.yday-sep{font-family:var(--ff-d);font-weight:900;font-size:13px;color:var(--c-ink);margin:2px 0 6px}
 .game-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed var(--c-hairline)}
 .game-row:last-child{border-bottom:none}
 .game-reveal{padding:5px 12px;border:2px dashed var(--c-border);border-radius:var(--r-pill);
@@ -1965,7 +1968,7 @@ async function loadYesterdayGames(){
     const games=latest.games;
     // 日付見出し（例：7/20（日）の結果）
     let head='';
-    try{ const dt=new Date(latest.date+'T12:00:00'); head='<div class="rh-date" style="margin:2px 2px 6px">'+(dt.getMonth()+1)+'/'+dt.getDate()+'（'+'日月火水木金土'[dt.getDay()]+'）の結果</div>'; }catch(e){}
+    try{ const dt=new Date(latest.date+'T12:00:00'); head='<div class="yday-sep">📅 '+(dt.getMonth()+1)+'/'+dt.getDate()+'（'+'日月火水木金土'[dt.getDay()]+'）の結果（終了分）</div>'; }catch(e){}
     el.innerHTML=head+games.map(g=>{
       const st=gameStateJa(g);
       const a=g.teams.away, h=g.teams.home;
