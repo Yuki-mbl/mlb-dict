@@ -1954,11 +1954,17 @@ async function loadYesterdayGames(){
   const el=$('yday-games'); if(!el) return;
   el.innerHTML='<div style="padding:6px 0">読み込み中…</div>';
   try{
-    const ds=etDateStrOffset(-1);
-    const d=await cachedJson('https://statsapi.mlb.com/api/v1/schedule?sportId=1&hydrate=linescore&date='+ds,'mlb_games_yday',30);
-    const games=(d.dates&&d.dates[0]&&d.dates[0].games)||[];
-    if(!games.length){ el.innerHTML='<div style="padding:6px 0">昨日の試合はありませんでした</div>'; _ydayLoaded=true; return; }
-    el.innerHTML=games.map(g=>{
+    // 昨日〜7日前の範囲を取得し、試合があった直近の日を採用（昨日が試合なしでも前回を表示）
+    const start=etDateStrOffset(-7), end=etDateStrOffset(-1);
+    const d=await cachedJson('https://statsapi.mlb.com/api/v1/schedule?sportId=1&hydrate=linescore&startDate='+start+'&endDate='+end,'mlb_games_recent',30);
+    const dates=(d.dates||[]).filter(x=>x.games&&x.games.length);
+    if(!dates.length){ el.innerHTML='<div style="padding:6px 0">直近に試合がありませんでした</div>'; _ydayLoaded=true; return; }
+    const latest=dates[dates.length-1]; // 直近（前回）の試合日
+    const games=latest.games;
+    // 日付見出し（例：7/20（日）の結果）
+    let head='';
+    try{ const dt=new Date(latest.date+'T12:00:00'); head='<div class="rh-date" style="margin:2px 2px 6px">'+(dt.getMonth()+1)+'/'+dt.getDate()+'（'+'日月火水木金土'[dt.getDay()]+'）の結果</div>'; }catch(e){}
+    el.innerHTML=head+games.map(g=>{
       const st=gameStateJa(g);
       const a=g.teams.away, h=g.teams.home;
       const score=(a.score==null&&h.score==null)?'-':((a.score??'-')+' - '+(h.score??'-'));
