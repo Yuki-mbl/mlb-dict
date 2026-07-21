@@ -1521,6 +1521,7 @@ function obReroll(){
 function obConfirm(){
   const prof={gender:_ob.gender,age:_ob.age,nick:_ob.nick,ts:todayStr()};
   localStorage.setItem('mlb_profile',JSON.stringify(prof));
+  track('onboarding_complete',{gender:_ob.gender,age_band:_ob.age}); // 匿名の属性集計
   $('onboard').style.display='none';
   goTab('home');
 }
@@ -2511,7 +2512,27 @@ function clearAbbrSearch(){
   $('abbr-clear').classList.remove('show');
   renderAbbrList();
 }
+// ── アクセス解析（Firebase / GA4）──────────────────────────────────────────
+// 匿名の集計のみを送信（性別・年代帯・イベント。氏名/メール等の個人情報は送らない）。
+// GA_ID が空の間は完全に無効＝何も読み込まず・何も送りません。
+const GA_ID=''; // ← FirebaseのウェブアプリのMeasurement ID（G-XXXXXXXXXX）を入れると有効化
+let _gaReady=false;
+function initAnalytics(){
+  try{
+    if(!GA_ID) return; // 未設定なら無効
+    if(location.protocol==='file:'||/^(localhost$|127\.|192\.168\.)/.test(location.hostname)) return; // ローカルは計測しない
+    const s=document.createElement('script'); s.async=true;
+    s.src='https://www.googletagmanager.com/gtag/js?id='+GA_ID; document.head.appendChild(s);
+    window.dataLayer=window.dataLayer||[]; window.gtag=function(){dataLayer.push(arguments);};
+    gtag('js',new Date()); gtag('config',GA_ID,{anonymize_ip:true});
+    _gaReady=true;
+  }catch(e){}
+}
+// イベント送信（無効時・失敗時は黙って無視）
+function track(name,params){ try{ if(_gaReady&&window.gtag) gtag('event',name,params||{}); }catch(e){} }
+
 document.addEventListener('DOMContentLoaded', () => {
+  initAnalytics();
   const inp = $('abbr-search');
   if(inp){
     inp.addEventListener('input', e => {
@@ -3709,6 +3730,7 @@ function _beginVersus(){
        maxInning:3, finished:false, userWins:(Math.random()<wr) };
   versusActive=true; lastQuizSection='play';
   quizGameCorrect=0;
+  track('versus_start',{level:vs.level});
   $('quiz-menu').style.display='none';
   $('quiz-play').style.display='';
   $('versus-bar').style.display='';
@@ -3820,6 +3842,7 @@ function showVersusResult(fullGame){
   const win=vs.userScore>vs.cpuScore, tie=vs.userScore===vs.cpuScore;
   // 得点はどちらでも加算（3回で終えても有効）。ボーナス+10は9回完走・勝利のみ
   versusActive=false;
+  track('versus_result',{full_game:!!fullGame, win:win, user_score:vs.userScore, cpu_score:vs.cpuScore, level:vs.level});
   if(vs.userScore>0) addRuns(vs.userScore);
   if(fullGame && win) addRuns(10);
   // 対戦成績は9回完走のみ記録
@@ -4239,6 +4262,7 @@ function showDailyResult(){
   $('daily-result').style.display='';
   const correct=dailyState.ans.filter(a=>a===true).length;
   $('daily-result-score').textContent=correct+' / 10';
+  track('daily_complete',{correct:correct}); // 今日の10問の正解数
   // mark done（1日1回）＋正解数で総得点ボーナス（10問=+4 / 6〜9問=+2）
   const bonus=correct===10?5:(correct>=6?3:0);
   const today=todayStr();
