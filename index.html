@@ -953,6 +953,8 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
         <div class="home-card-hd home-games-hd"><span>⚾ 今日の試合 <span class="games-refresh">🔄 約5分ごとに更新</span></span>
           <button class="standings-btn" onclick="goTab('standings')">順位表 →</button>
         </div>
+        <button type="button" class="games-reveal-all games-reveal-all-top" id="yday-btn" onclick="toggleYdayGames()">📅 昨日の結果を見る ▼</button>
+        <div id="yday-games" style="display:none"></div>
         <div id="games-revealall-top"></div>
         <div id="home-games" class="home-games-body">読み込み中…</div>
         <div class="home-games-note">米国日付の本日の試合／開始時刻は日本時間／結果は「結果」をタップで表示（ネタバレ防止）</div>
@@ -1858,6 +1860,11 @@ function etDateStr(){
   const p=new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
   return p; // YYYY-MM-DD
 }
+// 米国東部時間で days 日ずらした日付（-1=昨日）
+function etDateStrOffset(days){
+  const d=new Date(Date.now()+days*86400000);
+  return new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
+}
 // キャッシュつきfetch（分単位TTL）
 async function cachedJson(url,key,ttlMin){
   try{
@@ -1933,6 +1940,39 @@ async function loadGames(){
   }catch(e){
     el.innerHTML='<div style="padding:6px 0">オフラインのため表示できません</div>';
   }
+}
+// 昨日（米国日付）の結果を開閉。日本では米国の昨日＝直近の完了試合なので結果を直接表示
+let _ydayLoaded=false;
+function toggleYdayGames(){
+  const box=$('yday-games'), btn=$('yday-btn'); if(!box) return;
+  const open=box.style.display==='none';
+  box.style.display=open?'':'none';
+  if(btn) btn.textContent=open?'📅 昨日の結果を隠す ▲':'📅 昨日の結果を見る ▼';
+  if(open && !_ydayLoaded) loadYesterdayGames();
+}
+async function loadYesterdayGames(){
+  const el=$('yday-games'); if(!el) return;
+  el.innerHTML='<div style="padding:6px 0">読み込み中…</div>';
+  try{
+    const ds=etDateStrOffset(-1);
+    const d=await cachedJson('https://statsapi.mlb.com/api/v1/schedule?sportId=1&hydrate=linescore&date='+ds,'mlb_games_yday',30);
+    const games=(d.dates&&d.dates[0]&&d.dates[0].games)||[];
+    if(!games.length){ el.innerHTML='<div style="padding:6px 0">昨日の試合はありませんでした</div>'; _ydayLoaded=true; return; }
+    el.innerHTML=games.map(g=>{
+      const st=gameStateJa(g);
+      const a=g.teams.away, h=g.teams.home;
+      const score=(a.score==null&&h.score==null)?'-':((a.score??'-')+' - '+(h.score??'-'));
+      const dh=(g.doubleHeader&&g.doubleHeader!=='N'&&g.gameNumber)?`<span class="game-dh">第${g.gameNumber}試合</span>`:'';
+      const stTxt=(st.cls==='final')?'終了':st.txt;
+      const mid=`${dh}<span class="game-score">${esc(String(score))}</span><br><span class="game-state ${st.cls}">${esc(stTxt)}</span>`;
+      return `<div class="game-row">
+        <span class="game-team away">${teamLogo(a.team)}<span class="game-team-name">${esc(teamJa(a.team))}</span></span>
+        <span class="game-mid">${mid}</span>
+        <span class="game-team"><span class="game-team-name">${esc(teamJa(h.team))}</span>${teamLogo(h.team)}</span>
+      </div>`;
+    }).join('');
+    _ydayLoaded=true;
+  }catch(e){ el.innerHTML='<div style="padding:6px 0">オフラインのため表示できません</div>'; }
 }
 // ── 今日の日本人選手 ─────────────────────────────────────────────────────────
 const JP_PLAYERS=[
