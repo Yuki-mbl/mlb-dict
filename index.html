@@ -1715,9 +1715,9 @@ function rosterPool(){
 }
 function todayField(){
   const key='mlb_field_'+todayStr();
-  try{ const c=JSON.parse(localStorage.getItem(key)); if(c&&c.names&&c.names.length>=20&&c.finals&&c.finals.length>=20) return c; }catch(e){}
+  try{ const c=JSON.parse(localStorage.getItem(key)); if(c&&c.names&&c.names.length>=20&&c.finals&&c.finals.length>=20&&c.N>=250) return c; }catch(e){}
   const wknd=(function(){const g=new Date().getDay(); return g===0||g===6;})();
-  const N=140+Math.floor(Math.random()*41);      // 全体 140〜180人
+  const N=290+Math.floor(Math.random()*111);     // 全体 290〜400人（この時間帯でも大勢が参加している設定）
   const p=1.7+Math.random()*0.8;                 // 落ち方の急さ（日替わり 1.7〜2.5）
   // 1位の「1日の最終」を日替わりで大きく変動。週末は高め
   let T=90+Math.floor(Math.random()*71);         // 平日 90〜160点
@@ -1728,8 +1728,8 @@ function todayField(){
   if(roll<0.16) dtype='runaway';                 // 独走の1位
   else if(roll<0.38) dtype='duel';               // 1位と2位だけが高得点で競る
   else if(roll<0.56) dtype='tight';              // 全体が接戦
-  let drop=0.025+Math.random()*0.05;             // 上位の1順位ごとの下げ幅 2.5〜7.5%
-  if(dtype==='tight') drop=0.012+Math.random()*0.014; // 接戦の日は差が小さい
+  let drop=0.02+Math.random()*0.028;             // 上位の1順位ごとの下げ幅 2.0〜4.8%（下位20位まで点が残る）
+  if(dtype==='tight') drop=0.012+Math.random()*0.012; // 接戦の日は差が小さい
   const finals=[];
   for(let r=0;r<20;r++) finals.push(Math.max(1,Math.round(T*(1-drop*r))));
   if(dtype==='runaway'){ T=Math.round(T*(1.28+Math.random()*0.3)); finals[0]=T; }        // 独走
