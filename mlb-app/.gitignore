@@ -3,3 +3,5 @@ ios/
 www/
 .DS_Store
 *.log
+android/
+local.properties

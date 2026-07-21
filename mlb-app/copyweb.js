@@ -21,4 +21,14 @@ for (const f of fs.readdirSync(imgSrc)) {
   fs.copyFileSync(path.join(imgSrc, f), path.join(imgDst, f));
 }
 
-console.log('Copied index.html and images/ into www/');
+// sounds（打球音・歓声）
+const sndSrc = path.join(root, 'sounds');
+if (fs.existsSync(sndSrc)) {
+  const sndDst = path.join(www, 'sounds');
+  fs.mkdirSync(sndDst, { recursive: true });
+  for (const f of fs.readdirSync(sndSrc)) {
+    fs.copyFileSync(path.join(sndSrc, f), path.join(sndDst, f));
+  }
+}
+
+console.log('Copied index.html, images/ and sounds/ into www/');
