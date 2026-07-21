@@ -1968,7 +1968,7 @@ async function loadYesterdayGames(){
     const games=latest.games;
     // 日付見出し（例：7/20（日）の結果）
     let head='';
-    try{ const dt=new Date(latest.date+'T12:00:00'); head='<div class="yday-sep">📅 '+(dt.getMonth()+1)+'/'+dt.getDate()+'（'+'日月火水木金土'[dt.getDay()]+'）の結果（終了分）</div>'; }catch(e){}
+    try{ const dt=new Date(latest.date+'T12:00:00'); head='<div class="yday-sep">📅 '+(dt.getMonth()+1)+'/'+dt.getDate()+'（'+'日月火水木金土'[dt.getDay()]+'）の結果（米国日付・終了分）</div>'; }catch(e){}
     el.innerHTML=head+games.map(g=>{
       const st=gameStateJa(g);
       const a=g.teams.away, h=g.teams.home;
