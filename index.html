@@ -2533,6 +2533,7 @@ function track(name,params){ try{ if(_gaReady&&window.gtag) gtag('event',name,pa
 
 document.addEventListener('DOMContentLoaded', () => {
   initAnalytics();
+  track('app_open',{runs_today:(typeof runsToday==='number'?runsToday:0), runs_total:(typeof runsTotal==='number'?runsTotal:0)}); // 起動時の今日/累計得点スナップショット
   const inp = $('abbr-search');
   if(inp){
     inp.addEventListener('input', e => {
@@ -3163,6 +3164,7 @@ function addRuns(n){
   runsToday=((c.date===t)?(c.n||0):0)+n;
   localStorage.setItem('mlb_runs_today',JSON.stringify({date:t,n:runsToday}));
   updateRuns();
+  track('score_update',{gained:n, runs_today:runsToday, runs_total:runsTotal}); // 今日の得点・累計得点
   ['quiz-runs','quiz-runs-today'].forEach(id=>{const el=$(id);if(el){el.classList.remove('run-bump');void el.offsetWidth;el.classList.add('run-bump');}});
 }
 let _rankupTimer=null;
