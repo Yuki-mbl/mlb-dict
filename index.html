@@ -1729,7 +1729,7 @@ function rosterPool(){
 }
 function todayField(){
   const key='mlb_field_'+todayStr();
-  try{ const c=JSON.parse(localStorage.getItem(key)); if(c&&c.names&&c.names.length>=36&&c.finals&&c.finals.length>=36&&c.N>=250) return c; }catch(e){}
+  try{ const c=JSON.parse(localStorage.getItem(key)); if(c&&c.names&&c.names.length>=40&&c.finals&&c.finals.length>=250&&c.personas&&c.personas.length>=250&&c.N>=250) return c; }catch(e){}
   const wknd=(function(){const g=new Date().getDay(); return g===0||g===6;})();
   const N=290+Math.floor(Math.random()*111);     // 全体 290〜400人（この時間帯でも大勢が参加している設定）
   const p=1.7+Math.random()*0.8;                 // 落ち方の急さ（日替わり 1.7〜2.5）
@@ -1742,12 +1742,12 @@ function todayField(){
   if(roll<0.16) dtype='runaway';                 // 独走の1位
   else if(roll<0.38) dtype='duel';               // 1位と2位だけが高得点で競る
   else if(roll<0.56) dtype='tight';              // 全体が接戦
-  let drop=0.010+Math.random()*0.013;            // 上位の1順位ごとの下げ幅 1.0〜2.3%（上位20人までなだらか）
-  if(dtype==='tight') drop=0.006+Math.random()*0.008; // 接戦の日はさらに小さい
+  // 全N人分の最終スコア（べき乗カーブ：上位はなだらか、下位まで自然に分布）。tightは平坦め
+  const shape=(dtype==='tight')?(1.0+Math.random()*0.35):(1.4+Math.random()*0.5);
   const finals=[];
-  for(let r=0;r<36;r++) finals.push(Math.max(1,Math.round(T*(1-drop*r))));  // 36人分（表示は上位20人）
+  for(let r=0;r<N;r++) finals.push(Math.max(1,Math.round(T*Math.pow(Math.max(0,1-r/N), shape))));
   if(dtype==='runaway'){ T=Math.round(T*(1.28+Math.random()*0.3)); finals[0]=T; }        // 独走
-  else if(dtype==='duel'){ finals[0]=T; finals[1]=Math.round(T*(0.93+Math.random()*0.05)); for(let r=2;r<36;r++) finals[r]=Math.round(finals[r]*0.6); } // 1・2位だけ高い
+  else if(dtype==='duel'){ finals[0]=T; finals[1]=Math.round(T*(0.93+Math.random()*0.05)); for(let r=2;r<N;r++) finals[r]=Math.round(finals[r]*0.7); } // 1・2位だけ突出
   const top=finals[0];
   const roster=rosterPool();
   const my=(getProfile()&&getProfile().nick)||'';
@@ -1762,11 +1762,11 @@ function todayField(){
   if(surg.length>2) surg=surg.slice(0,2);
   // 上位ランクは常連＋伏兵で埋め、残りは日替わりのランダム名。伏兵は出た日はトップ寄りに
   const topNames=shuf(surg).concat(shuf(regs));
-  const names=[];
-  topNames.forEach(n=>{ if(names.length<36 && !used[n]){ used[n]=1; names.push(n); } });
-  while(names.length<36){ let nm='ライバル'; for(let k=0;k<30;k++){const c=genNickname(''); if(c&&!used[c]){nm=c;used[c]=1;break;}} names.push(nm); }
-  // 生活パターンをシャッフルして割り当て（日中は順位が入れ替わって見える）。36人分
-  const personas=[]; while(personas.length<36){ const b=PERSONA_ORDER.slice(); for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];} personas.push(...b); } personas.length=36;
+  const names=[];  // 表示は上位20人なので、名前は上位40人分だけ用意（ドラマで沈む人がいても表示は名前付きに収まる）
+  topNames.forEach(n=>{ if(names.length<40 && !used[n]){ used[n]=1; names.push(n); } });
+  while(names.length<40){ let nm='ライバル'; for(let k=0;k<30;k++){const c=genNickname(''); if(c&&!used[c]){nm=c;used[c]=1;break;}} names.push(nm); }
+  // 生活パターンを全N人に割り当て（各人が時刻ごとに違う伸び方＝毎分の順位が自然に動く）
+  const personas=[]; while(personas.length<N){ const b=PERSONA_ORDER.slice(); for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];} personas.push(...b); } personas.length=N;
   // 日替わりの順位ドラマ（closer=夜の追い込み / dawn=0時からの早朝リーダー / late系=競り合い）
   const froll=Math.random(); let finish='normal';
   if(froll<0.18)      finish='comeback';   // 日中は下位、夜12時間際に一気に上位へ逆転
@@ -1777,7 +1777,7 @@ function todayField(){
   else if(finish==='comeback'){ const slot=2+Math.floor(Math.random()*5); personas[slot]='closer'; } // 3〜7位枠→日中沈み夜に急浮上
   else if(finish==='midnight'){ const slot=Math.floor(Math.random()*3); personas[slot]='dawn'; }      // 上位1〜3枠→0時から爆走
   else if(finish==='triple'){ personas[0]='closer'; personas[1]='latenite'; personas[2]='nightowl'; }
-  const f={top,N,p,names,personas,wknd,finals,dtype,finish};
+  const f={top,N,p:shape,names,personas,wknd,finals,dtype,finish};
   try{ localStorage.setItem(key,JSON.stringify(f)); }catch(e){}
   pruneOldFields();
   return f;
@@ -1819,23 +1819,21 @@ function renderStats(){
   const h=nowHour();
   // 今の時刻の全体の進み具合（早朝は低い→少点でも上位に入れる）
   const avgP=(cumFrac(PERSONAS.steady.w,h)+cumFrac(PERSONAS.commuter.w,h)+cumFrac(PERSONAS.evening.w,h)+cumFrac(PERSONAS.meal.w,h))/4;
-  // 現時点のライバルのスコア（時刻＋生活パターンで変動）。36人生成し、上位20人だけ表示
-  const top=[]; for(let r=1;r<=36;r++) top.push({name:f.names[r-1],score:liveScoreForRank(r,f,h),me:false});
-  // 終盤（夜〜終了間際）はユーザーを最高2位までに。途中は1位もOK
-  // duel（1位2位だけ競る日）は上位2人をユーザーの上にキープ（最高3位）
+  // 全ライバル（N人）の現時点スコアを算出。上位20人を表示し、あなたの順位も同じ分布から出す（矛盾なし）
+  const NF=f.finals.length;
+  const rivals=[]; for(let r=1;r<=NF;r++) rivals.push({name:(f.names[r-1]||('選手'+r)),score:liveScoreForRank(r,f,h),me:false});
+  // 終盤（夜〜終了間際）はユーザーを最高2位までに。duelは上位2人をキープ（最高3位）
   if(avgP>=0.8 && us>0){
     const keep=(f.dtype==='duel')?2:1;
-    const sorted=top.slice().sort((a,b)=>b.score-a.score);
-    for(let n=0;n<keep && n<sorted.length;n++){
-      if(sorted[n].score<=us) sorted[n].score=us+(keep-n)+Math.floor(Math.random()*3);
-    }
+    const bylive=rivals.slice().sort((a,b)=>b.score-a.score);
+    for(let n=0;n<keep && n<bylive.length;n++){ if(bylive[n].score<=us) bylive[n].score=us+(keep-n)+Math.floor(Math.random()*3); }
   }
-  const merged=top.concat([{name:myNick,score:us,me:true}]).sort((a,b)=> b.score-a.score || (a.me?1:-1));
+  const merged=rivals.concat([{name:myNick,score:us,me:true}]).sort((a,b)=> b.score-a.score || (a.me?1:-1));
   const idx=merged.findIndex(x=>x.me);
   const inTop20=idx<20;
-  const curTop=Math.max(1,f.top*avgP);
-  const myRank=inTop20 ? idx+1 : Math.max(21, rankForScore(us,{top:curTop,N:f.N,p:f.p}));
-  const you=$('rank-you'); if(you) you.textContent='あなたは '+myRank+' 位 / 全'+f.N+'人中';
+  const total=f.N;
+  const myRank=Math.min(idx+1, total);
+  const you=$('rank-you'); if(you) you.textContent='あなたは '+myRank+' 位 / 全'+total+'人中';
   const bd=$('rank-board');
   if(bd){
     let rows=merged.slice(0,20).map((x,i)=>
