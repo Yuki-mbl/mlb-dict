@@ -1981,23 +1981,26 @@ async function loadYesterdayGames(){
     // 直近7日〜本日(米国日付)を取得し、「終了した試合がある直近の日」を採用（予定・進行中は除外）
     const start=etDateStrOffset(-7), end=etDateStr();
     const d=await cachedJson('https://statsapi.mlb.com/api/v1/schedule?sportId=1&hydrate=linescore&startDate='+start+'&endDate='+end,'mlb_games_recent',30);
-    // 「終了」かつ両チームにスコアがある試合のみ（中止・延期はスコアが無いので除外）
+    // 終了（スコアあり）＝完了試合。中止/延期/サスペンドは「中止」として表示（予定・進行中は除外）
     const isFinal=g=>g.status&&g.status.abstractGameState==='Final'&&g.teams&&g.teams.away&&g.teams.home&&g.teams.away.score!=null&&g.teams.home.score!=null;
-    // 各日を「終了した試合だけ」に絞り、終了試合がある最新の日を選ぶ
+    const isCancelled=g=>{ const ds=(g.status&&g.status.detailedState)||''; if(/Postponed|Cancel|Suspended/i.test(ds)) return true; return g.status&&g.status.abstractGameState==='Final'&&!isFinal(g); };
+    const isShown=g=>isFinal(g)||isCancelled(g);
+    // 終了(スコアあり)試合がある直近の日を採用。その日の中止試合も併せて表示
     let latest=null;
-    (d.dates||[]).forEach(x=>{ const fin=(x.games||[]).filter(isFinal); if(fin.length) latest={date:x.date,games:fin}; });
+    (d.dates||[]).forEach(x=>{ const fin=(x.games||[]).filter(isFinal); if(fin.length) latest={date:x.date,games:(x.games||[]).filter(isShown)}; });
     if(!latest){ el.innerHTML='<div style="padding:6px 0">直近に終了した試合がありませんでした</div>'; _ydayLoaded=true; return; }
     const games=latest.games;
     // 日付見出し（例：7/20（日）の結果）
     let head='';
-    try{ const dt=new Date(latest.date+'T12:00:00'); head='<div class="yday-sep">📅 '+(dt.getMonth()+1)+'/'+dt.getDate()+'（'+'日月火水木金土'[dt.getDay()]+'）の結果（米国日付・終了分）</div>'; }catch(e){}
+    try{ const dt=new Date(latest.date+'T12:00:00'); head='<div class="yday-sep">📅 '+(dt.getMonth()+1)+'/'+dt.getDate()+'（'+'日月火水木金土'[dt.getDay()]+'）の結果（米国日付）</div>'; }catch(e){}
     el.innerHTML=head+games.map(g=>{
-      const st=gameStateJa(g);
       const a=g.teams.away, h=g.teams.home;
-      const score=(a.score==null&&h.score==null)?'-':((a.score??'-')+' - '+(h.score??'-'));
+      const cancelled=!isFinal(g);
+      const score=cancelled?'ー':((a.score??'-')+' - '+(h.score??'-'));
       const dh=(g.doubleHeader&&g.doubleHeader!=='N'&&g.gameNumber)?`<span class="game-dh">第${g.gameNumber}試合</span>`:'';
-      const stTxt=(st.cls==='final')?'終了':st.txt;
-      const mid=`${dh}<span class="game-score">${esc(String(score))}</span><br><span class="game-state ${st.cls}">${esc(stTxt)}</span>`;
+      const stTxt=cancelled?'中止':'終了';
+      const cls=cancelled?'pre':'final';
+      const mid=`${dh}<span class="game-score">${esc(String(score))}</span><br><span class="game-state ${cls}">${esc(stTxt)}</span>`;
       return `<div class="game-row">
         <span class="game-team away">${teamLogo(a.team)}<span class="game-team-name">${esc(teamJa(a.team))}</span></span>
         <span class="game-mid">${mid}</span>
