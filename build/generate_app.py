@@ -2713,7 +2713,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       <div id="ob-step1">
         <img class="ob-hero" src="images/よろこび.png" alt="">
         <div class="ob-title">ようこそ！</div>
-        <div class="ob-sub">はじめに教えてね（あとで変更可）</div>
+        <div class="ob-sub">はじめに教えてね</div>
         <div class="ob-q">性別</div>
         <div class="ob-opts" id="ob-gender">
           <button type="button" class="ob-opt" data-v="m" onclick="obSel('gender',this)">男</button>
