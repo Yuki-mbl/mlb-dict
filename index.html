@@ -448,7 +448,8 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 #versus-board.show{display:flex}
 #versus-board-inner{width:100%;max-width:400px;margin:auto;background:var(--c-card);border:3px solid var(--c-border);
   border-radius:var(--r-lg);box-shadow:var(--shadow-l);padding:16px;text-align:center}
-.vs-board-ttl{font-family:var(--ff-d);font-weight:900;font-size:18px;color:var(--c-ink);margin-bottom:10px}
+.vs-board-ttl{font-family:var(--ff-d);font-weight:900;font-size:18px;color:var(--c-ink);margin-bottom:6px}
+.vs-names{font-family:var(--ff-t);font-weight:800;font-size:13px;color:var(--c-ink);margin-bottom:8px;word-break:break-word}
 .vs-score{width:100%;border-collapse:collapse;font-family:var(--ff-t);font-size:12px;margin-bottom:8px}
 .vs-score th,.vs-score td{border:1px solid var(--c-hairline);padding:3px 0;text-align:center;min-width:18px}
 .vs-score th:first-child{text-align:left;padding-left:4px;white-space:nowrap;font-size:11px}
@@ -1133,7 +1134,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
           <img class="dchar dchar-runner" id="dchar-2" src="images/盗塁待ち.png" alt="" style="display:none">
           <img class="dchar dchar-runner" id="dchar-3" src="images/盗塁待ち.png" alt="" style="display:none">
           <div class="diamond-hud diamond-hud-out"><span class="quiz-outs" id="quiz-outs">OUT ○○○</span></div>
-          <div class="diamond-hud diamond-hud-run">本日 <span id="quiz-runs-today">0</span>／通算 <span id="quiz-runs">0</span></div>
+          <div class="diamond-hud diamond-hud-run" id="hud-runs">本日 <span id="quiz-runs-today">0</span>／通算 <span id="quiz-runs">0</span></div>
         </div>
       </div>
       <div class="swing-ui" id="swing-ui" style="display:none">
@@ -3195,6 +3196,7 @@ function startQuizPlay(){
   lastQuizSection='play';
   $('quiz-menu').style.display='none';
   $('quiz-play').style.display='';
+  const _hr=$('hud-runs'); if(_hr) _hr.style.display=''; // フリーバッティングでは本日/通算を表示
   quizStreak=0;quizOuts=0;quizAsked=0;quizGameCorrect=0;
   resetSwing();
   updateOuts();clearBases();updateRuns();
@@ -3285,6 +3287,7 @@ function quizToMenu(){
   const play=$('quiz-play'),menu=$('quiz-menu');
   if(play) play.style.display='none';
   if(menu) menu.style.display='';
+  const _hr=$('hud-runs'); if(_hr) _hr.style.display=''; // 試合で隠した本日/通算HUDを復帰
   updateRuns();
 }
 function updateOuts(){
@@ -3825,6 +3828,7 @@ function _beginVersus(){
   $('quiz-menu').style.display='none';
   $('quiz-play').style.display='';
   $('versus-bar').style.display='';
+  const _hr=$('hud-runs'); if(_hr) _hr.style.display='none'; // 試合中は本日/通算を隠す（試合の得点だけに集中）
   updateVersusBar();
   versusToast('🆚 対戦相手\n'+vs.name+'（Lv'+vs.level+'）\n'+(vs.userHome?'あなたは後攻':'あなたは先攻'), ()=>versusStartInning());
 }
@@ -3879,9 +3883,13 @@ function renderVersusBoard(){
   const wrap=$('versus-board-inner'); if(!wrap) return;
   const cells=n=>{ let s=''; for(let k=0;k<9;k++){ const v=(n[k]==null)?'':n[k]; s+='<td>'+v+'</td>'; } return s; };
   const myName=(getProfile()&&getProfile().nick)||'あなた';
-  // 先攻を上段に。あなたの名前は青で強調
-  const userRow='<tr><th style="color:#1d6fd6">'+esc(myName)+'</th>'+cells(vs.userLine)+'<td class="vs-r">'+vs.userScore+'</td></tr>';
-  const cpuRow='<tr><th>'+esc(vs.name)+'</th>'+cells(vs.cpuLine)+'<td class="vs-r">'+vs.cpuScore+'</td></tr>';
+  // 表の行ラベルは「先攻/後攻」で短く（横幅節約）。名前は表の上に別行で表示（あなたは青）
+  const meBlue='<span style="color:#1d6fd6">'+esc(myName)+'</span>';
+  const namesLine=vs.userHome
+    ? '<div class="vs-names">先攻：'+esc(vs.name)+'　後攻：'+meBlue+'</div>'
+    : '<div class="vs-names">先攻：'+meBlue+'　後攻：'+esc(vs.name)+'</div>';
+  const userRow='<tr><th style="color:#1d6fd6">'+(vs.userHome?'後攻':'先攻')+'</th>'+cells(vs.userLine)+'<td class="vs-r">'+vs.userScore+'</td></tr>';
+  const cpuRow='<tr><th>'+(vs.userHome?'先攻':'後攻')+'</th>'+cells(vs.cpuLine)+'<td class="vs-r">'+vs.cpuScore+'</td></tr>';
   const rows=vs.userHome ? (cpuRow+userRow) : (userRow+cpuRow); // 先攻が上
   const msg=versusInningMsg();
   const last=(vs.maxInning===9 && vs.inning===9);
@@ -3896,6 +3904,7 @@ function renderVersusBoard(){
   }
   wrap.innerHTML=
     '<div class="vs-board-ttl">'+vs.inning+'回 終了</div>'+
+    namesLine+
     '<table class="vs-score"><tr class="vs-hdr"><th></th>'+[1,2,3,4,5,6,7,8,9].map(n=>'<th>'+n+'</th>').join('')+'<th class="vs-r">計</th></tr>'+
     rows+'</table>'+
     (msg?'<div class="vs-msg">'+msg+'</div>':'')+
