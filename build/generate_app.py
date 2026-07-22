@@ -1328,6 +1328,12 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   background:var(--c-canvas);position:relative;overflow:hidden}
 .tab-panel{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0}
 .tab-panel.active{display:flex}
+/* プルダウン更新のインジケータ */
+#ptr-ind{position:fixed;left:50%;top:0;transform:translateX(-50%) translateY(-52px);z-index:2000;
+  background:var(--c-card);border:2px solid var(--c-border);border-radius:var(--r-pill);
+  box-shadow:var(--shadow-s);padding:6px 16px;font-family:var(--ff-t);font-weight:800;font-size:12px;
+  color:var(--c-primary);opacity:0;transition:opacity .15s;pointer-events:none;white-space:nowrap}
+#ptr-ind.show{opacity:1}
 
 /* ── バナー広告 ── */
 #ad-banner{display:none;flex-shrink:0;align-items:center;justify-content:center;gap:8px;
@@ -3917,7 +3923,62 @@ document.addEventListener('DOMContentLoaded', () => {
   if(typeof syncPremium==='function') syncPremium();
   if(typeof syncSfxToggle==='function') syncSfxToggle();
   if(typeof loadSample==='function'){ loadSample('bat','sounds/bat.mp3?v=wood'); loadSample('cheer','sounds/cheer.mp3?v=1'); }
+  initPullToRefresh();
 });
+// ── プルダウン更新（スクロール先頭で下に引くと最新に更新）──────────────────────
+function initPullToRefresh(){
+  try{
+    const ind=document.createElement('div'); ind.id='ptr-ind';
+    ind.innerHTML='<span id="ptr-txt">↓ 引っ張って更新</span>';
+    document.body.appendChild(ind);
+    const txt=()=>document.getElementById('ptr-txt');
+    const TH=70;
+    let startY=0, scroller=null, dist=0, pulling=false;
+    function scrollableAncestor(el){
+      while(el && el!==document.body && el!==document.documentElement){
+        const s=getComputedStyle(el).overflowY;
+        if((s==='auto'||s==='scroll') && el.scrollHeight>el.clientHeight+1) return el;
+        el=el.parentElement;
+      }
+      return document.querySelector('.tab-panel.active');
+    }
+    function overlayOpen(){
+      const ob=document.getElementById('onboard'); if(ob && ob.style.display!=='none') return true;
+      return !!document.querySelector('#ad-overlay.show, #versus-board.show, #versus-result.show, #versus-toast.show, #modal.open, #modal-backdrop.open');
+    }
+    document.addEventListener('touchstart',e=>{
+      if(e.touches.length!==1 || overlayOpen()){ scroller=null; return; }
+      scroller=scrollableAncestor(e.target);
+      startY=e.touches[0].clientY; dist=0; pulling=false;
+    },{passive:true});
+    document.addEventListener('touchmove',e=>{
+      if(!scroller) return;
+      const atTop=(scroller.scrollTop||0)<=0;
+      const dy=e.touches[0].clientY-startY;
+      if(atTop && dy>6){
+        pulling=true; dist=Math.min(dy*0.5,110);
+        ind.classList.add('show');
+        ind.style.transform='translateX(-50%) translateY('+(dist-52)+'px)';
+        txt().textContent = dist>=TH ? '離して更新 🔄' : '↓ 引っ張って更新';
+        if(e.cancelable) e.preventDefault();
+      } else if(pulling && dy<=0){
+        pulling=false; ind.classList.remove('show'); ind.style.transform='';
+      }
+    },{passive:false});
+    const end=()=>{
+      if(pulling && dist>=TH){
+        txt().textContent='更新中…';
+        ind.style.transform='translateX(-50%) translateY(12px)';
+        setTimeout(()=>{ const b=location.origin+location.pathname; location.replace(b+'?r='+Date.now()); },150);
+      }else{
+        ind.classList.remove('show'); ind.style.transform='';
+      }
+      pulling=false; scroller=null; dist=0;
+    };
+    document.addEventListener('touchend',end);
+    document.addEventListener('touchcancel',end);
+  }catch(e){}
+}
 
 // ── Modal (bottom sheet) ──────────────────────────────────────────────────────
 function formatDef(text){
