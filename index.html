@@ -1579,7 +1579,14 @@ function goTab(t){
   // カンニング防止: 未回答のまま辞書・略語を開いたら、そのクイズには戻れない
   if((t==='dict'||t==='abbr')&&(lastQuizSection==='play'||lastQuizSection==='daily')){
     const unanswered=lastQuizSection==='play'?!ans:!dailyAns;
-    if(unanswered) lastQuizSection='menu';
+    if(unanswered){
+      // フリーバッティングは辞書を開いた時点で打ち切り（裏で時間切れの×・不正解音が鳴らないように）
+      if(lastQuizSection==='play' && !versusActive){
+        stopPitchClock(); cq=null; ans=true;           // onTimeUp のガードで時間切れ処理を無効化
+        if(typeof sw==='object'&&sw&&sw.active){ sw.active=false; if(sw.raf) cancelAnimationFrame(sw.raf); }
+      }
+      lastQuizSection='menu';
+    }
   }
   // 辞書ボタン: お気に入り(♥)表示中なら通常の辞書に戻す（位置を復元）
   if(t==='dict' && dictFav){ exitDictFav(); }
