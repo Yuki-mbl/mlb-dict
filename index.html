@@ -1981,7 +1981,8 @@ async function loadYesterdayGames(){
     // 直近7日〜本日(米国日付)を取得し、「終了した試合がある直近の日」を採用（予定・進行中は除外）
     const start=etDateStrOffset(-7), end=etDateStr();
     const d=await cachedJson('https://statsapi.mlb.com/api/v1/schedule?sportId=1&hydrate=linescore&startDate='+start+'&endDate='+end,'mlb_games_recent',30);
-    const isFinal=g=>g.status&&g.status.abstractGameState==='Final';
+    // 「終了」かつ両チームにスコアがある試合のみ（中止・延期はスコアが無いので除外）
+    const isFinal=g=>g.status&&g.status.abstractGameState==='Final'&&g.teams&&g.teams.away&&g.teams.home&&g.teams.away.score!=null&&g.teams.home.score!=null;
     // 各日を「終了した試合だけ」に絞り、終了試合がある最新の日を選ぶ
     let latest=null;
     (d.dates||[]).forEach(x=>{ const fin=(x.games||[]).filter(isFinal); if(fin.length) latest={date:x.date,games:fin}; });
