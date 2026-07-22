@@ -1723,10 +1723,10 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 #versus-bar b{color:var(--c-coral);font-family:var(--ff-d);font-size:15px}
 #versus-inning{padding:6px 14px;text-align:center;font-family:var(--ff-d);font-weight:900;
   font-size:14px;color:var(--c-primary);background:var(--c-canvas)}
-#versus-board{position:fixed;inset:0;z-index:800;display:none;align-items:center;justify-content:center;
-  background:rgba(20,26,46,.6);padding:18px}
+#versus-board{position:fixed;inset:0;z-index:800;display:none;align-items:flex-start;justify-content:center;
+  background:rgba(20,26,46,.6);padding:18px;overflow-y:auto}
 #versus-board.show{display:flex}
-#versus-board-inner{width:100%;max-width:400px;background:var(--c-card);border:3px solid var(--c-border);
+#versus-board-inner{width:100%;max-width:400px;margin:auto;background:var(--c-card);border:3px solid var(--c-border);
   border-radius:var(--r-lg);box-shadow:var(--shadow-l);padding:16px;text-align:center}
 .vs-board-ttl{font-family:var(--ff-d);font-weight:900;font-size:18px;color:var(--c-ink);margin-bottom:10px}
 .vs-score{width:100%;border-collapse:collapse;font-family:var(--ff-t);font-size:12px;margin-bottom:8px}
@@ -1753,20 +1753,20 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 #rankup-toast.show{display:block;opacity:1;transform:translateX(-50%) translateY(0)}
 #rankup-toast .ru-sub{font-size:13px;color:#7a5200}
 #rankup-toast .ru-name{font-size:24px;color:#c23b00}
-#versus-result{position:fixed;inset:0;z-index:830;display:none;align-items:center;justify-content:center;
-  background:rgba(20,26,46,.7);padding:24px}
+#versus-result{position:fixed;inset:0;z-index:830;display:none;align-items:flex-start;justify-content:center;
+  background:rgba(20,26,46,.7);padding:24px;overflow-y:auto}
 #versus-result.show{display:flex}
-.vs-res-inner{width:100%;max-width:340px;background:var(--c-card);border:3px solid var(--c-border);
+.vs-res-inner{width:100%;max-width:340px;margin:auto;background:var(--c-card);border:3px solid var(--c-border);
   border-radius:var(--r-lg);box-shadow:var(--shadow-l);padding:22px 18px;text-align:center}
 .vs-res-char{width:120px;height:auto;margin-bottom:8px}
 .vs-res-ttl{font-family:var(--ff-d);font-weight:900;font-size:26px;color:var(--c-ink)}
 .vs-res-score{font-family:var(--ff-d);font-weight:900;font-size:18px;color:var(--c-coral);margin:6px 0}
 .vs-res-bonus{font-family:var(--ff-t);font-weight:800;font-size:14px;color:var(--c-primary);min-height:18px;margin-bottom:12px}
 /* ── 広告オーバーレイ（プレースホルダ） ── */
-#ad-overlay{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;
-  background:rgba(20,26,46,.75);padding:24px}
+#ad-overlay{position:fixed;inset:0;z-index:1000;display:none;align-items:flex-start;justify-content:center;
+  background:rgba(20,26,46,.75);padding:24px;overflow-y:auto}
 #ad-overlay.show{display:flex}
-.ad-box{width:100%;max-width:340px;background:var(--c-card);border:3px solid var(--c-border);
+.ad-box{width:100%;max-width:340px;margin:auto;background:var(--c-card);border:3px solid var(--c-border);
   border-radius:var(--r-lg);box-shadow:var(--shadow-l);padding:14px;text-align:center}
 .ad-tag{display:inline-block;font-family:var(--ff-t);font-size:11px;font-weight:800;color:#fff;
   background:var(--c-muted2);border-radius:var(--r-pill);padding:2px 12px;margin-bottom:10px}
@@ -1976,9 +1976,10 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   color:var(--c-primary);line-height:1.1}
 .stat-l{font-family:var(--ff-t);font-size:12px;color:var(--c-muted);margin-top:3px}
 /* ── 初回オンボーディング ── */
+/* align-items:flex-start＋カードmargin:auto で、収まる時は中央／大きい文字で溢れる時は上から読めてスクロール可（中央寄せの上下切れ対策） */
 #onboard{position:fixed;inset:0;z-index:3000;background:var(--c-canvas);
-  display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
-.ob-card{width:100%;max-width:420px;background:#fff;border:var(--bw) solid var(--c-border);
+  display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+.ob-card{width:100%;max-width:420px;margin:auto;background:#fff;border:var(--bw) solid var(--c-border);
   box-shadow:var(--shadow-l);border-radius:var(--r-lg);padding:22px 20px 24px;text-align:center}
 .ob-hero{height:96px;width:auto;margin-bottom:6px}
 .ob-title{font-family:var(--ff-d);font-size:24px;font-weight:900;color:var(--c-ink)}
