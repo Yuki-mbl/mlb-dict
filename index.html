@@ -314,7 +314,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .qmenu-card img{height:50px;width:50px;object-fit:contain;flex-shrink:0}
 /* 上部ランキングバー＋「あなた◯位」 */
 .qmenu-rank-top{margin-top:2px}
-.stats-rank-inline{color:var(--c-coral);font-family:var(--ff-d);font-weight:900;font-size:13px;margin-left:2px}
+.stats-rank-inline{color:var(--c-coral);font-family:var(--ff-d);font-weight:900;font-size:14px;margin-left:2px}
 .qmenu-quiz{background:var(--c-accent)}
 .qmenu-daily{background:var(--c-orange)}
 .qmenu-review{background:#ffd9d6}
@@ -808,7 +808,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .stats-card2{background:var(--c-card);border:2px solid var(--c-border);border-radius:var(--r-lg);
   box-shadow:var(--shadow-s);padding:14px}
 .stats-card-ttl{font-family:var(--ff-d);font-weight:900;font-size:16px;color:var(--c-ink);margin-bottom:10px}
-.rank-you{font-family:var(--ff-d);font-weight:900;font-size:18px;color:var(--c-coral);text-align:center;margin-bottom:10px}
+.rank-you{font-family:var(--ff-d);font-weight:900;font-size:14px;color:var(--c-coral);text-align:left;margin:2px 0 10px}
 .rank-board{display:flex;flex-direction:column;gap:2px}
 .rank-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:var(--r-md);
   font-family:var(--ff-t);font-size:14px}
@@ -1852,7 +1852,7 @@ function computeMyRank(){
   return {rank:Math.min(rank,f.N), total:f.N};
 }
 function updateMenuRankInline(){
-  try{ const el=$('stats-rank-inline'); if(!el) return; const {rank,total}=computeMyRank(); el.textContent='あなた '+rank+'位 / '+total+'人'; }catch(e){}
+  try{ const el=$('stats-rank-inline'); if(!el) return; const {rank}=computeMyRank(); el.textContent='あなた '+rank+'位'; }catch(e){}
 }
 function rankForScore(s,f){
   if(s>=f.top) return 1;
@@ -1881,7 +1881,7 @@ function renderStats(){
   const inTop20=idx<20;
   const total=f.N;
   const myRank=Math.min(idx+1, total);
-  const you=$('rank-you'); if(you) you.textContent='あなたは '+myRank+' 位 / 全'+total+'人中';
+  const you=$('rank-you'); if(you) you.textContent='全 '+total+' 人中';
   const bd=$('rank-board');
   if(bd){
     let rows=merged.slice(0,20).map((x,i)=>
