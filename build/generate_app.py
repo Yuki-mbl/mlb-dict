@@ -1580,23 +1580,26 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 @keyframes char-pop-d{0%{transform:translate(-50%,-50%) scale(1)}45%{transform:translate(-50%,-50%) scale(1.2) rotate(-4deg)}100%{transform:translate(-50%,-50%) scale(1)}}
 .char-pop-d{animation:char-pop-d .5s cubic-bezier(.34,1.56,.64,1)}
 /* ── クイズ目次 ── */
-#quiz-menu{flex:1;overflow-y:auto;padding:22px 18px;display:flex;flex-direction:column;gap:16px}
+#quiz-menu{flex:1;overflow-y:auto;padding:14px 16px 20px;display:flex;flex-direction:column;gap:12px}
 #quiz-menu::-webkit-scrollbar{display:none}
-.qmenu-title-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:4px;
-  font-family:var(--ff-d);font-size:24px;font-weight:900;color:var(--c-ink)}
-.qmenu-title-row img{height:56px;width:auto}
-.qmenu-card{display:flex;align-items:center;gap:16px;padding:16px 18px;
+.qmenu-title-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:0;
+  font-family:var(--ff-d);font-size:22px;font-weight:900;color:var(--c-ink)}
+.qmenu-title-row img{height:44px;width:auto}
+.qmenu-runs{margin-left:8px;font-family:var(--ff-t);font-size:11px;font-weight:800;color:var(--c-muted);
+  line-height:1.5;text-align:left;white-space:nowrap}
+.qmenu-runs b{color:var(--c-coral);font-family:var(--ff-d);font-size:14px}
+.qmenu-card{display:flex;align-items:center;gap:14px;padding:11px 16px;
   border:var(--bw) solid var(--c-border);border-radius:var(--r-lg);box-shadow:var(--shadow-m);
   cursor:pointer;text-align:left;transition:all .12s;-webkit-tap-highlight-color:transparent}
 .qmenu-card:active{transform:translate(3px,3px);box-shadow:none}
-.qmenu-card img{height:72px;width:72px;object-fit:contain;flex-shrink:0}
+.qmenu-card img{height:56px;width:56px;object-fit:contain;flex-shrink:0}
 .qmenu-quiz{background:var(--c-accent)}
 .qmenu-daily{background:var(--c-orange)}
 .qmenu-review{background:#ffd9d6}
 .qmenu-txt{display:flex;flex-direction:column;gap:3px;min-width:0}
 .qmenu-group-label{font-family:var(--ff-d);font-weight:900;font-size:15px;color:var(--c-muted);
   margin:6px 2px -4px;letter-spacing:.5px}
-.qmenu-name{font-family:var(--ff-d);font-size:22px;font-weight:900;color:var(--c-ink)}
+.qmenu-name{font-family:var(--ff-d);font-size:20px;font-weight:900;color:var(--c-ink)}
 .qmenu-sub{font-size:13px;font-weight:600;color:var(--c-ink);opacity:.75;line-height:1.4}
 .qmenu-score{background:var(--c-parchment);border:var(--bw) solid var(--c-border);
   border-radius:var(--r-lg);box-shadow:var(--shadow-s);padding:8px 0 12px}
@@ -2007,6 +2010,16 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   -webkit-tap-highlight-color:transparent}
 .ob-next:active,.ob-ok:active{transform:translate(3px,3px);box-shadow:none}
 .ob-next:disabled{opacity:.4;cursor:default;transform:none;box-shadow:var(--shadow-m)}
+/* 低い画面（小型スマホ・文字拡大時）はコンパクト表示で1画面に収める */
+@media (max-height:760px){
+  #onboard{padding:10px}
+  .ob-card{padding:14px 16px 16px}
+  .ob-hero{height:56px;margin-bottom:2px}
+  .ob-title{font-size:20px}
+  .ob-sub{margin-bottom:8px}
+  .ob-opt{padding:8px 4px}
+  .ob-next,.ob-ok{margin-top:12px;padding:11px}
+}
 .ob-nick{font-family:var(--ff-d);font-size:26px;font-weight:900;color:var(--c-ink);
   background:var(--c-card);border:var(--bw) solid var(--c-border);border-radius:var(--r-md);
   padding:18px 12px;margin:8px 0 12px;min-height:1.4em;overflow-wrap:anywhere;
@@ -2322,27 +2335,26 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 
     <!-- 目次 -->
     <div id="quiz-menu">
-      <div class="qmenu-title-row"><img src="images/よろこび.png" alt=""><span>あそぶ・まなぶ</span></div>
-      <div class="qmenu-score">
-        <div class="score-correct-hdr">正解数</div>
-        <div class="score-cols">
-          <div class="score-col">
-            <div class="score-lbl">英和</div>
-            <div class="score-val-row">
-              <div class="score-val" id="sc-ej">0 / __EJ_COUNT__</div>
-              <div class="score-rate" id="sc-ej-rate">--%</div>
-            </div>
-          </div>
-          <div class="score-col">
-            <div class="score-lbl">和英</div>
-            <div class="score-val-row">
-              <div class="score-val" id="sc-je">0 / __JE_COUNT__</div>
-              <div class="score-rate" id="sc-je-rate">--%</div>
-            </div>
-          </div>
-        </div>
-        <div class="menu-runs-row">⚾ 本日 <span id="menu-runs-today">0</span> 点 ／ 累計 <span id="menu-runs">0</span> 点</div>
-      </div>
+      <div class="qmenu-title-row"><img src="images/よろこび.png" alt=""><span>あそぶ・まなぶ</span>
+        <span class="qmenu-runs">⚾ 本日 <b id="menu-runs-today">0</b> 点<br>累計 <b id="menu-runs">0</b> 点</span></div>
+      <div class="qmenu-group-label">📚 学ぶ</div>
+      <button class="qmenu-card qmenu-quiz" onclick="startQuizPlay()">
+        <img src="images/バッター.png" alt="">
+        <span class="qmenu-txt"><span class="qmenu-name">フリーバッティング</span><span class="qmenu-sub">英和・和英ミックス！自己ベストを伸ばそう</span></span>
+      </button>
+      <button class="qmenu-card qmenu-daily" onclick="goTab('daily')">
+        <img src="images/ピッチャー.png" alt="">
+        <span class="qmenu-txt"><span class="qmenu-name">今日の10問</span><span class="qmenu-sub">毎日コツコツ10問チャレンジ</span></span>
+      </button>
+      <button class="qmenu-card qmenu-review" onclick="goTab('review')">
+        <img src="images/デフォ.png" alt="">
+        <span class="qmenu-txt"><span class="qmenu-name">復習</span><span class="qmenu-sub">間違えた問題をおさらい</span></span>
+      </button>
+      <div class="qmenu-group-label">🔥 勝負</div>
+      <button class="qmenu-card qmenu-versus" onclick="startVersus()">
+        <img src="images/ガッツ.png" alt="">
+        <span class="qmenu-txt"><span class="qmenu-name">試合</span><span class="qmenu-sub">9回勝負！勝てばボーナス</span></span>
+      </button>
       <div class="qmenu-howto">
         <button class="qmenu-howto-ttl" onclick="toggleStats()">🏆 今日の成績ランキング（夜12時リセット） <span class="howto-chev" id="stats-chev">▼</span></button>
         <div id="stats-body" style="display:none">
@@ -2386,24 +2398,25 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
           </ul>
         </div>
       </div>
-      <div class="qmenu-group-label">📚 学ぶ</div>
-      <button class="qmenu-card qmenu-quiz" onclick="startQuizPlay()">
-        <img src="images/バッター.png" alt="">
-        <span class="qmenu-txt"><span class="qmenu-name">フリーバッティング</span><span class="qmenu-sub">英和・和英ミックス！自己ベストを伸ばそう</span></span>
-      </button>
-      <button class="qmenu-card qmenu-daily" onclick="goTab('daily')">
-        <img src="images/ピッチャー.png" alt="">
-        <span class="qmenu-txt"><span class="qmenu-name">今日の10問</span><span class="qmenu-sub">毎日コツコツ10問チャレンジ</span></span>
-      </button>
-      <button class="qmenu-card qmenu-review" onclick="goTab('review')">
-        <img src="images/デフォ.png" alt="">
-        <span class="qmenu-txt"><span class="qmenu-name">復習</span><span class="qmenu-sub">間違えた問題をおさらい</span></span>
-      </button>
-      <div class="qmenu-group-label">🔥 勝負</div>
-      <button class="qmenu-card qmenu-versus" onclick="startVersus()">
-        <img src="images/ガッツ.png" alt="">
-        <span class="qmenu-txt"><span class="qmenu-name">試合</span><span class="qmenu-sub">9回勝負！勝てばボーナス</span></span>
-      </button>
+      <div class="qmenu-score">
+        <div class="score-correct-hdr">正解数</div>
+        <div class="score-cols">
+          <div class="score-col">
+            <div class="score-lbl">英和</div>
+            <div class="score-val-row">
+              <div class="score-val" id="sc-ej">0 / __EJ_COUNT__</div>
+              <div class="score-rate" id="sc-ej-rate">--%</div>
+            </div>
+          </div>
+          <div class="score-col">
+            <div class="score-lbl">和英</div>
+            <div class="score-val-row">
+              <div class="score-val" id="sc-je">0 / __JE_COUNT__</div>
+              <div class="score-rate" id="sc-je-rate">--%</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- プレイ画面 -->
@@ -3924,6 +3937,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if(typeof syncSfxToggle==='function') syncSfxToggle();
   if(typeof loadSample==='function'){ loadSample('bat','sounds/bat.mp3?v=wood'); loadSample('cheer','sounds/cheer.mp3?v=1'); }
   initPullToRefresh();
+  // 初回タッチでWeb Audioを起動（suspended解除＋無音再生）→ 以後の効果音が遅延なく鳴る
+  const _unlockAudio=()=>{
+    try{ const c=actx(); if(c){ const b=c.createBuffer(1,1,22050); const s=c.createBufferSource(); s.buffer=b; s.connect(c.destination); s.start(0); } }catch(e){}
+    document.removeEventListener('touchstart',_unlockAudio); document.removeEventListener('mousedown',_unlockAudio);
+  };
+  document.addEventListener('touchstart',_unlockAudio,{passive:true});
+  document.addEventListener('mousedown',_unlockAudio);
 });
 // ── プルダウン更新（スクロール先頭で下に引くと最新に更新）──────────────────────
 function initPullToRefresh(){
@@ -4625,6 +4645,8 @@ function versusStopEarly(){
 function quizToMenu(){
   lastQuizSection='menu';
   resetSwing();
+  // 出題セッションを完全終了（裏で制限時間が切れて✖・音が鳴るのを防ぐ）
+  stopPitchClock(); cq=null; ans=true;
   const play=$('quiz-play'),menu=$('quiz-menu');
   if(play) play.style.display='none';
   if(menu) menu.style.display='';
@@ -5019,6 +5041,8 @@ function showFlash(ok,withChar){
 }
 function pick(btn,ok,correct){
   if(ans) return;ans=true;
+  // 音は最初に鳴らす（DOM更新より先＝タップと同時に聞こえる）
+  if(ok){ if(swingAuto) sfxForVal(1); else sfxSelectOK(); } else { sfxWrong(); }
   stopPitchClock();
   const st=qs[qMode];st.n++;if(ok) st.ok++;
   updateScores();
@@ -5031,16 +5055,13 @@ function pick(btn,ok,correct){
     if(swingAuto){
       // オート: 常に単打（1塁）。長打・本塁打は手動のみ＝オートが有利にならない
       const _p=$('quiz-play'); if(_p){ try{_p.scrollTo({top:0,behavior:'smooth'});}catch(e){_p.scrollTop=0;} }
-      sfxForVal(1);
       applyHit(1);
     } else {
       // 手動: タイミングよく打つ挑戦フェーズへ
-      sfxSelectOK();
       doSwingPhase=true;
     }
   } else {
     quizStreak=0;
-    sfxWrong();
     quizOuts++;
     updateOuts();
     showFlash(false);
@@ -5631,14 +5652,14 @@ function dailyChoiceLbl(entry,mode){
 function dailyPick(btn,ok,q,correct,chosenIdx){
   if(dailyAns) return;
   dailyAns=true;
+  // 効果音は最初に（タップと同時に聞こえるように）
+  if(ok) sfxSelectOK(); else sfxWrong();
   dailyState.ans[dailyCurIdx]=ok;
   localStorage.setItem('mlb_daily_state',JSON.stringify(dailyState));
   // add to review if wrong
   if(!ok){
     addToReview(q.type,q.idx);
   }
-  // 効果音（正解／不正解）
-  if(ok) sfxSelectOK(); else sfxWrong();
   // 10問目の正解はクイズのホームインと同じ飛び出す演出
   const isLast=dailyCurIdx===9;
   if(ok&&isLast){ showFlash(true,true); vibrate([120,60,220]); }
