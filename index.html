@@ -1088,7 +1088,6 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       <div class="qmenu-howto qmenu-rank-top">
         <button class="qmenu-howto-ttl" onclick="toggleStats()">🏆 今日の成績ランキング <span class="stats-rank-inline" id="stats-rank-inline"></span><span class="howto-chev" id="stats-chev">▼</span></button>
         <div id="stats-body" style="display:none">
-          <div class="rank-you" id="rank-you">—</div>
           <div class="rank-board" id="rank-board"></div>
           <button class="rank-hist-btn" onclick="toggleRankHistory()">📅 過去のランキングを見る（1週間） <span id="rank-hist-chev">▼</span></button>
           <div id="rank-history" style="display:none"></div>
@@ -1907,7 +1906,7 @@ function renderStats(){
   const inTop20=idx<20;
   const total=f.N;
   const myRank=Math.min(idx+1, total);
-  const you=$('rank-you'); if(you) you.textContent='全 '+total+' 人中';
+  const you=$('rank-you'); if(you) you.textContent='';
   const bd=$('rank-board');
   if(bd){
     let rows=merged.slice(0,20).map((x,i)=>
