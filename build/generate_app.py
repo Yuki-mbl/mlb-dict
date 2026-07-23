@@ -1582,12 +1582,11 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 /* ── クイズ目次 ── */
 #quiz-menu{flex:1;overflow-y:auto;padding:14px 16px 20px;display:flex;flex-direction:column;gap:12px}
 #quiz-menu::-webkit-scrollbar{display:none}
-.qmenu-title-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:0;
+.qmenu-title-row{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px 10px;margin-bottom:0;
   font-family:var(--ff-d);font-size:22px;font-weight:900;color:var(--c-ink)}
 .qmenu-title-row img{height:44px;width:auto}
-.qmenu-runs{margin-left:8px;font-family:var(--ff-t);font-size:11px;font-weight:800;color:var(--c-muted);
-  line-height:1.5;text-align:left;white-space:nowrap}
-.qmenu-runs b{color:var(--c-coral);font-family:var(--ff-d);font-size:14px}
+.qmenu-runs{font-family:var(--ff-t);font-size:14px;font-weight:800;color:var(--c-ink);white-space:nowrap}
+.qmenu-runs b{color:var(--c-coral);font-family:var(--ff-d);font-size:19px}
 .qmenu-card{display:flex;align-items:center;gap:14px;padding:11px 16px;
   border:var(--bw) solid var(--c-border);border-radius:var(--r-lg);box-shadow:var(--shadow-m);
   cursor:pointer;text-align:left;transition:all .12s;-webkit-tap-highlight-color:transparent}
@@ -2336,7 +2335,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
     <!-- 目次 -->
     <div id="quiz-menu">
       <div class="qmenu-title-row"><img src="images/よろこび.png" alt=""><span>あそぶ・まなぶ</span>
-        <span class="qmenu-runs">⚾ 本日 <b id="menu-runs-today">0</b> 点<br>累計 <b id="menu-runs">0</b> 点</span></div>
+        <span class="qmenu-runs">本日 <b id="menu-runs-today">0</b> 点 ／ 累計 <b id="menu-runs">0</b> 点</span></div>
       <div class="qmenu-group-label">📚 学ぶ</div>
       <button class="qmenu-card qmenu-quiz" onclick="startQuizPlay()">
         <img src="images/バッター.png" alt="">
