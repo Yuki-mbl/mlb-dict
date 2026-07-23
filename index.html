@@ -576,6 +576,32 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .12s}
 .next-btn:active{transform:translate(3px,3px);box-shadow:none}
 .next-btn:disabled{opacity:.3;cursor:default;transform:none;box-shadow:var(--shadow-m)}
+/* 画面の高さが低いスマホでも、5択＋「次の問題」がスクロールなしで収まるよう段階的に圧縮。
+   ダイヤモンドは container 高さに追従して縮む（％指定のため）。極小のiPhone SE等は対象外。 */
+@media (max-height:760px){
+  #quiz-char{height:130px}
+  .quiz-char{height:104px}
+  .quiz-card{padding:8px 14px 10px}
+  .pitch-clock{margin-bottom:6px}
+  .quiz-q{padding:8px 14px;margin-bottom:6px}
+  .quiz-q-term{font-size:19px}
+  .choices{gap:6px;margin-bottom:6px}
+  .choice{padding:9px 14px}
+  .next-btn{padding:11px}
+  .quiz-inner,.daily-inner{padding-bottom:12px}
+  .daily-progress-bar{margin-bottom:6px}
+}
+@media (max-height:670px){
+  #quiz-char{height:104px}
+  .quiz-char{height:84px}
+  .subpage-bar{padding:4px 14px}
+  .quiz-q{padding:6px 12px;margin-bottom:5px}
+  .quiz-q-lbl{margin-bottom:2px}
+  .quiz-q-term{font-size:17px}
+  .choices{gap:5px;margin-bottom:5px}
+  .choice{padding:7px 12px;font-size:14px}
+  .next-btn{padding:9px;font-size:16px}
+}
 
 /* ── Daily quiz tab ── */
 #tab-daily{overflow-y:auto;-webkit-overflow-scrolling:touch}
