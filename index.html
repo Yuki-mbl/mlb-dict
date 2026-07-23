@@ -307,11 +307,14 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .qmenu-title-row img{height:44px;width:auto}
 .qmenu-runs{font-family:var(--ff-t);font-size:14px;font-weight:800;color:var(--c-ink);white-space:nowrap}
 .qmenu-runs b{color:var(--c-coral);font-family:var(--ff-d);font-size:19px}
-.qmenu-card{display:flex;align-items:center;gap:14px;padding:11px 16px;
+.qmenu-card{display:flex;align-items:center;gap:12px;padding:9px 15px;
   border:var(--bw) solid var(--c-border);border-radius:var(--r-lg);box-shadow:var(--shadow-m);
   cursor:pointer;text-align:left;transition:all .12s;-webkit-tap-highlight-color:transparent}
 .qmenu-card:active{transform:translate(3px,3px);box-shadow:none}
-.qmenu-card img{height:56px;width:56px;object-fit:contain;flex-shrink:0}
+.qmenu-card img{height:50px;width:50px;object-fit:contain;flex-shrink:0}
+/* 上部ランキングバー＋「あなた◯位」 */
+.qmenu-rank-top{margin-top:2px}
+.stats-rank-inline{color:var(--c-coral);font-family:var(--ff-d);font-weight:900;font-size:13px;margin-left:2px}
 .qmenu-quiz{background:var(--c-accent)}
 .qmenu-daily{background:var(--c-orange)}
 .qmenu-review{background:#ffd9d6}
@@ -1056,6 +1059,24 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
     <div id="quiz-menu">
       <div class="qmenu-title-row"><img src="images/よろこび.png" alt=""><span>あそぶ・まなぶ</span>
         <span class="qmenu-runs">本日 <b id="menu-runs-today">0</b> 点 ／ 累計 <b id="menu-runs">0</b> 点</span></div>
+      <div class="qmenu-howto qmenu-rank-top">
+        <button class="qmenu-howto-ttl" onclick="toggleStats()">🏆 今日の成績ランキング <span class="stats-rank-inline" id="stats-rank-inline"></span><span class="howto-chev" id="stats-chev">▼</span></button>
+        <div id="stats-body" style="display:none">
+          <div class="rank-you" id="rank-you">—</div>
+          <div class="rank-board" id="rank-board"></div>
+          <button class="rank-hist-btn" onclick="toggleRankHistory()">📅 過去のランキングを見る（1週間） <span id="rank-hist-chev">▼</span></button>
+          <div id="rank-history" style="display:none"></div>
+          <div class="rec-grid">
+            <div class="rec-item"><div class="rec-n" id="rec-today">0</div><div class="rec-l">本日の得点</div></div>
+            <div class="rec-item"><div class="rec-n" id="rec-total">0</div><div class="rec-l">累計得点</div></div>
+            <div class="rec-item"><div class="rec-n" id="rec-vs">0-0</div><div class="rec-l">対戦成績</div></div>
+            <div class="rec-item"><div class="rec-n" id="rec-streak">0</div><div class="rec-l">連続ログイン</div></div>
+          </div>
+          <div class="rec-rank-row">称号：<b id="rec-rank-name">ルーキー</b> <span id="rec-rank-next"></span></div>
+          <div class="home-rank-bar" style="margin:6px 4px 0"><div class="home-rank-fill" id="rec-rank-fill"></div></div>
+          <div class="rank-note">本日の得点でランキング（毎日リセット・夜12時）／累計得点で称号が上がります</div>
+        </div>
+      </div>
       <div class="qmenu-group-label">📚 学ぶ</div>
       <button class="qmenu-card qmenu-quiz" onclick="startQuizPlay()">
         <img src="images/バッター.png" alt="">
@@ -1074,24 +1095,6 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
         <img src="images/ガッツ.png" alt="">
         <span class="qmenu-txt"><span class="qmenu-name">試合</span><span class="qmenu-sub">9回勝負！勝てばボーナス</span></span>
       </button>
-      <div class="qmenu-howto">
-        <button class="qmenu-howto-ttl" onclick="toggleStats()">🏆 今日の成績ランキング（夜12時リセット） <span class="howto-chev" id="stats-chev">▼</span></button>
-        <div id="stats-body" style="display:none">
-          <div class="rank-you" id="rank-you">—</div>
-          <div class="rank-board" id="rank-board"></div>
-          <button class="rank-hist-btn" onclick="toggleRankHistory()">📅 過去のランキングを見る（1週間） <span id="rank-hist-chev">▼</span></button>
-          <div id="rank-history" style="display:none"></div>
-          <div class="rec-grid">
-            <div class="rec-item"><div class="rec-n" id="rec-today">0</div><div class="rec-l">本日の得点</div></div>
-            <div class="rec-item"><div class="rec-n" id="rec-total">0</div><div class="rec-l">累計得点</div></div>
-            <div class="rec-item"><div class="rec-n" id="rec-vs">0-0</div><div class="rec-l">対戦成績</div></div>
-            <div class="rec-item"><div class="rec-n" id="rec-streak">0</div><div class="rec-l">連続ログイン</div></div>
-          </div>
-          <div class="rec-rank-row">称号：<b id="rec-rank-name">ルーキー</b> <span id="rec-rank-next"></span></div>
-          <div class="home-rank-bar" style="margin:6px 4px 0"><div class="home-rank-fill" id="rec-rank-fill"></div></div>
-          <div class="rank-note">本日の得点でランキング（毎日リセット）／累計得点で称号が上がります</div>
-        </div>
-      </div>
       <div class="qmenu-howto">
         <button class="qmenu-howto-ttl" id="howto-toggle" onclick="toggleHowto()">⚾ 点の入り方 <span class="howto-chev" id="howto-chev">▼</span></button>
         <div id="howto-body" style="display:none">
@@ -1832,6 +1835,25 @@ function liveScoreForRank(rank,f,h){
   return Math.max(0,Math.round(sc));
 }
 function scoreForRank(rank,f){ return finalForRank(rank,f); }
+// 現時点のあなたの順位を全ライバルと同じ分布から算出（バー表示・詳細で共通利用）
+function computeMyRank(){
+  const f=todayField(); const us=runsToday; const h=nowHour();
+  const avgP=(cumFrac(PERSONAS.steady.w,h)+cumFrac(PERSONAS.commuter.w,h)+cumFrac(PERSONAS.evening.w,h)+cumFrac(PERSONAS.meal.w,h))/4;
+  const NF=f.finals.length; const scores=[];
+  for(let r=1;r<=NF;r++) scores.push(liveScoreForRank(r,f,h));
+  if(avgP>=0.8 && us>0){ // 終盤はユーザーを最高2位（duelは3位）までに
+    const keep=(f.dtype==='duel')?2:1; const s2=scores.slice().sort((a,b)=>b-a);
+    for(let n=0;n<keep && n<s2.length;n++){} // 表示側と整合（順位計算は下の比較で十分）
+  }
+  // 同点者は自分より上位扱い（詳細表示のタイブレークと一致させる）
+  let above=0; for(const s of scores){ if(s>=us) above++; }
+  let rank=above+1;
+  if(avgP>=0.8 && us>0){ const floor=(f.dtype==='duel')?3:2; if(rank<floor) rank=floor; }
+  return {rank:Math.min(rank,f.N), total:f.N};
+}
+function updateMenuRankInline(){
+  try{ const el=$('stats-rank-inline'); if(!el) return; const {rank,total}=computeMyRank(); el.textContent='あなた '+rank+'位 / '+total+'人'; }catch(e){}
+}
 function rankForScore(s,f){
   if(s>=f.top) return 1;
   if(s<=0) return f.N;
@@ -3371,6 +3393,7 @@ function quizToMenu(){
   if(menu) menu.style.display='';
   const _hr=$('hud-runs'); if(_hr) _hr.style.display=''; // 試合で隠した本日/通算HUDを復帰
   updateRuns();
+  updateMenuRankInline(); // バーの「あなた◯位」を更新
 }
 function updateOuts(){
   const el=$('quiz-outs');
