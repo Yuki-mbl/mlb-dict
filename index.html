@@ -1138,12 +1138,14 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       <div class="qmenu-howto">
         <button class="qmenu-howto-ttl" id="howto-toggle" onclick="toggleHowto()">⚾ 点の入り方 <span class="howto-chev" id="howto-chev">▼</span></button>
         <div id="howto-body" style="display:none">
+          <div class="howto-sub-ttl" style="margin-top:0;padding-top:0;border-top:none">🖐 手動モード</div>
           <ul id="howto-manual">
             <li>正解すると打席へ。バーの<b>赤</b>で止めると長打！（<b>黄</b>＝単打）</li>
             <li><b>往路</b>＝ホームラン／<b>復路</b>＝二塁打（難問は三塁打）／それ以降＝単打</li>
             <li>走者が<b>ホームインで得点</b>。不正解や凡打はアウト、<b>3アウトで終了</b>。</li>
           </ul>
-          <ul id="howto-auto" style="display:none">
+          <div class="howto-sub-ttl">🤖 オートモード</div>
+          <ul id="howto-auto">
             <li>正解すると<b>自動で単打</b>（タイミング操作なし）。</li>
             <li><b>長打・本塁打はねらえません</b>（狙うなら手動）。堅実だが天井は低め。</li>
             <li>走者が<b>ホームインで得点</b>。不正解はアウト、<b>3アウトで終了</b>。</li>
@@ -4229,10 +4231,7 @@ function toggleSwingAuto(){
 function syncSwingToggle(){
   const b=$('swing-toggle');
   if(b){ b.textContent=swingAuto?'オート':'手動'; b.classList.toggle('auto',swingAuto); }
-  // 点の入り方の説明もモードで切り替え
-  const man=$('howto-manual'), aut=$('howto-auto');
-  if(man) man.style.display=swingAuto?'none':'';
-  if(aut) aut.style.display=swingAuto?'':'none';
+  // 「点の入り方」は手動・オート両方の説明を常に表示（トグルとは非連動）
   const hint=$('howto-swing-hint');
   if(hint) hint.textContent=swingAuto?'▶ コツコツ学習したい人向け':'▶ 長打・本塁打を狙いたい人向け';
 }
