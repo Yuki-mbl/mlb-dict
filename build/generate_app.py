@@ -2126,6 +2126,12 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .rank-sc{font-family:var(--ff-d);font-weight:900;color:var(--c-ink)}
 .rank-sep{text-align:center;color:var(--c-muted2);font-weight:900;line-height:1;padding:2px 0}
 .rank-note{font-size:11px;color:var(--c-muted2);text-align:center;margin-top:8px}
+.rank-close-row{display:flex;justify-content:flex-end;margin-top:10px}
+.rank-close-btn{padding:8px 18px;border:var(--bw) solid var(--c-border);border-radius:var(--r-pill);
+  background:var(--c-coral);color:#fff;box-shadow:var(--shadow-s);
+  font-family:var(--ff-d);font-weight:900;font-size:14px;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:all .12s}
+.rank-close-btn:active{transform:translate(2px,2px);box-shadow:none}
 .rank-hist-btn{width:100%;margin-top:10px;padding:9px 10px;border:2px dashed var(--c-border);
   border-radius:var(--r-md);background:var(--c-score-bg);color:var(--c-primary);
   font-family:var(--ff-d);font-weight:900;font-size:13px;cursor:pointer}
@@ -2380,6 +2386,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
           <div class="rec-rank-row">称号：<b id="rec-rank-name">ルーキー</b> <span id="rec-rank-next"></span></div>
           <div class="home-rank-bar" style="margin:6px 4px 0"><div class="home-rank-fill" id="rec-rank-fill"></div></div>
           <div class="rank-note">本日の得点でランキング（毎日リセット・夜12時）／累計得点で称号が上がります</div>
+          <div class="rank-close-row"><button class="rank-close-btn" onclick="toggleStats()">閉じる ▲</button></div>
         </div>
       </div>
       <div class="qmenu-group-label">📚 学ぶ</div>
@@ -3574,6 +3581,9 @@ function toggleStats(){
   b.style.display=open?'':'none';
   if(c) c.classList.toggle('open',open);
   if(open) renderStats();
+  else{ // 閉じたらランキングバーが見える位置へスクロール
+    try{ const bar=document.querySelector('.qmenu-rank-top'); if(bar) bar.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){}
+  }
 }
 // 過去ランキング開閉
 function toggleRankHistory(){
