@@ -2282,13 +2282,12 @@ async function renderStandings(){
 }
 // クイズ系のどのサブ画面にいたか（menu / play / daily / review）
 let lastQuizSection='menu';
-// 下部ナビ「クイズ」: 直前のクイズ系サブ画面へ戻る
+// 下部ナビ「問題」: どの画面から押しても必ずクイズの目次へ戻る
 function goQuizNav(){
-  // すでに復習／今日の10問を開いている時に「クイズ」を押したら、クイズ本体（目次）へ移動
-  if(tab==='review'||tab==='daily'){ lastQuizSection='menu'; goTab('quiz'); return; }
-  if(lastQuizSection==='daily') goTab('daily');
-  else if(lastQuizSection==='review') goTab('review');
-  else goTab('quiz');
+  // クイズ本体でプレイ中/試合中は「← 目次」と同じ扱い（試合は得点保護のため終了確認あり）
+  if(tab==='quiz' && lastQuizSection==='play'){ quizBack(); return; }
+  // 今日の10問・復習・その他はそのまま目次へ
+  lastQuizSection='menu'; goTab('quiz');
 }
 // 目次へ戻る（今日の10問・復習の「← 目次」用）
 function quizMenu(){ lastQuizSection='menu'; goTab('quiz'); }
