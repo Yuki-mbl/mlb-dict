@@ -514,6 +514,22 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 .ad-close:disabled{opacity:.5}
 .ad-premium{display:block;width:100%;margin-top:8px;padding:8px 0;border:none;background:none;
   font-family:var(--ff-t);font-size:12.5px;font-weight:700;color:var(--c-primary);cursor:pointer;text-decoration:underline}
+/* 無料回数を使い切ったときのダイアログ */
+#noplay-overlay{position:fixed;inset:0;z-index:1000;display:none;align-items:flex-start;justify-content:center;
+  background:rgba(20,26,46,.75);padding:24px;overflow-y:auto}
+#noplay-overlay.show{display:flex}
+.np-img{width:72px;height:auto;margin-bottom:8px}
+.np-title{font-family:var(--ff-d);font-weight:900;font-size:16px;color:var(--c-ink);line-height:1.4}
+.np-sub{font-family:var(--ff-t);font-size:12.5px;color:var(--c-muted2);margin:6px 0 14px}
+.np-ad-btn{display:block;width:100%;padding:13px 0;border:var(--bw) solid var(--c-border);border-radius:var(--r-pill);
+  background:var(--c-coral);color:#fff;box-shadow:var(--shadow-m);
+  font-family:var(--ff-d);font-weight:900;font-size:15px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .12s}
+.np-ad-btn:active{transform:translate(2px,2px);box-shadow:none}
+.np-prem-btn{display:block;width:100%;margin-top:10px;padding:10px 12px;border:2px solid var(--c-border);border-radius:var(--r-pill);
+  background:var(--c-parchment);font-family:var(--ff-t);font-weight:800;font-size:12.5px;color:var(--c-ink);
+  cursor:pointer;-webkit-tap-highlight-color:transparent}
+.np-cancel{display:block;width:100%;margin-top:8px;padding:6px 0;border:none;background:none;
+  font-family:var(--ff-t);font-size:12.5px;font-weight:700;color:var(--c-muted2);cursor:pointer}
 /* ── 辞書検索バー横の略語ボタン ── */
 .search-row{display:flex;align-items:center;gap:8px}
 .search-row .search-wrap{flex:1;min-width:0}
@@ -1249,6 +1265,18 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       </div>
       <button class="ad-close" id="ad-close" onclick="closeAd()" disabled>とじる（<span id="ad-count">5</span>）</button>
       <button class="ad-premium" onclick="goTab('settings');closeAd()">広告を消す（プレミアム）</button>
+    </div>
+  </div>
+
+  <!-- ── 無料回数を使い切ったとき（広告で+1回／プレミアム） ── -->
+  <div id="noplay-overlay">
+    <div class="ad-box">
+      <img class="np-img" src="images/バッター.png" alt="">
+      <div class="np-title">本日の無料回数（<span id="noplay-count">2</span>回）を使い切りました</div>
+      <div class="np-sub">広告を見れば、もう1回あそべます。</div>
+      <button class="np-ad-btn" onclick="watchAdForPlay()">🎬 広告を見て もう1回あそぶ</button>
+      <button class="np-prem-btn" onclick="goTab('settings');closeNoPlay()">プレミアム（月額200円）で回数無制限・広告なし</button>
+      <button class="np-cancel" onclick="closeNoPlay()">やめる</button>
     </div>
   </div>
 
@@ -3326,14 +3354,12 @@ function recordPlay(){
   localStorage.setItem('mlb_plays_today',JSON.stringify({date:t,n}));
 }
 function startQuizPlay(){
-  // 無料は1日2回まで。超えたらプレミアム案内
-  if(playsLeft()<=0){
-    if(confirm('本日の無料回数（'+FREE_DAILY_PLAYS+'回）を使い切りました。\nプレミアム（月額200円）なら回数無制限・広告なしで遊べます。\n設定を開きますか？')){
-      goTab('settings');
-    }
-    return;
-  }
+  // 無料は1日2回まで。超えたら「広告を見て+1回」or プレミアム案内
+  if(playsLeft()<=0){ showNoPlay(); return; }
   recordPlay();
+  _enterQuizPlay();
+}
+function _enterQuizPlay(){
   lastQuizSection='play';
   $('quiz-menu').style.display='none';
   $('quiz-play').style.display='';
@@ -3342,6 +3368,17 @@ function startQuizPlay(){
   resetSwing();
   updateOuts();clearBases();updateRuns();
   cq=null;nextQ();
+}
+// 無料回数を使い切ったとき: 広告で+1回 or プレミアム
+function showNoPlay(){
+  const t=$('noplay-count'); if(t) t.textContent=FREE_DAILY_PLAYS;
+  const ov=$('noplay-overlay'); if(ov) ov.classList.add('show');
+}
+function closeNoPlay(){ const ov=$('noplay-overlay'); if(ov) ov.classList.remove('show'); }
+function watchAdForPlay(){
+  closeNoPlay();
+  // 広告を見終わったら1回分プレイ（回数カウントも進める＝次回もまた広告が必要）
+  showAd(()=>{ recordPlay(); _enterQuizPlay(); });
 }
 function resetSwing(){
   try{ sw.active=false; cancelAnimationFrame(sw.raf); }catch(e){}
