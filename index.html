@@ -204,7 +204,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 @keyframes bonus-pop{0%{transform:scale(.2) rotate(-8deg);opacity:0}55%{transform:scale(1.18) rotate(4deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
 /* 正解時（.char付き）: キャラが下から大きく飛び出す（マークは非表示） */
 #quiz-flash-char{display:none;position:absolute;bottom:0;left:0;right:0;margin:0 auto;
-  height:52vh;max-height:440px;width:auto;transform-origin:center bottom;
+  height:56vh;max-height:460px;max-width:94vw;width:auto;object-fit:contain;transform-origin:center bottom;
   filter:drop-shadow(0 8px 16px rgba(0,0,0,.28));pointer-events:none}
 #quiz-flash.char #quiz-flash-mark{display:none}
 #quiz-flash.char #quiz-flash-char{display:block;animation:char-jump-in 1.15s cubic-bezier(.22,.85,.3,1) forwards}
