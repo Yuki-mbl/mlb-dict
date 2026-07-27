@@ -3979,7 +3979,7 @@ function showOutFx(){
 }
 // ── CPU対戦モード（中間案C：短縮9回・1アウト制） ─────────────────────────────
 let versusActive=false, vs=null;
-const VS_WINRATE={1:0.50,2:0.46,3:0.43,4:0.40,5:0.37}; // 抽選値。追い上げ上限で譲るぶんを含め実効勝率は約60%
+const VS_WINRATE={1:0.52,2:0.49,3:0.47,4:0.44,5:0.41}; // 抽選値。中盤のCPUリードや追い上げ譲歩を含めた実効勝率は約60〜64%
 function oppLevelForUser(){
   const runs=(typeof runsTotal==='number')?runsTotal:0;
   const {r}=currentRank(runs);
@@ -4067,9 +4067,15 @@ function simCpuInning(isFinal){
     runs=Math.max(1, Math.round(base));
   }
   runs=Math.min(runs, Math.max(4, Math.ceil(uAvg*2.2))); // 1回の得点上限
-  // 勝ち予定の試合では相手に同点・逆転をさせない（常にユーザーが1点以上リードを保つ接戦）
-  if(vs.userWins && vs.cpuScore+runs>=vs.userScore){
-    runs=Math.max(0, vs.userScore-1-vs.cpuScore);
+  // 勝ち予定の試合でも中盤まではCPUの小差リードを許す（追いかける展開）。
+  // 8回以降は追いつける位置に抑えるが、既にリードされていれば強制しない＝負けもあり得る（あいまい設計）
+  if(vs.userWins){
+    const smallLead=Math.max(1, Math.ceil(uAvg));
+    if(vs.inning>=8){
+      if(vs.cpuScore+runs>=vs.userScore) runs=Math.max(0, vs.userScore-1-vs.cpuScore);
+    } else if(vs.cpuScore+runs > vs.userScore+smallLead){
+      runs=Math.max(0, vs.userScore+smallLead-vs.cpuScore);
+    }
   }
   return runs;
 }
