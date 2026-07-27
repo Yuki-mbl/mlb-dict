@@ -4706,8 +4706,17 @@ function rankUpToast(name){
 }
 function quizBack(){
   if(versusActive){
-    // 得点が加算されるのは3回・7回・9回の区切りで終えた時だけ。途中離脱は没収確認
-    versusQuitConfirm();
+    // 区切り（3回/7回）を越えていれば、そこまでの得点を加算してやめられる
+    const cp=(vs&&vs.maxInning===7)?3:((vs&&vs.maxInning===9)?7:0);
+    if(cp){
+      const partial=vs.userLine.slice(0,cp).reduce((a,b)=>a+(b||0),0);
+      if(confirm(cp+'回までの得点（＋'+partial+'点）を加算して、試合をやめますか？\n（'+cp+'回より後の得点は加算されません）')){
+        versusStopAt(cp);
+      }
+    } else {
+      // まだ3回の区切り前 → 没収確認
+      versusQuitConfirm();
+    }
     return;
   }
   quizToMenu();
@@ -5326,8 +5335,14 @@ function versusUserHalfDone(){
   const cpu=simCpuInning(isFinal);
   vs.cpuLine[i]=cpu; vs.cpuScore=vs.cpuLine.reduce((a,b)=>a+(b||0),0);
   updateVersusBar();
-  renderVersusBoard();
-  $('versus-board').classList.add('show');
+  // フルスコアボードは決断が要る回（3回・7回・9回）だけ。他はトーストで自動進行
+  const decision=(vs.inning===9)||(vs.maxInning===3&&vs.inning===3)||(vs.maxInning===7&&vs.inning===7);
+  if(decision){
+    renderVersusBoard();
+    $('versus-board').classList.add('show');
+  } else {
+    versusToast(vs.inning+'回終了\nこの回：あなた'+(vs.userLine[i]||0)+'点／相手'+(vs.cpuLine[i]||0)+'点', ()=>versusNextInning());
+  }
 }
 function renderVersusBoard(){
   const wrap=$('versus-board-inner'); if(!wrap) return;
@@ -5358,10 +5373,7 @@ function renderVersusBoard(){
          '<button class="vs-btn" onclick="versusExtend(9)">9回まで続ける'+adTag+'▶</button>'+
          '<button class="vs-btn vs-btn-sub" onclick="showVersusResult(false)">ここで終える（得点は加算）</button>'+premBtn;
   } else {
-    // 4〜6回は「3回までの得点」、8回は「7回までの得点」を加算してやめられる
-    const cpBack=(vs.maxInning===7)?3:((vs.maxInning===9)?7:0);
-    btns='<button class="vs-btn" onclick="versusNextInning()">次の回 ▶</button>'+
-         (cpBack?'<button class="vs-btn vs-btn-sub" onclick="versusStopAt('+cpBack+')">ここでやめる（'+cpBack+'回までの得点を加算）</button>':'');
+    btns='<button class="vs-btn" onclick="versusNextInning()">次の回 ▶</button>';
   }
   wrap.innerHTML=
     '<div class="vs-board-ttl">'+vs.inning+'回 終了</div>'+
