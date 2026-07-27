@@ -3877,6 +3877,9 @@ function pick(btn,ok,correct){
         dailyBonusFlash(3);           // いろんなポーズが飛び出す＋「＋3点」
         setTimeout(sfxCheer,120);
         vibrate([120,60,220]);
+      } else {
+        showFlash(true);              // 正解の○
+        vibrate(35);
       }
     }
   } else {
