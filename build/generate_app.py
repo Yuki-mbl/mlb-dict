@@ -4989,9 +4989,9 @@ function renderQ(){
 let quizTimer=null, quizAsked=0, quizGameCorrect=0;
 // 制限時間は「正解数（実力）」連動。苦戦中は長め、正解を重ねるほど短縮
 function pitchMs(){
-  // 試合は難易度ステップ（1〜18）に合わせて16→8秒、フリーは従来どおり正解数で短縮
+  // 試合は難易度ステップ（1〜18）に合わせて16→8秒。フリーバッティングはじっくり30秒固定
   if(versusActive&&vs) return Math.max(8000, 16000-(versusStep()-1)*500);
-  return Math.max(8000, 16000 - Math.floor(quizGameCorrect/3)*1000);
+  return 30000;
 }
 function startPitchClock(){
   const fill=$('pitch-clock-fill'); if(!fill) return;
