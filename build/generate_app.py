@@ -5256,7 +5256,7 @@ function showOutFx(){
 }
 // ── CPU対戦モード（中間案C：短縮9回・1アウト制） ─────────────────────────────
 let versusActive=false, vs=null;
-const VS_WINRATE={1:0.75,2:0.68,3:0.60,4:0.52,5:0.45};
+const VS_WINRATE={1:0.68,2:0.64,3:0.60,4:0.56,5:0.52}; // ユーザー勝率 約60%（レベルで少し上下）
 function oppLevelForUser(){
   const runs=(typeof runsTotal==='number')?runsTotal:0;
   const {r}=currentRank(runs);
@@ -5314,23 +5314,32 @@ function _versusUserHalf(){
   cq=null; ans=false; nextQ();
 }
 // 相手（CPU）の1イニング得点をシミュレート
+// ユーザーの得点ペースに追随して接戦を保つ。一時的な逆転もあり。最終回の大量得点は上限でカット
 function simCpuInning(isFinal){
+  const played=Math.max(1,vs.inning);
+  const uAvg=vs.userScore/played; // ユーザーの1回あたり平均得点
   if(isFinal){
-    // 最終回はユーザー得点が確定済み → 勝敗を勝率に合わせて確定（逆転サヨナラ演出込み）
-    if(vs.userScore<=0) return Math.max(1, vs.userScore-vs.cpuScore+1); // 0点なら勝てない
-    if(vs.userWins){
-      const need=vs.userScore-vs.cpuScore; // 追いつくのに必要
-      if(need<=0) return 0;
-      return Math.max(0,Math.min(need-1, Math.floor(Math.random()*need))); // 届かない
-    } else {
-      return Math.max(1, vs.userScore-vs.cpuScore+1); // 1点上回って逆転
+    if(vs.userScore<=0) return Math.max(1, 1-vs.cpuScore); // 0点なら勝てない
+    const need=vs.userScore-vs.cpuScore+1; // 逆転に必要な点
+    const cap=Math.max(3, Math.ceil(uAvg*2)); // 最終回の得点上限（帳尻の大量得点を廃止）
+    if(vs.userWins || need>cap){
+      if(need<=2) return Math.max(0, need-2); // ぎりぎり届かない（1点差）
+      // 追い上げるが届かない（1点差まで詰める演出もあり）
+      return Math.max(0, Math.min(need-2, Math.floor(need*(0.35+Math.random()*0.55))));
     }
+    return Math.max(0, need); // 小差なら逆転サヨナラもあり
   }
-  // 通常回：接戦になるよう調整
+  // 通常回: ユーザーのペースに合わせて得点（0.5〜1.4倍）
   const diff=vs.userScore-vs.cpuScore;
-  let p = diff>1?0.85 : (diff<-1?0.2 : 0.5);
-  let runs=0; if(Math.random()<p) runs=1+((Math.random()<0.28)?1:0);
-  if(vs.userWins && vs.cpuScore+runs>=vs.userScore) runs=Math.max(0,vs.userScore-1-vs.cpuScore); // 勝ち予定なら相手を先に行かせない
+  let base=uAvg*(0.5+Math.random()*0.9);
+  if(diff>uAvg) base+=diff*(0.25+Math.random()*0.3);   // 離されたら追い上げ
+  if(diff<-uAvg*1.5) base*=0.35;                        // リードしすぎたら控えめ
+  let runs=Math.max(0, Math.round(base));
+  runs=Math.min(runs, Math.max(3, Math.ceil(uAvg*1.8))); // 1回の得点上限
+  // 勝ち予定の試合では相手に同点・逆転をさせない（常にユーザーが1点以上リードを保つ接戦）
+  if(vs.userWins && vs.cpuScore+runs>=vs.userScore){
+    runs=Math.max(0, vs.userScore-1-vs.cpuScore);
+  }
   return runs;
 }
 function versusUserHalfDone(){
