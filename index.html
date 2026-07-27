@@ -3867,7 +3867,7 @@ function pick(btn,ok,correct){
     document.querySelectorAll('.choice').forEach(b=>{
       if(b.textContent===cLbl) b.classList.add('ok');
     });
-    retryQueue[qMode].push({entry:correct, retryAt:st.n+20});
+    retryQueue[qMode].push({entry:correct, retryAt:st.n+30}); // 間違えた問題は30問後に再出題
     // 復習リストに追加
     const arr=qMode==='ej'?EJ:JE;
     const ci=arr.indexOf(correct);
