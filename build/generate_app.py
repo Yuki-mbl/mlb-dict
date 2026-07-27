@@ -4988,7 +4988,11 @@ function renderQ(){
 // ── ピッチクロック（制限時間） ──
 let quizTimer=null, quizAsked=0, quizGameCorrect=0;
 // 制限時間は「正解数（実力）」連動。苦戦中は長め、正解を重ねるほど短縮
-function pitchMs(){ return Math.max(8000, 16000 - Math.floor(quizGameCorrect/3)*1000); } // 16→…→8秒
+function pitchMs(){
+  // 試合は難易度ステップ（1〜18）に合わせて16→8秒、フリーは従来どおり正解数で短縮
+  if(versusActive&&vs) return Math.max(8000, 16000-(versusStep()-1)*500);
+  return Math.max(8000, 16000 - Math.floor(quizGameCorrect/3)*1000);
+}
 function startPitchClock(){
   const fill=$('pitch-clock-fill'); if(!fill) return;
   clearTimeout(quizTimer); clearTimeout(fill._warn);
@@ -5141,7 +5145,8 @@ function pick(btn,ok,correct){
     quizStreak++;
     quizGameCorrect++;   // この試合の正解数（＝球のレベル・制限時間短縮の基準）
     if(versusActive){
-      // 試合: 手動スイングの打撃フェーズへ
+      // 試合: 手動スイングの打撃フェーズへ（その回の正解数で球が難しくなる）
+      if(vs) vs.inningCorrect=(vs.inningCorrect||0)+1;
       doSwingPhase=true;
     } else {
       // フリーバッティング: スイングなし。1問正解＝1点。5問連続正解ごとに＋3ボーナス
@@ -5280,7 +5285,7 @@ function _beginVersus(){
   localStorage.setItem('mlb_versus_today',JSON.stringify({date:t,n}));
   const lvl=oppLevelForUser(), wr=VS_WINRATE[lvl]||0.6;
   vs={ name:genOppName(), level:lvl, winRate:wr, userHome:Math.random()<0.5,
-       inning:1, userLine:[], cpuLine:[], userScore:0, cpuScore:0, inningRuns:0,
+       inning:1, userLine:[], cpuLine:[], userScore:0, cpuScore:0, inningRuns:0, inningCorrect:0,
        maxInning:3, finished:false, userWins:(Math.random()<wr) };
   versusActive=true; lastQuizSection='play';
   quizGameCorrect=0;
@@ -5302,7 +5307,7 @@ function versusStartInning(){
   _versusUserHalf(); // 広告は3回・7回終了時の「続ける」時に表示
 }
 function _versusUserHalf(){
-  quizOuts=0; quizStreak=0; vs.inningRuns=0;
+  quizOuts=0; quizStreak=0; vs.inningRuns=0; vs.inningCorrect=0;
   const _out=document.querySelector('.diamond-hud-out'); if(_out) _out.style.display=''; // 試合はアウト表示
   updateOuts(); clearBases(); updateVersusBar();
   const bn=$('versus-inning'); if(bn){ bn.textContent=vs.inning+'回：あなたの攻撃（3アウトで交代）'; bn.style.display=''; setTimeout(()=>{if(bn)bn.style.display='none';},1400); }
@@ -5489,6 +5494,20 @@ const SWING_TIERS=[
   {spd:1.49, perfect:5,  great:9,  good:15, brk:0.4, label:'Lv7 鋭い変化球'},
   {spd:2.0,  perfect:4.5,great:9,  good:14, brk:0.5, label:'Lv8 魔球（最難関）'},
 ];
+// 試合の難易度ステップ（1〜18）＝（回−1）＋その回の正解数。回が進むほど頭から難しく、回内でも1本ごとに難しくなる
+function versusStep(){
+  if(!vs) return 1;
+  return Math.min(18, Math.max(1, (vs.inning-1) + (vs.inningCorrect||0)));
+}
+// 8段階の設定値をなめらかに補間して18段階に拡張
+function swingCfgForStep(step){
+  const p=(Math.min(18,Math.max(1,step))-1)/17*(SWING_TIERS.length-1);
+  const i=Math.floor(p), f=p-i;
+  const a=SWING_TIERS[i], b=SWING_TIERS[Math.min(SWING_TIERS.length-1,i+1)];
+  const L=(x,y)=>x+(y-x)*f;
+  const name=(f<0.5?a:b).label.replace(/^Lv\d+\s*/,'');
+  return {spd:L(a.spd,b.spd), perfect:L(a.perfect,b.perfect), great:L(a.great,b.great), good:L(a.good,b.good), brk:L(a.brk,b.brk), label:'Lv'+step+' '+name};
+}
 function pitchTier(){
   const c=quizGameCorrect;
   if(c<=3) return 0; if(c<=7) return 1; if(c<=12) return 2; if(c<=18) return 3;
@@ -5502,12 +5521,14 @@ function startSwing(hit){
   const ui=$('swing-ui'); if(ui){ try{ ui.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){ const p=$('quiz-play'); if(p) p.scrollTop=0; } }
 }
 function beginPitch(){
-  const cfg=SWING_TIERS[pitchTier()];
+  // 試合は「（回−1）＋その回の正解数」の18段階、それ以外は従来の8段階
+  const cfg=(versusActive&&vs)?swingCfgForStep(versusStep()):SWING_TIERS[pitchTier()];
   sw.cfg=cfg; sw.pos=0; sw.dir=1; sw.active=true; sw.pass=1;
   // 判定幅は球のレベルのみで決まる（塁は打つタイミング＝往復回数で決まる）
   sw.pW=cfg.perfect; sw.gW=cfg.great; sw.dW=cfg.good;
-  // 3問目（連続正解3）から赤（判定中心）をランダムに移動
-  if(quizGameCorrect>=3){
+  // ステップ3から赤（判定中心）をランダムに移動
+  const _stp=(versusActive&&vs)?versusStep():quizGameCorrect;
+  if(_stp>=3){
     const lo=sw.dW+4, hi=100-sw.dW-4;
     sw.center=lo+Math.random()*(hi-lo);
   }else{
