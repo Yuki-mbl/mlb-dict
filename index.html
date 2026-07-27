@@ -3181,6 +3181,8 @@ function playSample(key,vol){
   if(ab){
     const c=actx();
     if(c){
+      // 停止中(suspended)に鳴らすと復帰時に遅れて再生されるため、捨てる（復帰だけ要求）
+      if(c.state && c.state!=='running'){ try{c.resume();}catch(e){} return true; }
       try{
         const src=c.createBufferSource(); src.buffer=ab;
         const g=c.createGain(); g.gain.value=(vol==null?1:vol);
@@ -3196,6 +3198,7 @@ function playSample(key,vol){
 }
 function _tone(freq,t0,dur,type,gain,glideTo){
   const c=actx(); if(!c) return;
+  if(c.state && c.state!=='running'){ try{c.resume();}catch(e){} return; } // 停止中の音は捨てる（遅延再生防止）
   const o=c.createOscillator(), g=c.createGain();
   o.type=type||'sine'; o.frequency.setValueAtTime(freq,t0);
   if(glideTo) o.frequency.exponentialRampToValueAtTime(Math.max(20,glideTo),t0+dur);
@@ -4075,7 +4078,10 @@ function renderVersusBoard(){
          '<button class="vs-btn" onclick="versusExtend(9)">9回まで続ける'+adTag+'▶</button>'+
          '<button class="vs-btn vs-btn-sub" onclick="showVersusResult(false)">ここで終える（得点は加算）</button>'+premBtn;
   } else {
-    btns='<button class="vs-btn" onclick="versusNextInning()">次の回 ▶</button>';
+    // 4〜6回は「3回までの得点」、8回は「7回までの得点」を加算してやめられる
+    const cpBack=(vs.maxInning===7)?3:((vs.maxInning===9)?7:0);
+    btns='<button class="vs-btn" onclick="versusNextInning()">次の回 ▶</button>'+
+         (cpBack?'<button class="vs-btn vs-btn-sub" onclick="versusStopAt('+cpBack+')">ここでやめる（'+cpBack+'回までの得点を加算）</button>':'');
   }
   wrap.innerHTML=
     '<div class="vs-board-ttl">'+vs.inning+'回 終了</div>'+
@@ -4104,6 +4110,22 @@ function versusNextInning(){
   $('versus-board').classList.remove('show');
   vs.inning++;
   versusStartInning();
+}
+// 区切り（3回/7回）を越えた途中の回でやめる: 直前の区切りまでの得点だけ加算して終了
+function versusStopAt(cp){
+  const partial=vs.userLine.slice(0,cp).reduce((a,b)=>a+(b||0),0);
+  vs.finished=true; versusActive=false;
+  track('versus_result',{full_game:false, win:false, user_score:partial, cpu_score:vs.cpuScore, level:vs.level, stopped_at:vs.inning, credited_to:cp});
+  if(partial>0) addRuns(partial);
+  const ov=$('versus-board'); if(ov) ov.classList.remove('show');
+  const r=$('versus-result');
+  if(r){
+    r.querySelector('.vs-res-ttl').textContent=vs.inning+'回で終了';
+    r.querySelector('.vs-res-score').textContent='あなた '+vs.userScore+' - '+vs.cpuScore+' 相手';
+    r.querySelector('.vs-res-char').src=(partial>0)?CHAR_IMG.joy:CHAR_IMG.sad;
+    r.querySelector('.vs-res-bonus').textContent=(partial>0)?('得点 ＋'+partial+'点を加算（'+cp+'回まで）'):('（'+cp+'回までの得点は0点でした）');
+    r.classList.add('show');
+  }
 }
 // チェックポイントのプレミアム導線: 試合はその区切りで終了（得点は加算）して設定へ
 function versusPremiumCta(){
