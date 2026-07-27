@@ -3976,7 +3976,7 @@ function showOutFx(){
 }
 // ── CPU対戦モード（中間案C：短縮9回・1アウト制） ─────────────────────────────
 let versusActive=false, vs=null;
-const VS_WINRATE={1:0.68,2:0.64,3:0.60,4:0.56,5:0.52}; // ユーザー勝率 約60%（レベルで少し上下）
+const VS_WINRATE={1:0.50,2:0.46,3:0.43,4:0.40,5:0.37}; // 抽選値。追い上げ上限で譲るぶんを含め実効勝率は約60%
 function oppLevelForUser(){
   const runs=(typeof runsTotal==='number')?runsTotal:0;
   const {r}=currentRank(runs);
@@ -4044,18 +4044,26 @@ function simCpuInning(isFinal){
     const cap=Math.max(3, Math.ceil(uAvg*2)); // 最終回の得点上限（帳尻の大量得点を廃止）
     if(vs.userWins || need>cap){
       if(need<=2) return Math.max(0, need-2); // ぎりぎり届かない（1点差）
-      // 追い上げるが届かない（1点差まで詰める演出もあり）
-      return Math.max(0, Math.min(need-2, Math.floor(need*(0.35+Math.random()*0.55))));
+      // 追い上げるが届かない（1点差まで詰める演出もあり）。上限capで大量得点は不可
+      return Math.max(0, Math.min(need-2, cap, Math.floor(need*(0.35+Math.random()*0.55))));
     }
     return Math.max(0, need); // 小差なら逆転サヨナラもあり
   }
-  // 通常回: ユーザーのペースに合わせて得点（0.5〜1.4倍）
-  const diff=vs.userScore-vs.cpuScore;
-  let base=uAvg*(0.5+Math.random()*0.9);
-  if(diff>uAvg) base+=diff*(0.25+Math.random()*0.3);   // 離されたら追い上げ
-  if(diff<-uAvg*1.5) base*=0.35;                        // リードしすぎたら控えめ
-  let runs=Math.max(0, Math.round(base));
-  runs=Math.min(runs, Math.max(3, Math.ceil(uAvg*1.8))); // 1回の得点上限
+  // 通常回: 合計はユーザーにゆるく追随しつつ、回ごとはメリハリ（0点の回が多く、取る回はまとめて取る）
+  const diff=vs.userScore-vs.cpuScore; // 正＝ユーザーリード
+  let runs;
+  // 0点に抑えられる回を多めに（リードされているほど打ちにいく）
+  let pZero=0.55;
+  if(diff>uAvg*2) pZero=0.3;
+  else if(diff<0) pZero=0.65; // CPUリード中は攻め手をゆるめる
+  if(Math.random()<pZero){
+    runs=0;
+  }else{
+    let base=uAvg*(0.8+Math.random()*1.7); // 打つ回はまとまって取る
+    if(diff>uAvg*2) base+=diff*(0.2+Math.random()*0.25); // 大差なら追い上げ
+    runs=Math.max(1, Math.round(base));
+  }
+  runs=Math.min(runs, Math.max(4, Math.ceil(uAvg*2.2))); // 1回の得点上限
   // 勝ち予定の試合では相手に同点・逆転をさせない（常にユーザーが1点以上リードを保つ接戦）
   if(vs.userWins && vs.cpuScore+runs>=vs.userScore){
     runs=Math.max(0, vs.userScore-1-vs.cpuScore);
