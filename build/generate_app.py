@@ -2836,6 +2836,7 @@ const qs={ej:{ok:0,n:0},je:{ok:0,n:0}};
 let cq=null, ans=false;
 // 不正解キュー: {entry, retryAt} の配列（retryAt = 正解するまで出し続ける出題番号）
 const retryQueue={ej:[],je:[]};
+let recentChoicePool=[]; // 直近10問の選択肢に出た語（新規出題からしばらく除外）
 // 旧テーマ設定の後始末（テーマ機能は廃止）
 localStorage.removeItem('mlb_theme');
 localStorage.removeItem('mlb_dark');
@@ -4894,7 +4895,13 @@ function nextQ(_depth){
     rq.splice(due,1);
   } else {
     // 全語制覇型: まだ出していない語を優先して出題（一巡でリセット）
-    correct=(qMode==='ej'?EJ:JE)[coverDrawIdx(qMode)];
+    const _ci=coverDrawIdx(qMode);
+    correct=(qMode==='ej'?EJ:JE)[_ci];
+    // 直近の選択肢に出た語は出題しない（袋の底へ戻して後回し）
+    if(_depth<25 && recentChoicePool.indexOf(correct)>=0){
+      try{ _coverLoad(); if(_coverBags[qMode]){ _coverBags[qMode].unshift(_ci); _coverSave(); } }catch(e){}
+      nextQ(_depth+1); return;
+    }
   }
   // 正解ラベルが空、またはEJモードで日本語を含まない場合は別の問題を引き直す
   const _cLbl=choiceLbl(correct);
@@ -4934,6 +4941,9 @@ function nextQ(_depth){
     }
   }
   cq={correct,choices:[...wrongs,correct].sort(()=>Math.random()-.5),hit:difficultyOf(correct)};
+  // 今回の選択肢を記録（直近10問×5択＝最大50語を新規出題から除外）
+  recentChoicePool.push(...cq.choices);
+  while(recentChoicePool.length>50) recentChoicePool.shift();
   ans=false;
   quizAsked++;   // 出題数（進むほど制限時間を短縮）
   const qdc=$('quiz-def-card');if(qdc)qdc.style.display='none';
@@ -5333,15 +5343,17 @@ function renderVersusBoard(){
   const cp3=(vs.maxInning===3 && vs.inning===3);
   const cp7=(vs.maxInning===7 && vs.inning===7);
   let btns;
+  const adTag=isPremium()?'':'（広告）';
+  const premBtn=isPremium()?'':'<button class="vs-btn vs-btn-sub" onclick="versusPremiumCta()">プレミアム（月額200円）なら広告なし</button>';
   if(last){ btns='<button class="vs-btn" onclick="showVersusResult(true)">結果を見る ▶</button>'; }
   else if(cp3){
-    btns='<button class="vs-btn" onclick="versusExtend(7)">7回まで続ける（広告）▶</button>'+
-         '<button class="vs-btn vs-btn-sub" onclick="showVersusResult(false)">ここで終える（得点は加算）</button>';
+    btns='<button class="vs-btn" onclick="versusExtend(7)">7回まで続ける'+adTag+'▶</button>'+
+         '<button class="vs-btn vs-btn-sub" onclick="showVersusResult(false)">ここで終える（得点は加算）</button>'+premBtn;
   }
   else if(cp7){
     btns='<div class="vs-msg" style="color:var(--c-coral);font-weight:900">9回まで戦って勝てばボーナス＋20点！</div>'+
-         '<button class="vs-btn" onclick="versusExtend(9)">9回まで続ける（広告）▶</button>'+
-         '<button class="vs-btn vs-btn-sub" onclick="showVersusResult(false)">ここで終える（得点は加算）</button>';
+         '<button class="vs-btn" onclick="versusExtend(9)">9回まで続ける'+adTag+'▶</button>'+
+         '<button class="vs-btn vs-btn-sub" onclick="showVersusResult(false)">ここで終える（得点は加算）</button>'+premBtn;
   } else {
     btns='<button class="vs-btn" onclick="versusNextInning()">次の回 ▶</button>';
   }
@@ -5372,6 +5384,13 @@ function versusNextInning(){
   $('versus-board').classList.remove('show');
   vs.inning++;
   versusStartInning();
+}
+// チェックポイントのプレミアム導線: 試合はその区切りで終了（得点は加算）して設定へ
+function versusPremiumCta(){
+  if(confirm('プレミアム（月額200円）は広告なし・制限なしで遊べます。\nこの試合はここで終了（得点は加算）して、設定を開きますか？')){
+    goTab('settings');
+    showVersusResult(false);
+  }
 }
 function versusExtend(to){
   const go=()=>{
