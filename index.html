@@ -1129,7 +1129,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
       <div class="qmenu-group-label">📚 学ぶ</div>
       <button class="qmenu-card qmenu-quiz" onclick="startQuizPlay()">
         <img src="images/バッター.png" alt="">
-        <span class="qmenu-txt"><span class="qmenu-name">フリーバッティング</span><span class="qmenu-sub">英和・和英ミックス！自己ベストを伸ばそう</span></span>
+        <span class="qmenu-txt"><span class="qmenu-name">フリーバッティング</span><span class="qmenu-sub">1問正解＝1点！マイペースにコツコツ</span></span>
       </button>
       <button class="qmenu-card qmenu-daily" onclick="goTab('daily')">
         <img src="images/ピッチャー.png" alt="">
@@ -1144,27 +1144,22 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
         <img src="images/ガッツ.png" alt="">
         <span class="qmenu-txt"><span class="qmenu-name">試合</span><span class="qmenu-sub">9回勝負！勝てばボーナス</span></span>
       </button>
-      <div class="qmenu-howto qmenu-swingbox">
-        <div class="howto-swingrow">
-          <span class="howto-swing-lbl">⚾ 打席のスイング操作</span>
-          <button class="swing-toggle" id="swing-toggle" onclick="toggleSwingAuto()">手動</button>
-        </div>
-        <div class="howto-swing-hint" id="howto-swing-hint"></div>
-      </div>
       <div class="qmenu-howto">
         <button class="qmenu-howto-ttl" id="howto-toggle" onclick="toggleHowto()">⚾ 点の入り方 <span class="howto-chev" id="howto-chev">▼</span></button>
         <div id="howto-body" style="display:none">
-          <div class="howto-sub-ttl" style="margin-top:0;padding-top:0;border-top:none">🖐 手動モード</div>
+          <div class="howto-sub-ttl" style="margin-top:0;padding-top:0;border-top:none">🏏 フリーバッティング</div>
           <ul id="howto-manual">
+            <li>スイング操作なし。<b>1問正解＝1点</b>。アウトもなく、マイペースで解けます。</li>
+            <li><b>5問連続正解</b>するたびにキャラが飛び出して<b>ボーナス＋3点</b>！</li>
+            <li>ときどき広告が入ります（プレミアムは広告なし）。</li>
+          </ul>
+          <div class="howto-sub-ttl">🔥 試合</div>
+          <ul id="howto-auto">
             <li>正解すると打席へ。バーの<b>赤</b>で止めると長打！（<b>黄</b>＝単打）</li>
             <li><b>往路</b>＝ホームラン／<b>復路</b>＝二塁打（難問は三塁打）／それ以降＝単打</li>
-            <li>走者が<b>ホームインで得点</b>。不正解や凡打はアウト、<b>3アウトで終了</b>。</li>
-          </ul>
-          <div class="howto-sub-ttl">🤖 オートモード</div>
-          <ul id="howto-auto">
-            <li>正解すると<b>自動で単打</b>（タイミング操作なし）。</li>
-            <li><b>長打・本塁打はねらえません</b>（狙うなら手動）。堅実だが天井は低め。</li>
-            <li>走者が<b>ホームインで得点</b>。不正解はアウト、<b>3アウトで終了</b>。</li>
+            <li>走者が<b>ホームインで得点</b>。不正解や凡打はアウト、<b>3アウトで攻守交代</b>。</li>
+            <li><b>3回・7回・9回</b>の区切りまで戦って終えると得点が加算（途中でやめると無効）。</li>
+            <li><b>9回まで戦って勝てばボーナス＋20点</b>！</li>
           </ul>
           <div class="howto-sub-ttl">📅 今日の10問</div>
           <ul>
@@ -1268,15 +1263,15 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
     </div>
   </div>
 
-  <!-- ── 無料回数を使い切ったとき（広告で+1回／プレミアム） ── -->
+  <!-- ── フリーバッティングの広告ゲート（続けるには広告 or プレミアム） ── -->
   <div id="noplay-overlay">
     <div class="ad-box">
       <img class="np-img" src="images/バッター.png" alt="">
-      <div class="np-title">本日の無料回数（<span id="noplay-count">2</span>回）を使い切りました</div>
-      <div class="np-sub">広告を見れば、もう1回あそべます。</div>
-      <button class="np-ad-btn" onclick="watchAdForPlay()">🎬 広告を見て もう1回あそぶ</button>
-      <button class="np-prem-btn" onclick="goTab('settings');closeNoPlay()">プレミアム（月額200円）で回数無制限・広告なし</button>
-      <button class="np-cancel" onclick="closeNoPlay()">やめる</button>
+      <div class="np-title">ここまでナイスバッティング！</div>
+      <div class="np-sub">広告を見れば、続けてあそべます。</div>
+      <button class="np-ad-btn" onclick="watchAdForPlay()">🎬 広告を見て 続ける</button>
+      <button class="np-prem-btn" onclick="goTab('settings');closeNoPlay()">プレミアム（月額200円）で広告なし</button>
+      <button class="np-cancel" onclick="quitFbGate()">やめる（目次へ）</button>
     </div>
   </div>
 
@@ -2739,7 +2734,6 @@ document.addEventListener('DOMContentLoaded', () => {
       renderAbbrList();
     });
   }
-  if(typeof syncSwingToggle==='function') syncSwingToggle();
   if(typeof syncNotifToggle==='function') syncNotifToggle();
   if(typeof syncPremium==='function') syncPremium();
   if(typeof syncSfxToggle==='function') syncSfxToggle();
@@ -3155,7 +3149,7 @@ function toggleMFav(){
 // クイズ状態: 連続正解数・アウト数・塁の走者[1塁,2塁,3塁]・得点
 let quizStreak=0, quizOuts=0, bases=[false,false,false];
 let runsTotal=parseInt(localStorage.getItem('mlb_runs')||'0',10)||0; // 累計得点
-let swingAuto=localStorage.getItem('mlb_swing_auto')==='1'; // スイング操作: true=オート
+// スイング操作は試合のみ（手動）。フリーバッティングはスイングなし＝正解1点。
 function vibrate(p){try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}}
 // ── 効果音（Web Audioで合成。音声ファイル不要） ──────────────────────────────
 let _sfxOn=localStorage.getItem('mlb_sfx')!=='0'; // 既定ON
@@ -3339,47 +3333,28 @@ function difficultyOf(e){
   if(key.length>=14) return 2; // 非常に長い1語のみ二塁打
   return 1;
 }
-// 無料ユーザーの1日のプレイ回数制限
-const FREE_DAILY_PLAYS=2;
-function _playsToday(){ try{ return JSON.parse(localStorage.getItem('mlb_plays_today'))||{}; }catch(e){ return {}; } }
-function playsLeft(){
-  if(isPremium()) return Infinity;
-  const c=_playsToday(); const n=(c.date===todayStr())?(c.n||0):0;
-  return Math.max(0,FREE_DAILY_PLAYS-n);
-}
-function recordPlay(){
-  if(isPremium()) return;
-  const t=todayStr(), c=_playsToday();
-  const n=((c.date===t)?(c.n||0):0)+1;
-  localStorage.setItem('mlb_plays_today',JSON.stringify({date:t,n}));
-}
+let fbGateAt=5; // フリーバッティング: 次に広告ゲートを出す出題数（初回5問、以降3問ごと）
 function startQuizPlay(){
-  // 無料は1日2回まで。超えたら「広告を見て+1回」or プレミアム案内
-  if(playsLeft()<=0){ showNoPlay(); return; }
-  recordPlay();
-  _enterQuizPlay();
-}
-function _enterQuizPlay(){
+  // フリーバッティングは回数無制限（5問目、以降3問ごとに広告ゲート）
   lastQuizSection='play';
   $('quiz-menu').style.display='none';
   $('quiz-play').style.display='';
   const _hr=$('hud-runs'); if(_hr) _hr.style.display=''; // フリーバッティングでは本日/通算を表示
+  const _out=document.querySelector('.diamond-hud-out'); if(_out) _out.style.display='none'; // アウトなし
   quizStreak=0;quizOuts=0;quizAsked=0;quizGameCorrect=0;
+  fbGateAt=5;
   resetSwing();
   updateOuts();clearBases();updateRuns();
   cq=null;nextQ();
 }
-// 無料回数を使い切ったとき: 広告で+1回 or プレミアム
-function showNoPlay(){
-  const t=$('noplay-count'); if(t) t.textContent=FREE_DAILY_PLAYS;
-  const ov=$('noplay-overlay'); if(ov) ov.classList.add('show');
-}
+// フリーバッティングの広告ゲート（広告を見て続ける or プレミアム or やめる）
+function showFbGate(){ const ov=$('noplay-overlay'); if(ov) ov.classList.add('show'); }
 function closeNoPlay(){ const ov=$('noplay-overlay'); if(ov) ov.classList.remove('show'); }
 function watchAdForPlay(){
   closeNoPlay();
-  // 広告を見終わったら1回分プレイ（回数カウントも進める＝次回もまた広告が必要）
-  showAd(()=>{ recordPlay(); _enterQuizPlay(); });
+  showAd(()=>{ fbGateAt=quizAsked+3; nextQ(); }); // 広告後は3問ごとに次のゲート
 }
+function quitFbGate(){ closeNoPlay(); quizToMenu(); }
 function resetSwing(){
   try{ sw.active=false; cancelAnimationFrame(sw.raf); }catch(e){}
   const ui=$('swing-ui'); if(ui) ui.style.display='none';
@@ -3447,17 +3422,11 @@ function rankUpToast(name){
 }
 function quizBack(){
   if(versusActive){
-    // 延長（4〜8回）中の放棄は没収／3回まで（未延長）は得点を加算して終了
-    if(vs && vs.maxInning===9){ versusQuitConfirm(); }
-    else { versusStopEarly(); }
+    // 得点が加算されるのは3回・7回・9回の区切りで終えた時だけ。途中離脱は没収確認
+    versusQuitConfirm();
     return;
   }
   quizToMenu();
-}
-function versusStopEarly(){
-  if(confirm('ここで試合を終えますか？（ここまでの得点は加算されます）')){
-    showVersusResult(false);
-  }
 }
 function quizToMenu(){
   lastQuizSection='menu';
@@ -3860,7 +3829,7 @@ function showFlash(ok,withChar){
 function pick(btn,ok,correct){
   if(ans) return;ans=true;
   // 音は最初に鳴らす（DOM更新より先＝タップと同時に聞こえる）
-  if(ok){ if(swingAuto) sfxForVal(1); else sfxSelectOK(); } else { sfxWrong(); }
+  if(ok){ if(versusActive) sfxSelectOK(); else sfxForVal(1); } else { sfxWrong(); }
   stopPitchClock();
   const st=qs[qMode];st.n++;if(ok) st.ok++;
   updateScores();
@@ -3869,19 +3838,26 @@ function pick(btn,ok,correct){
   if(ok){
     quizStreak++;
     quizGameCorrect++;   // この試合の正解数（＝球のレベル・制限時間短縮の基準）
-    const hit=(cq&&cq.hit)?cq.hit:1;   // 難易度＝甘い球（狙える最大の当たり）
-    if(swingAuto){
-      // オート: 常に単打（1塁）。長打・本塁打は手動のみ＝オートが有利にならない
-      const _p=$('quiz-play'); if(_p){ try{_p.scrollTo({top:0,behavior:'smooth'});}catch(e){_p.scrollTop=0;} }
-      applyHit(1);
-    } else {
-      // 手動: タイミングよく打つ挑戦フェーズへ
+    if(versusActive){
+      // 試合: 手動スイングの打撃フェーズへ
       doSwingPhase=true;
+    } else {
+      // フリーバッティング: スイングなし。1問正解＝1点。5問連続正解ごとに＋3ボーナス
+      const _p=$('quiz-play'); if(_p){ try{_p.scrollTo({top:0,behavior:'smooth'});}catch(e){_p.scrollTop=0;} }
+      addRuns(1);
+      if(quizStreak%5===0){
+        addRuns(3);
+        dailyBonusFlash(3);           // いろんなポーズが飛び出す＋「＋3点」
+        setTimeout(sfxCheer,120);
+        vibrate([120,60,220]);
+      }
     }
   } else {
     quizStreak=0;
-    quizOuts++;
-    updateOuts();
+    if(versusActive){
+      quizOuts++;
+      updateOuts();
+    }
     showFlash(false);
     // 走者は塁に残す（クリアしない）
   }
@@ -3946,7 +3922,7 @@ function applyHit(value){
   else vibrate(35);
 }
 // ターン終了処理（次へ有効化・アウト判定）
-function outLimit(){ return versusActive?1:3; }
+function outLimit(){ return versusActive?3:Infinity; } // 試合=3アウト交代／フリーはアウトなし
 function finishTurn(){
   $('next-btn').disabled=false;
   if(quizOuts>=outLimit()){
@@ -3962,6 +3938,8 @@ function finishTurn(){
 // 「次の問題」ボタン：対戦でアウト後はスコアボードへ、それ以外は次問へ
 function quizNext(){
   if(versusActive && quizOuts>=outLimit()){ versusUserHalfDone(); return; }
+  // フリーバッティング: 5問目、以降3問ごとに広告ゲート（プレミアムはなし）
+  if(!versusActive && !isPremium() && quizAsked>=fbGateAt){ showFbGate(); return; }
   nextQ();
 }
 function showOutFx(){
@@ -4019,14 +3997,13 @@ function updateVersusBar(){
 }
 function versusStartInning(){
   if(!versusActive) return;
-  // 広告は4回に入る時と8回に入る時の2回だけ（プレミアムはスキップ）
-  if(vs.inning===4 || vs.inning===8){ showAd(()=>_versusUserHalf()); }
-  else _versusUserHalf();
+  _versusUserHalf(); // 広告は3回・7回終了時の「続ける」時に表示
 }
 function _versusUserHalf(){
   quizOuts=0; quizStreak=0; vs.inningRuns=0;
+  const _out=document.querySelector('.diamond-hud-out'); if(_out) _out.style.display=''; // 試合はアウト表示
   updateOuts(); clearBases(); updateVersusBar();
-  const bn=$('versus-inning'); if(bn){ bn.textContent=vs.inning+'回：あなたの攻撃（1アウトで交代）'; bn.style.display=''; setTimeout(()=>{if(bn)bn.style.display='none';},1400); }
+  const bn=$('versus-inning'); if(bn){ bn.textContent=vs.inning+'回：あなたの攻撃（3アウトで交代）'; bn.style.display=''; setTimeout(()=>{if(bn)bn.style.display='none';},1400); }
   cq=null; ans=false; nextQ();
 }
 // 相手（CPU）の1イニング得点をシミュレート
@@ -4072,12 +4049,18 @@ function renderVersusBoard(){
   const cpuRow='<tr><th>'+(vs.userHome?'先攻':'後攻')+'</th>'+cells(vs.cpuLine)+'<td class="vs-r">'+vs.cpuScore+'</td></tr>';
   const rows=vs.userHome ? (cpuRow+userRow) : (userRow+cpuRow); // 先攻が上
   const msg=versusInningMsg();
-  const last=(vs.maxInning===9 && vs.inning===9);
-  const checkpoint=(vs.maxInning===3 && vs.inning===3);
+  const last=(vs.inning===9);
+  const cp3=(vs.maxInning===3 && vs.inning===3);
+  const cp7=(vs.maxInning===7 && vs.inning===7);
   let btns;
   if(last){ btns='<button class="vs-btn" onclick="showVersusResult(true)">結果を見る ▶</button>'; }
-  else if(checkpoint){
-    btns='<button class="vs-btn" onclick="versusExtend()">9回まで続ける（広告）▶</button>'+
+  else if(cp3){
+    btns='<button class="vs-btn" onclick="versusExtend(7)">7回まで続ける（広告）▶</button>'+
+         '<button class="vs-btn vs-btn-sub" onclick="showVersusResult(false)">ここで終える（得点は加算）</button>';
+  }
+  else if(cp7){
+    btns='<div class="vs-msg" style="color:var(--c-coral);font-weight:900">9回まで戦って勝てばボーナス＋20点！</div>'+
+         '<button class="vs-btn" onclick="versusExtend(9)">9回まで続ける（広告）▶</button>'+
          '<button class="vs-btn vs-btn-sub" onclick="showVersusResult(false)">ここで終える（得点は加算）</button>';
   } else {
     btns='<button class="vs-btn" onclick="versusNextInning()">次の回 ▶</button>';
@@ -4110,13 +4093,16 @@ function versusNextInning(){
   vs.inning++;
   versusStartInning();
 }
-function versusExtend(){
-  vs.maxInning=9;
-  $('versus-board').classList.remove('show');
-  vs.inning++;
-  versusStartInning();
+function versusExtend(to){
+  const go=()=>{
+    vs.maxInning=to;
+    $('versus-board').classList.remove('show');
+    vs.inning++;
+    versusStartInning();
+  };
+  if(isPremium()) go(); else showAd(go); // 続けるには広告（プレミアムはなし）
 }
-// fullGame=true: 9回完走（勝てば+10ボーナス）／false: 3回で終える（得点は加算・ボーナスなし）
+// fullGame=true: 9回完走（勝てば+20ボーナス）／false: 3回/7回で終える（得点は加算・ボーナスなし）
 function showVersusResult(fullGame){
   vs.finished=true;
   const win=vs.userScore>vs.cpuScore, tie=vs.userScore===vs.cpuScore;
@@ -4124,7 +4110,7 @@ function showVersusResult(fullGame){
   versusActive=false;
   track('versus_result',{full_game:!!fullGame, win:win, user_score:vs.userScore, cpu_score:vs.cpuScore, level:vs.level});
   if(vs.userScore>0) addRuns(vs.userScore);
-  if(fullGame && win) addRuns(10);
+  if(fullGame && win) addRuns(20);
   // 対戦成績は9回完走のみ記録
   if(fullGame){ try{ let rec=JSON.parse(localStorage.getItem('mlb_vs_rec'))||{w:0,l:0}; if(win)rec.w++; else rec.l++; localStorage.setItem('mlb_vs_rec',JSON.stringify(rec)); }catch(e){} }
   const ov=$('versus-board'); if(ov) ov.classList.remove('show');
@@ -4133,7 +4119,7 @@ function showVersusResult(fullGame){
     r.querySelector('.vs-res-ttl').textContent = fullGame ? (win?'勝利！ 🎉':(tie?'引き分け':'敗戦…')) : (vs.inning+'回で終了');
     r.querySelector('.vs-res-score').textContent='あなた '+vs.userScore+' - '+vs.cpuScore+' 相手';
     r.querySelector('.vs-res-char').src = (win||tie)?CHAR_IMG.joy:CHAR_IMG.sad;
-    r.querySelector('.vs-res-bonus').textContent = (fullGame&&win)?'累計ボーナス ＋10点！':(vs.userScore>0?'得点 ＋'+vs.userScore+'点を加算':'');
+    r.querySelector('.vs-res-bonus').textContent = (fullGame&&win)?'勝利ボーナス ＋20点！':(vs.userScore>0?'得点 ＋'+vs.userScore+'点を加算':'');
     r.classList.add('show');
   }
 }
@@ -4143,7 +4129,7 @@ function closeVersusResult(){
   quizToMenu();
 }
 function versusQuitConfirm(){
-  if(confirm('対戦を途中でやめると、この試合の得点は無効（累計・本日ともに加算なし）になります。やめますか？')){
+  if(confirm('得点が加算されるのは3回・7回・9回の区切りで終えた時だけです。途中でやめると、この試合の得点は無効になります。やめますか？')){
     versusActive=false; vs=null;
     $('versus-board').classList.remove('show');
     $('versus-bar').style.display='none';
@@ -4258,19 +4244,6 @@ function showSwingResult(text,isHit){
   const rs=$('swing-result'); if(!rs) return;
   rs.textContent=text;
   rs.className='swing-result'+(isHit===true?' hit':(isHit===false?' out':''));
-}
-// 設定: スイング操作トグル
-function toggleSwingAuto(){
-  swingAuto=!swingAuto;
-  localStorage.setItem('mlb_swing_auto',swingAuto?'1':'0');
-  syncSwingToggle();
-}
-function syncSwingToggle(){
-  const b=$('swing-toggle');
-  if(b){ b.textContent=swingAuto?'オート':'手動'; b.classList.toggle('auto',swingAuto); }
-  // 「点の入り方」は手動・オート両方の説明を常に表示（トグルとは非連動）
-  const hint=$('howto-swing-hint');
-  if(hint) hint.textContent=swingAuto?'▶ コツコツ学習したい人向け':'▶ 長打・本塁打を狙いたい人向け';
 }
 
 function updateScores(){
