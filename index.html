@@ -1172,7 +1172,7 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
           <div class="howto-sub-ttl">📅 今日の10問</div>
           <ul>
             <li>毎日<b>10問</b>に挑戦（1日1回）。スイングはなく<b>正解／不正解のみ</b>。</li>
-            <li><b>10問全問正解＝＋5点</b>／<b>6〜9問正解＝＋3点</b>（本日・累計に加算）。</li>
+            <li><b>10問全問正解＝＋10点</b>／<b>6〜9問正解＝＋5点</b>（本日・累計に加算）。</li>
           </ul>
         </div>
       </div>
@@ -1275,9 +1275,9 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
   <div id="noplay-overlay">
     <div class="ad-box">
       <img class="np-img" src="images/バッター.png" alt="">
-      <div class="np-title">ここまでナイスバッティング！</div>
-      <div class="np-sub">広告を見れば、続けてあそべます。</div>
-      <button class="np-ad-btn" onclick="watchAdForPlay()">🎬 広告を見て 続ける</button>
+      <div class="np-title" id="np-title">ここまでナイスバッティング！</div>
+      <div class="np-sub" id="np-sub">広告を見れば、続けてあそべます。</div>
+      <button class="np-ad-btn" id="np-ad-btn" onclick="watchAdForPlay()">🎬 広告を見て 続ける</button>
       <button class="np-prem-btn" onclick="goTab('settings');closeNoPlay()">プレミアム（月額200円）で広告なし</button>
       <button class="np-cancel" onclick="quitFbGate()">やめる（目次へ）</button>
     </div>
@@ -3386,9 +3386,18 @@ function difficultyOf(e){
   if(key.length>=14) return 2; // 非常に長い1語のみ二塁打
   return 1;
 }
-let fbGateAt=5; // フリーバッティング: 次に広告ゲートを出す出題数（初回5問、以降3問ごと）
+let fbGateAt=5; // フリーバッティング: 次に広告ゲートを出す出題数（5問目、以降5問ごと）
+let _fbAwait='next'; // ゲートの広告後の動き: 'start'=プレイ開始 / 'next'=次の問題へ
+function _fbToday(){ try{ return JSON.parse(localStorage.getItem('mlb_fb_today'))||{}; }catch(e){ return {}; } }
 function startQuizPlay(){
-  // フリーバッティングは回数無制限（5問目、以降3問ごとに広告ゲート）
+  // その日2回目以降の起動は、開始前に広告ゲート（プレミアムはなし）
+  const t=todayStr(), c=_fbToday();
+  const n=((c.date===t)?(c.n||0):0)+1;
+  localStorage.setItem('mlb_fb_today',JSON.stringify({date:t,n:n}));
+  if(n>=2 && !isPremium()){ _fbAwait='start'; showFbGate(); return; }
+  _fbBegin();
+}
+function _fbBegin(){
   lastQuizSection='play';
   $('quiz-menu').style.display='none';
   $('quiz-play').style.display='';
@@ -3400,14 +3409,21 @@ function startQuizPlay(){
   updateOuts();clearBases();updateRuns();
   cq=null;nextQ();
 }
-// フリーバッティングの広告ゲート（広告を見て続ける or プレミアム or やめる）
-function showFbGate(){ const ov=$('noplay-overlay'); if(ov) ov.classList.add('show'); }
+// フリーバッティングの広告ゲート（広告を見て続ける/始める or プレミアム or やめる）
+function showFbGate(){
+  const start=(_fbAwait==='start');
+  const t=$('np-title'); if(t) t.textContent=start?'今日はもうひと勝負！':'ここまでナイスバッティング！';
+  const s=$('np-sub');   if(s) s.textContent=start?'広告を見れば、また始められます。':'広告を見れば、続けてあそべます。';
+  const b=$('np-ad-btn');if(b) b.textContent=start?'🎬 広告を見て 始める':'🎬 広告を見て 続ける';
+  const ov=$('noplay-overlay'); if(ov) ov.classList.add('show');
+}
 function closeNoPlay(){ const ov=$('noplay-overlay'); if(ov) ov.classList.remove('show'); }
 function watchAdForPlay(){
   closeNoPlay();
-  showAd(()=>{ fbGateAt=quizAsked+3; nextQ(); }); // 広告後は3問ごとに次のゲート
+  if(_fbAwait==='start'){ _fbAwait='next'; showAd(()=>_fbBegin()); }               // 2回目以降の開始ゲート
+  else showAd(()=>{ fbGateAt=quizAsked+5; nextQ(); });                              // 広告後は5問ごとに次のゲート
 }
-function quitFbGate(){ closeNoPlay(); quizToMenu(); }
+function quitFbGate(){ _fbAwait='next'; closeNoPlay(); quizToMenu(); }
 function resetSwing(){
   try{ sw.active=false; cancelAnimationFrame(sw.raf); }catch(e){}
   const ui=$('swing-ui'); if(ui) ui.style.display='none';
@@ -3933,8 +3949,8 @@ function dailyBonusFlash(points){
   const bn=$('quiz-flash-bonus');
   if(bn){
     bn.textContent='＋'+points+'点';
-    if(points>=5){ bn.style.background='#ffd23f'; bn.style.color='#1e1e2e'; } // 全問正解=金プレート＋濃紺文字
-    else { bn.style.background='#ff5a4e'; bn.style.color='#fff'; }            // 6〜9問=コーラルプレート＋白文字
+    if(points>=10){ bn.style.background='#ffd23f'; bn.style.color='#1e1e2e'; } // 全問正解=金プレート＋濃紺文字
+    else { bn.style.background='#ff5a4e'; bn.style.color='#fff'; }             // それ以外=コーラルプレート＋白文字
   }
   const mk=$('quiz-flash-mark'); if(mk) mk.textContent='';
   el.className='show ok char bonus';
@@ -4081,8 +4097,8 @@ function finishTurn(){
 // 「次の問題」ボタン：対戦でアウト後はスコアボードへ、それ以外は次問へ
 function quizNext(){
   if(versusActive && quizOuts>=outLimit()){ versusUserHalfDone(); return; }
-  // フリーバッティング: 5問目、以降3問ごとに広告ゲート（プレミアムはなし）
-  if(!versusActive && !isPremium() && quizAsked>=fbGateAt){ showFbGate(); return; }
+  // フリーバッティング: 5問目、以降5問ごとに広告ゲート（プレミアムはなし）
+  if(!versusActive && !isPremium() && quizAsked>=fbGateAt){ _fbAwait='next'; showFbGate(); return; }
   nextQ();
 }
 function showOutFx(){
@@ -4726,8 +4742,8 @@ function showDailyResult(){
   const correct=dailyState.ans.filter(a=>a===true).length;
   $('daily-result-score').textContent=correct+' / 10';
   track('daily_complete',{correct:correct}); // 今日の10問の正解数
-  // mark done（1日1回）＋正解数で総得点ボーナス（10問=+4 / 6〜9問=+2）
-  const bonus=correct===10?5:(correct>=6?3:0);
+  // mark done（1日1回）＋正解数で総得点ボーナス（全問=+10 / 6〜9問=+5）
+  const bonus=correct===10?10:(correct>=6?5:0);
   const today=todayStr();
   let done=JSON.parse(localStorage.getItem('mlb_daily_done')||'[]');
   let bonusMsg='';
