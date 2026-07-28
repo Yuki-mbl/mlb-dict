@@ -3099,7 +3099,7 @@ function rosterPool(){
 }
 function todayField(){
   const key='mlb_field_'+todayStr();
-  try{ const c=JSON.parse(localStorage.getItem(key)); if(c&&c.names&&c.names.length>=40&&c.finals&&c.finals.length>=250&&c.personas&&c.personas.length>=250&&c.N>=250) return c; }catch(e){}
+  try{ const c=JSON.parse(localStorage.getItem(key)); if(c&&c.names&&c.N>=250&&c.names.length>=c.N&&c.finals&&c.finals.length>=250&&c.personas&&c.personas.length>=250) return c; }catch(e){}
   const wknd=(function(){const g=new Date().getDay(); return g===0||g===6;})();
   const N=290+Math.floor(Math.random()*111);     // 全体 290〜400人（この時間帯でも大勢が参加している設定）
   const p=1.7+Math.random()*0.8;                 // 落ち方の急さ（日替わり 1.7〜2.5）
@@ -3132,9 +3132,22 @@ function todayField(){
   if(surg.length>2) surg=surg.slice(0,2);
   // 上位ランクは常連＋伏兵で埋め、残りは日替わりのランダム名。伏兵は出た日はトップ寄りに
   const topNames=shuf(surg).concat(shuf(regs));
-  const names=[];  // 表示は上位20人なので、名前は上位40人分だけ用意（ドラマで沈む人がいても表示は名前付きに収まる）
-  topNames.forEach(n=>{ if(names.length<40 && !used[n]){ used[n]=1; names.push(n); } });
-  while(names.length<40){ let nm='ライバル'; for(let k=0;k<30;k++){const c=genNickname(''); if(c&&!used[c]){nm=c;used[c]=1;break;}} names.push(nm); }
+  const names=[];  // 全N人分に本物のニックネームを用意（「選手47」等の番号名は廃止）
+  topNames.forEach(n=>{ if(names.length<N && !used[n]){ used[n]=1; names.push(n); } });
+  while(names.length<N){
+    let nm='';
+    for(let k=0;k<30;k++){ const c=genNickname(''); if(c&&!used[c]){ nm=c; break; } }
+    if(!nm){
+      // 生成が尽きたら番号ではなく「2代目○○」「○○Jr.」で別人感を出す
+      for(let k=0;k<30 && !nm;k++){
+        const b=genNickname(''); if(!b) continue;
+        const v=(Math.random()<0.5)?('2代目'+b):(b+'Jr.');
+        if(!used[v]) nm=v;
+      }
+      if(!nm) nm='ライバル'+(names.length+1);
+    }
+    used[nm]=1; names.push(nm);
+  }
   // 生活パターンを全N人に割り当て（各人が時刻ごとに違う伸び方＝毎分の順位が自然に動く）
   const personas=[]; while(personas.length<N){ const b=PERSONA_ORDER.slice(); for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];} personas.push(...b); } personas.length=N;
   // 日替わりの順位ドラマ（closer=夜の追い込み / dawn=0時からの早朝リーダー / late系=競り合い）
@@ -3210,7 +3223,7 @@ function renderStats(){
   const avgP=(cumFrac(PERSONAS.steady.w,h)+cumFrac(PERSONAS.commuter.w,h)+cumFrac(PERSONAS.evening.w,h)+cumFrac(PERSONAS.meal.w,h))/4;
   // 全ライバル（N人）の現時点スコアを算出。上位20人を表示し、あなたの順位も同じ分布から出す（矛盾なし）
   const NF=f.finals.length;
-  const rivals=[]; for(let r=1;r<=NF;r++) rivals.push({name:(f.names[r-1]||('選手'+r)),score:liveScoreForRank(r,f,h),me:false});
+  const rivals=[]; for(let r=1;r<=NF;r++) rivals.push({name:(f.names[r-1]||('ライバル'+r)),score:liveScoreForRank(r,f,h),me:false});
   // 終盤（夜〜終了間際）はユーザーを最高2位までに。duelは上位2人をキープ（最高3位）
   if(avgP>=0.8 && us>0){
     const keep=(f.dtype==='duel')?2:1;
