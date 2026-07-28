@@ -6067,7 +6067,11 @@ function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalend
 function addToReview(type,idx){
   let review=JSON.parse(localStorage.getItem('mlb_review')||'[]');
   const exists=review.some(r=>r.type===type&&r.idx===idx);
-  if(!exists){review.unshift({type,idx});localStorage.setItem('mlb_review',JSON.stringify(review));}
+  if(!exists){
+    review.unshift({type,idx});
+    if(review.length>50) review.length=50; // 上限50件。あふれたら古いものから消える
+    localStorage.setItem('mlb_review',JSON.stringify(review));
+  }
 }
 function removeFromReview(type,idx){
   let review=JSON.parse(localStorage.getItem('mlb_review')||'[]');
