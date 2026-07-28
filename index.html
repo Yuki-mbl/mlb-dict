@@ -3645,9 +3645,26 @@ function restorePremium(){ alert('購入の復元はアプリ版（ストア連�
 // ── データの引き継ぎ（コード発行／復元） ──
 const DT_KEYS=['mlb_profile','mlb_runs','mlb_runs_today','mlb_streak','mlb_state','mlb_review','mlb_favs',
   'mlb_daily_done','mlb_daily_state','mlb_daily_notif','mlb_vs_rec','mlb_premium','mlb_sfx'];
-function exportTransferCode(){
-  const o={}; DT_KEYS.forEach(k=>{ const v=localStorage.getItem(k); if(v!=null) o[k]=v; });
-  const code='MLB1.'+btoa(unescape(encodeURIComponent(JSON.stringify(o))));
+// base64url（コピー時に崩れにくい文字だけ使う）
+function _b64uEnc(u8){ let s=''; for(let i=0;i<u8.length;i++) s+=String.fromCharCode(u8[i]);
+  return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function _b64uDec(s){ s=s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s+='=';
+  const b=atob(s); const u=new Uint8Array(b.length); for(let i=0;i<b.length;i++) u[i]=b.charCodeAt(i); return u; }
+async function exportTransferCode(){
+  // MLB2: キーを番号に置き換え（DT_KEYSの並び順は変更禁止・追加は末尾のみ）＋deflate圧縮で短縮
+  const o={}; DT_KEYS.forEach((k,i)=>{ const v=localStorage.getItem(k); if(v!=null) o[i]=v; });
+  let code='';
+  try{
+    if(window.CompressionStream){
+      const cs=new CompressionStream('deflate-raw');
+      const buf=await new Response(new Blob([JSON.stringify(o)]).stream().pipeThrough(cs)).arrayBuffer();
+      code='MLB2.'+_b64uEnc(new Uint8Array(buf));
+    }
+  }catch(e){}
+  if(!code){ // 古い環境向けフォールバック（無圧縮）
+    const full={}; DT_KEYS.forEach(k=>{ const v=localStorage.getItem(k); if(v!=null) full[k]=v; });
+    code='MLB1.'+btoa(unescape(encodeURIComponent(JSON.stringify(full))));
+  }
   const ta=$('dt-code-out'); if(ta) ta.value=code;
   const d=$('dt-export'); if(d) d.style.display='';
 }
@@ -3660,16 +3677,24 @@ function copyTransferCode(){
   } else { try{ document.execCommand('copy'); done(); }catch(e){} }
 }
 function toggleImportUI(){ const d=$('dt-import'); if(d) d.style.display=(d.style.display==='none')?'':'none'; }
-function importTransferCode(){
+async function importTransferCode(){
   const msg=$('dt-import-msg'); if(!msg) return;
   try{
     const s=(($('dt-code-in')&&$('dt-code-in').value)||'').trim();
     if(!s){ msg.textContent='コードを貼り付けてください'; return; }
-    if(s.indexOf('MLB1.')!==0){ msg.textContent='コードの形式が違います（MLB1. で始まるコードです）'; return; }
-    const o=JSON.parse(decodeURIComponent(escape(atob(s.slice(5)))));
-    if(!o||typeof o!=='object') throw 0;
+    let kv=null;
+    if(s.indexOf('MLB2.')===0){
+      const ds=new DecompressionStream('deflate-raw');
+      const json=await new Response(new Blob([_b64uDec(s.slice(5))]).stream().pipeThrough(ds)).text();
+      const o=JSON.parse(json); if(!o||typeof o!=='object') throw 0;
+      kv={}; Object.keys(o).forEach(i=>{ const k=DT_KEYS[+i]; if(k) kv[k]=o[i]; });
+    } else if(s.indexOf('MLB1.')===0){
+      const o=JSON.parse(decodeURIComponent(escape(atob(s.slice(5)))));
+      if(!o||typeof o!=='object') throw 0;
+      kv={}; Object.keys(o).forEach(k=>{ if(k.indexOf('mlb_')===0) kv[k]=o[k]; });
+    } else { msg.textContent='コードの形式が違います（MLB2. または MLB1. で始まります）'; return; }
     if(!confirm('現在のデータを上書きして復元します。よろしいですか？')) return;
-    Object.keys(o).forEach(k=>{ if(k.indexOf('mlb_')===0) localStorage.setItem(k,o[k]); });
+    Object.keys(kv).forEach(k=>localStorage.setItem(k,kv[k]));
     msg.textContent='復元しました。再読み込みします…';
     setTimeout(()=>{ try{location.reload();}catch(e){} },700);
   }catch(e){ msg.textContent='コードを読み取れませんでした。コード全体がコピーできているか確認してください'; }
