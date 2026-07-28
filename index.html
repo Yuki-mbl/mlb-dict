@@ -2751,7 +2751,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if(typeof syncNotifToggle==='function') syncNotifToggle();
   if(typeof syncPremium==='function') syncPremium();
   if(typeof syncSfxToggle==='function') syncSfxToggle();
-  if(typeof loadSample==='function'){ loadSample('bat','sounds/bat.mp3?v=wood'); loadSample('cheer','sounds/cheer.mp3?v=1'); }
+  if(typeof loadSample==='function'){ loadSample('bat','sounds/bat.mp3?v=wood'); loadSample('cheer','sounds/cheer.mp3?v=1'); loadSample('woodbat','sounds/woodbat.mp3?v=1'); loadSample('mitt','sounds/mitt.mp3?v=1'); }
   initPullToRefresh();
   // 初回タッチでWeb Audioを起動（suspended解除＋無音再生）→ 以後の効果音が遅延なく鳴る
   const _unlockAudio=()=>{
@@ -3868,7 +3868,14 @@ function showFlash(ok,withChar){
 function pick(btn,ok,correct){
   if(ans) return;ans=true;
   // 音は最初に鳴らす（DOM更新より先＝タップと同時に聞こえる）
-  if(ok){ if(versusActive) sfxSelectOK(); else sfxForVal(1); } else { sfxWrong(); }
+  // フリーバッティング: 正解=木製バット音、不正解=ミット音（読み込めない環境では従来音）
+  if(ok){
+    if(versusActive) sfxSelectOK();
+    else if(_sfxOn && !playSample('woodbat',1)) sfxForVal(1);
+  } else {
+    if(versusActive){ sfxWrong(); }
+    else if(_sfxOn && !playSample('mitt',1)) sfxWrong();
+  }
   stopPitchClock();
   const st=qs[qMode];st.n++;if(ok) st.ok++;
   updateScores();
