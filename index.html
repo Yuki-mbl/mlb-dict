@@ -797,6 +797,14 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
 /* ── 設定: サポート等 ── */
 .settings-group-label{font-family:var(--ff-t);font-size:12px;font-weight:800;
   color:var(--c-muted);letter-spacing:.06em;padding:6px 6px 0}
+/* データの引き継ぎ */
+.dt-note{margin:10px 12px 4px;padding:10px 12px;background:var(--c-ng-bg);border:1.5px solid var(--c-border);
+  border-radius:var(--r-md);font-family:var(--ff-t);font-size:12.5px;line-height:1.6;color:var(--c-ink)}
+.dt-note b{color:var(--c-coral)}
+.dt-ta{display:block;width:calc(100% - 24px);margin:8px 12px;height:86px;padding:8px 10px;
+  border:2px solid var(--c-border);border-radius:var(--r-md);background:var(--c-parchment);
+  font-family:monospace;font-size:11px;color:var(--c-ink);resize:none;box-sizing:border-box}
+.dt-btn-row{margin:0 12px 12px}
 .settings-row-val{font-family:var(--ff-t);font-size:15px;color:var(--c-muted);font-variant-numeric:tabular-nums}
 .settings-link{display:flex;align-items:center;gap:12px;width:100%;
   padding:14px 16px;background:transparent;border:none;
@@ -1409,6 +1417,34 @@ body{font-family:var(--ff-t);font-size:17px;line-height:1.47;color:var(--c-ink);
           <svg class="sl-ic" viewBox="0 0 24 24" style="color:var(--c-primary)"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
           <span class="sl-txt">購入を復元</span><span class="sl-chev">›</span>
         </button>
+      </div>
+
+      <div class="settings-group-label">データの引き継ぎ</div>
+      <div class="settings-section">
+        <div class="dt-note">⚠️ 得点・ニックネームなどのデータは<b>この端末の中だけ</b>に保存されています。<b>アプリをアンインストールするとデータは消えます。</b>再インストールや機種変更の前に、必ず「引き継ぎコード」を発行して、メモアプリ等に保存してください。</div>
+        <div class="settings-row">
+          <div class="entry-text">
+            <div class="settings-row-label">引き継ぎコードを発行</div>
+            <div class="settings-row-sub">現在のデータを1つのコードにします</div>
+          </div>
+          <button class="reset-btn" onclick="exportTransferCode()">発行</button>
+        </div>
+        <div id="dt-export" style="display:none">
+          <textarea class="dt-ta" id="dt-code-out" readonly></textarea>
+          <div class="dt-btn-row"><button class="reset-btn" id="dt-copy-btn" onclick="copyTransferCode()">コードをコピー</button></div>
+        </div>
+        <div class="settings-row">
+          <div class="entry-text">
+            <div class="settings-row-label">コードを入力して復元</div>
+            <div class="settings-row-sub">保存しておいたコードでデータを戻します</div>
+          </div>
+          <button class="reset-btn" onclick="toggleImportUI()">入力</button>
+        </div>
+        <div id="dt-import" style="display:none">
+          <textarea class="dt-ta" id="dt-code-in" placeholder="ここに引き継ぎコードを貼り付け"></textarea>
+          <div class="dt-btn-row"><button class="reset-btn" onclick="importTransferCode()">復元する</button>
+          <div class="settings-row-sub" id="dt-import-msg" style="margin-top:6px"></div></div>
+        </div>
       </div>
 
       <div class="settings-group-label">通知</div>
@@ -3606,6 +3642,38 @@ function cancelPremium(){
   if(confirm('プレミアムを解除しますか？（テスト用）')){ localStorage.removeItem('mlb_premium'); syncPremium(); }
 }
 function restorePremium(){ alert('購入の復元はアプリ版（ストア連携後）でご利用いただけます。'); }
+// ── データの引き継ぎ（コード発行／復元） ──
+const DT_KEYS=['mlb_profile','mlb_runs','mlb_runs_today','mlb_streak','mlb_state','mlb_review','mlb_favs',
+  'mlb_daily_done','mlb_daily_state','mlb_daily_notif','mlb_vs_rec','mlb_premium','mlb_sfx'];
+function exportTransferCode(){
+  const o={}; DT_KEYS.forEach(k=>{ const v=localStorage.getItem(k); if(v!=null) o[k]=v; });
+  const code='MLB1.'+btoa(unescape(encodeURIComponent(JSON.stringify(o))));
+  const ta=$('dt-code-out'); if(ta) ta.value=code;
+  const d=$('dt-export'); if(d) d.style.display='';
+}
+function copyTransferCode(){
+  const ta=$('dt-code-out'); if(!ta||!ta.value) return;
+  const done=()=>{ const b=$('dt-copy-btn'); if(b){ b.textContent='コピーしました ✓'; setTimeout(()=>{b.textContent='コードをコピー';},1600); } };
+  try{ ta.focus(); ta.select(); ta.setSelectionRange(0,ta.value.length); }catch(e){}
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(ta.value).then(done).catch(()=>{ try{document.execCommand('copy');done();}catch(e){} });
+  } else { try{ document.execCommand('copy'); done(); }catch(e){} }
+}
+function toggleImportUI(){ const d=$('dt-import'); if(d) d.style.display=(d.style.display==='none')?'':'none'; }
+function importTransferCode(){
+  const msg=$('dt-import-msg'); if(!msg) return;
+  try{
+    const s=(($('dt-code-in')&&$('dt-code-in').value)||'').trim();
+    if(!s){ msg.textContent='コードを貼り付けてください'; return; }
+    if(s.indexOf('MLB1.')!==0){ msg.textContent='コードの形式が違います（MLB1. で始まるコードです）'; return; }
+    const o=JSON.parse(decodeURIComponent(escape(atob(s.slice(5)))));
+    if(!o||typeof o!=='object') throw 0;
+    if(!confirm('現在のデータを上書きして復元します。よろしいですか？')) return;
+    Object.keys(o).forEach(k=>{ if(k.indexOf('mlb_')===0) localStorage.setItem(k,o[k]); });
+    msg.textContent='復元しました。再読み込みします…';
+    setTimeout(()=>{ try{location.reload();}catch(e){} },700);
+  }catch(e){ msg.textContent='コードを読み取れませんでした。コード全体がコピーできているか確認してください'; }
+}
 function syncPremium(){
   const st=$('premium-status'), row=$('premium-actions');
   const on=isPremium();
