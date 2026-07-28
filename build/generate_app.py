@@ -6114,9 +6114,10 @@ function renderReviewList(){
     if(r.idx>=arr.length) return;
     const entry=arr[r.idx];
     const head=r.type==='ej'?entry.en:entry.ja;
-    // プレビュー行は例文・参照（e.g./cf.）を除いた説明だけにする（開いた詳細では全文表示）
+    // プレビュー行は開いた詳細と同じ説明（拡充short優先）。無ければ元データから例文・参照（e.g./cf.）を除いて表示
     // 意味が複数ある項目は改行区切りなので、各行内の e.g./cf. 以降だけを落とす
-    const sub=((r.type==='ej'?entry.ja:entry.en)||'').replace(/\s*e\.g\.[^\n]*/gi,'').replace(/\s*cf\.[^\n]*/gi,'').replace(/[：:，,、\s]+(?=\n|$)/g,'').trim();
+    const _raw=(r.type==='ej'?(entry.short||entry.ja):entry.en)||'';
+    const sub=_raw.replace(/\s*e\.g\.[^\n]*/gi,'').replace(/\s*cf\.[^\n]*/gi,'').replace(/[：:，,、\s]+(?=\n|$)/g,'').trim();
     const item=document.createElement('div');
     item.className='review-item';
     item.innerHTML=`
